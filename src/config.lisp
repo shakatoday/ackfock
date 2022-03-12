@@ -20,10 +20,14 @@
 (defparameter *template-directory* (merge-pathnames #P"templates/" *application-root*))
 
 (defconfig :common
-  `(:databases ((:maindb :sqlite3 :database-name ":memory:"))))
+    '(:debug T
+      :databases
+      ((:maindb :postgres :database-name "ackfock" :username "ackfock"))))
 
 (defconfig |development|
-  '())
+    '(:debug T
+      :databases
+      ((:maindb :postgres :database-name "ackfock" :username "ackfock"))))
 
 (defconfig |production|
   '())
