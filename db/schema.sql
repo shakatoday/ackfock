@@ -4,7 +4,7 @@ CREATE TYPE ackfock AS ENUM ('ack', 'fock');
 CREATE TABLE "public"."user" (
   uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR UNIQUE NOT NULL,
-  nickname VARCHAR UNIQUE NOT NULL,
+  username VARCHAR UNIQUE NOT NULL,
   password_salted VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
