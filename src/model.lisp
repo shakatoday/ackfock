@@ -13,7 +13,7 @@
                 (:has-a (source-user user)
                         (where (:= :uuid source-user-id)))
                 (:has-a (target-user user)
-                        (where (:= :uuid target-user-id))))
+                        (where (:= :uuid (or target-user-id :null)))))
   content
   source-user-id
   target-user-id
