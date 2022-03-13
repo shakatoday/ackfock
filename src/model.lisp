@@ -22,7 +22,8 @@
   target-user-ackfock
   created-at)
 
-(defun signup (email username password)
+(defun new-user (email username password)
+  "Insert a new user into database and return an ACKFOCK.MODEL::USER instance"
   (with-connection (db)
     (retrieve-one 
      (insert-into :user
