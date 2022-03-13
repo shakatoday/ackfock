@@ -1,6 +1,7 @@
 (in-package :cl-user)
 (defpackage ackfock.model
-  (:use :cl :ackfock.db :datafly :sxql))
+  (:use :cl :ackfock.db :datafly :sxql)
+  (:export #:signup))
 (in-package :ackfock.model)
 
 (defmodel (user (:inflate created-at #'datetime-to-timestamp))
@@ -20,3 +21,13 @@
   source-user-ackfock
   target-user-ackfock
   created-at)
+
+(defun signup (email username password)
+  (with-connection (db)
+    (retrieve-one 
+     (insert-into :user
+       (set= :email email
+             :username username
+             :password_salted (cl-pass:hash password))
+       (returning :*))
+     :as 'user)))

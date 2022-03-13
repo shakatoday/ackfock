@@ -17,7 +17,10 @@
 
                ;; for DB
                "datafly"
-               "sxql")
+               "sxql"
+
+               ;; password hashing and verification library
+               "cl-pass")
   :components ((:module "src"
                 :components
                 ((:file "main" :depends-on ("config" "view" "db"))
