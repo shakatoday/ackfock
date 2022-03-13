@@ -1,7 +1,8 @@
 (in-package :cl-user)
 (defpackage ackfock.model
   (:use :cl :ackfock.db :datafly :sxql)
-  (:export #:signup))
+  (:export #:new-user
+           #:memos-by-source-user))
 (in-package :ackfock.model)
 
 (defmodel (user (:inflate created-at #'datetime-to-timestamp))
