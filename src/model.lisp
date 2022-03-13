@@ -2,8 +2,10 @@
 (defpackage ackfock.model
   (:use :cl :ackfock.db :datafly :sxql)
   (:export #:new-user
-           #:memos-by-source-user))
+           #:user-memos))
 (in-package :ackfock.model)
+
+(defconstant +DUMMY-UUID+ "A2543078-7D5B-4F40-B6FD-DBC58E863752")
 
 (defmodel (user (:inflate created-at #'datetime-to-timestamp))
   uuid
@@ -34,12 +36,18 @@
        (returning :*))
      :as 'user)))
 
-(defmethod memos-by-source-user ((source-user user) &key (limit 20) (offset 0))
+(defmethod user-memos ((user user) &key (as-source-user t) as-target-user (limit 20) (offset 0))
   (with-connection (db)
     (retrieve-all
      (select :*
        (from :memo)
-       (where (:= :source_user_id (user-uuid source-user)))
+       (where (:or (:= :source_user_id (case as-source-user
+                                         ((t) (user-uuid user))
+                                         ((nil) +DUMMY-UUID+))) ; for uuid type consistency in postgresql
+                   (:= :target_user_id (case as-target-user
+                                         ((t) (user-uuid user))
+                                         ((nil) +DUMMY-UUID+))))) ; for uuid type consistency in postgresql
+       (order-by (:desc :updated_at))
        (limit limit)
        (offset offset))
      :as 'memo)))
