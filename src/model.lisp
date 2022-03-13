@@ -32,3 +32,13 @@
              :password_salted (cl-pass:hash password))
        (returning :*))
      :as 'user)))
+
+(defmethod memos-by-source-user ((source-user user) &key (limit 20) (offset 0))
+  (with-connection (db)
+    (retrieve-all
+     (select :*
+       (from :memo)
+       (where (:= :source_user_id (user-uuid source-user)))
+       (limit limit)
+       (offset offset))
+     :as 'memo)))
