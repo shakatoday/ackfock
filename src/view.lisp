@@ -13,8 +13,10 @@
                 :*djula-execute-package*)
   (:import-from :datafly
                 :encode-json)
-  (:export :render
-           :render-json))
+  (:export #:render
+           #:render-json
+           #:with-page
+           #:login-page))
 (in-package :ackfock.view)
 
 (djula:add-template-directory *template-directory*)
@@ -34,6 +36,32 @@
   (setf (getf (response-headers *response*) :content-type) "application/json")
   (encode-json object))
 
+(setf (cl-who:html-mode) :html5)
+
+(defmacro with-page ((&key title) &body body)
+  `(cl-who:with-html-output-to-string
+       (*standard-output* nil :indent t)
+     (:html
+      (:head
+       (:meta :charset "utf-8")
+       (:title ,title))
+      (:body
+       (:form :action "/logout" :method "post"
+              (:input :type "submit" :value "Logout"))
+       ,@body))))
+
+(defun login-page (&optional message)
+  (with-page (:title "Login")
+    (:h1 "Login")
+    (when message
+      (cl-who:htm
+       (:p (cl-who:fmt "~a" message))))
+    (:form :action "/login" :method "post"
+           (:p "Email" (:br)
+               (:input :type "text" :name "email"))
+           (:p "Password" (:br)
+               (:input :type "password" :name "password"))
+           (:p (:input :type "submit" :value "Login")))))
 
 ;;
 ;; Execute package definition

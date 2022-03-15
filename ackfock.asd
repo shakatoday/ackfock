@@ -14,6 +14,7 @@
 
                ;; HTML Template
                "djula"
+               "cl-who"
 
                ;; for DB
                "datafly"
