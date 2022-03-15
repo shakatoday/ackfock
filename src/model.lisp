@@ -2,7 +2,8 @@
 (defpackage ackfock.model
   (:use :cl :ackfock.db :datafly :sxql)
   (:export #:new-user
-           #:user-memos))
+           #:user-memos
+           #:authenticate))
 (in-package :ackfock.model)
 
 (defconstant +DUMMY-UUID+ "A2543078-7D5B-4F40-B6FD-DBC58E863752")
@@ -63,3 +64,14 @@
        (limit limit)
        (offset offset))
      :as 'memo)))
+
+(defun-with-db-connection authenticate (email password)
+  (let ((user-data (retrieve-one
+                    (select :*
+                      (from :user)
+                      (where (:= :email email))))))
+    (and user-data
+         (cl-pass:check-password password
+                                 (getf user-data :password-salted))
+         (apply #'make-user
+                user-data))))
