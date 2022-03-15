@@ -25,7 +25,6 @@
   target-user-ackfock
   created-at)
 
-(defun new-user (email username password)
 (defmacro defun-with-db-connection (name lambda-list &body body)
   "Define a function by DEFUN and put the BODY inside (WITH-CONNECTION (DB)). Doc-string will be safely processed."
   (let* ((doc-string-list (when (and (stringp (first body))
@@ -39,15 +38,15 @@
        (with-connection (db)
          ,@body))))
 
+(defun-with-db-connection new-user (email username password)
   "Insert a new user into database and return an ACKFOCK.MODEL::USER instance"
-  (with-connection (db)
-    (retrieve-one 
-     (insert-into :user
-       (set= :email email
-             :username username
-             :password_salted (cl-pass:hash password))
-       (returning :*))
-     :as 'user)))
+  (retrieve-one 
+   (insert-into :user
+     (set= :email email
+           :username username
+           :password_salted (cl-pass:hash password))
+     (returning :*))
+   :as 'user))
 
 (defmethod user-memos ((user user) &key (as-source-user t) as-target-user (limit 20) (offset 0))
   (with-connection (db)
