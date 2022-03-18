@@ -30,7 +30,7 @@
 
 (setf (cl-who:html-mode) :html5)
 
-(defmacro with-page ((&key title) &body body)
+(defmacro with-page ((&key title with-logout-button) &body body)
   `(cl-who:with-html-output-to-string
        (*standard-output* nil :indent t)
      (:html
@@ -38,8 +38,9 @@
        (:meta :charset "utf-8")
        (:title ,title))
       (:body
-       (:form :action "/logout" :method "post"
-              (:input :type "submit" :value "Logout"))
+       ,@(when with-logout-button
+           '((:form :action "/logout" :method "post"
+              (:input :type "submit" :value "Logout"))))
        ,@body))))
 
 (defun login-page (&optional message)
@@ -80,7 +81,7 @@
                                "")))))
 
 (defun home-page (current-user &optional message)
-  (with-page (:title "My Memos")
+  (with-page (:title "My Memos" :with-logout-button t)
     (:h1 "My Memos")
     (when message
       (cl-who:htm
