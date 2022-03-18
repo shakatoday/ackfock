@@ -66,20 +66,18 @@
 
 (defmethod render ((memo ackfock.model:memo) &optional env)
   (declare (ignore env))
-  (cl-who:with-html-output-to-string
-      (*standard-output* nil :indent t)
-    (:div :class "memo"
-          (:ul
-           (:li
-            (when (ackfock.model:memo-target-user-id memo)
-              (cl-who:htm
-               (:li (:p "with user" (:br)
-                        (cl-who:str (ackfock.model:user-email (ackfock.model:memo-target-user memo))))))))
-           (:li (:p (cl-who:str (ackfock.model:memo-content memo))))
-           (:li (:p (cl-who:str (or (ackfock.model:memo-source-user-ackfock memo)
-                                    ""))))
-           (:li (:p (cl-who:str (or (ackfock.model:memo-target-user-ackfock memo)
-                                    ""))))))))
+  (macrolet ((data-row (form)
+               `(cl-who:with-html-output-to-string
+                    (*standard-output* nil :indent t)
+                  (:td (:p (cl-who:str ,form))))))
+    (concatenate 'string
+                 (data-row (ackfock.model:memo-content memo))
+                 (data-row (cond ((null (ackfock.model:memo-target-user-id memo)) "")
+                                 (t (ackfock.model:user-email (ackfock.model:memo-target-user memo)))))
+                 (data-row (or (ackfock.model:memo-source-user-ackfock memo)
+                               ""))
+                 (data-row (or (ackfock.model:memo-target-user-ackfock memo)
+                               "")))))
 
 (defun home-page (current-user &optional message)
   (with-page (:title "My Memos")
@@ -92,8 +90,12 @@
            (:p "Content" (:br)
                (:input :type "text" :name "content"))
            (:p (:input :type "submit" :value "Add Memo")))
-    (dolist (memo (ackfock.model:user-memos current-user))
-      (cl-who:str (render memo)))))
+    (:table (:tr (:th "|_____Memo______|")
+                 (:th "____with_________|")
+                 (:th "___I__ack?_______|")
+                 (:th "___he/she__ack?__|"))
+            (dolist (memo (ackfock.model:user-memos current-user))
+              (cl-who:htm (:tr (cl-who:str (render memo))))))))
 
 ;;
 ;; Execute package definition
