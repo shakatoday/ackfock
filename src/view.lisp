@@ -55,7 +55,7 @@
     (:h1 "Login")
     (when message
       (cl-who:htm
-       (:p (cl-who:fmt "~a" message))))
+       (:p (cl-who:str message))))
     (:form :action "/login" :method "post"
            (:p "Email" (:br)
                (:input :type "text" :name "email"))
