@@ -10,7 +10,8 @@
            #:memo-target-user
            #:memo-content
            #:memo-source-user-ackfock
-           #:memo-target-user-ackfock))
+           #:memo-target-user-ackfock
+           #:new-memo))
 (in-package :ackfock.model)
 
 (defconstant +DUMMY-UUID+ "A2543078-7D5B-4F40-B6FD-DBC58E863752")
@@ -79,3 +80,10 @@
                                  (getf user-data :password-salted))
          (apply #'make-user
                 user-data))))
+
+(defun-with-db-connection new-memo (user content)
+  (when (user-p user)
+    (execute
+     (insert-into :memo
+       (set= :source_user_id (user-uuid user)
+             :content content)))))
