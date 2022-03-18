@@ -40,6 +40,14 @@
   (setf (gethash :user *session*) nil)
   (redirect "/"))
 
+(defroute ("/add-memo" :method :POST) (&key _parsed)
+  (let ((current-user (gethash :user *session*))
+        (content (cdr (assoc "content" _parsed :test #'string=))))
+    (when (and current-user
+               content)
+      (new-memo current-user content))
+    (redirect "/")))
+
 ;;
 ;; Error pages
 
