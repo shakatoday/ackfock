@@ -22,14 +22,9 @@
 ;; Routing rules
 
 (defroute "/" ()
-  (let ((current-user (gethash :user *session*))
-        (memo-list))
+  (let ((current-user (print (gethash :user *session*))))
     (cond ((null current-user) (redirect "/login"))
-          (t (with-page (:title "My Memos")
-               (:h1 "My Memos"
-                    (dolist (memo (user-memos current-user) (reverse memo-list))
-                      (push memo memo-list))))))))
-                        
+          (t (home-page current-user)))))
 
 (defroute "/login" ()
   (login-page))
