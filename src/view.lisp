@@ -23,15 +23,6 @@
 
 (defparameter *template-registry* (make-hash-table :test 'equal))
 
-(defun render (template-path &optional env)
-  (let ((template (gethash template-path *template-registry*)))
-    (unless template
-      (setf template (djula:compile-template* (princ-to-string template-path)))
-      (setf (gethash template-path *template-registry*) template))
-    (apply #'djula:render-template*
-           template nil
-           env)))
-
 (defun render-json (object)
   (setf (getf (response-headers *response*) :content-type) "application/json")
   (encode-json object))
@@ -63,6 +54,14 @@
                (:input :type "password" :name "password"))
            (:p (:input :type "submit" :value "Login")))))
 
+(defmethod render ((template-path pathname) &optional env)
+  (let ((template (gethash template-path *template-registry*)))
+    (unless template
+      (setf template (djula:compile-template* (princ-to-string template-path)))
+      (setf (gethash template-path *template-registry*) template))
+    (apply #'djula:render-template*
+           template nil
+           env)))
 ;;
 ;; Execute package definition
 
