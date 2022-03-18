@@ -3,7 +3,14 @@
   (:use :cl :ackfock.db :datafly :sxql)
   (:export #:new-user
            #:user-memos
-           #:authenticate))
+           #:authenticate
+           #:user-email
+           #:memo
+           #:memo-target-user-id
+           #:memo-target-user
+           #:memo-content
+           #:memo-source-user-ackfock
+           #:memo-target-user-ackfock))
 (in-package :ackfock.model)
 
 (defconstant +DUMMY-UUID+ "A2543078-7D5B-4F40-B6FD-DBC58E863752")
