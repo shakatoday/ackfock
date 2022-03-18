@@ -35,15 +35,15 @@
   created-at)
 
 (defmacro defun-with-db-connection (name lambda-list &body body)
-  "Define a function by DEFUN and put the BODY inside (WITH-CONNECTION (DB)). Doc-string will be safely processed."
-  (let* ((doc-string-list (when (and (stringp (first body))
+  "Define a function by DEFUN and put the BODY inside (WITH-CONNECTION (DB)). Docstring will be safely processed."
+  (let* ((docstring-list (when (and (stringp (first body))
                                      (> (length body) 1))
                             (list (first body))))
-         (body (if (null doc-string-list)
+         (body (if (null docstring-list)
                    body
                    (subseq body 1))))
     `(defun ,name ,lambda-list
-       ,@doc-string-list
+       ,@docstring-list
        (with-connection (db)
          ,@body))))
 
