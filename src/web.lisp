@@ -34,11 +34,14 @@
         (password (cdr (assoc "password" _parsed :test #'string=))))
     (if (setf (gethash :user *session*) (authenticate email password))
         (redirect "/")
-        (login-page "Email or password incorrect"))))
+        (login-page :message "Email or password incorrect"))))
 
 (defroute ("/logout" :method :POST) ()
   (setf (gethash :user *session*) nil)
   (redirect "/"))
+
+(defroute "/sign-up" ()
+  (login-page :sign-up t))
 
 (defroute ("/add-memo" :method :POST) (&key _parsed)
   (let ((current-user (gethash :user *session*))

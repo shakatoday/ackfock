@@ -43,18 +43,28 @@
               (:input :type "submit" :value "Logout"))))
        ,@body))))
 
-(defun login-page (&optional message)
-  (with-page (:title "Login")
-    (:h1 "Login")
-    (when message
-      (cl-who:htm
-       (:p (cl-who:str message))))
-    (:form :action "/login" :method "post"
-           (:p "Email" (:br)
-               (:input :type "text" :name "email"))
-           (:p "Password" (:br)
-               (:input :type "password" :name "password"))
-           (:p (:input :type "submit" :value "Login")))))
+(defun login-page (&key message sign-up)
+  (flet ((sign-up-cond (form)
+           (cond ((null sign-up) "Login")
+                 (t form))))
+    (with-page (:title (sign-up-cond "Sign Up"))
+      (:h1 (cl-who:str (sign-up-cond "Sign Up")))
+      (when message
+        (cl-who:htm
+         (:p (cl-who:str message))))
+      (:form :action (cond ((null sign-up) "/login")
+                           (t "/sign-up"))
+             :method "post"
+             (:p "Email" (:br)
+                 (:input :type "text" :name "email"))
+             (:p "Password" (:br)
+                 (:input :type "password" :name "password"))
+             (when sign-up
+               (cl-who:htm
+                (:p "Confirm Password" (:br)
+                    (:input :type "password" :name "confirm_password"))))
+             (:p (:input :type "submit"
+                         :value (cl-who:str (sign-up-cond "Register"))))))))
 
 (defmethod render ((template-path pathname) &optional env)
   (let ((template (gethash template-path *template-registry*)))
