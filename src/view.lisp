@@ -16,7 +16,8 @@
   (:export #:render
            #:render-json
            #:with-page
-           #:login-page))
+           #:login-page
+           #:home-page))
 (in-package :ackfock.view)
 
 (djula:add-template-directory *template-directory*)
@@ -80,6 +81,19 @@
            (:li (:p (cl-who:str (or (ackfock.model:memo-target-user-ackfock memo)
                                     ""))))))))
 
+(defun home-page (current-user &optional message)
+  (with-page (:title "My Memos")
+    (:h1 "My Memos")
+    (when message
+      (cl-who:htm
+       (:p (cl-who:str message))))
+    (:form :action "/add-memo" :method "post"
+           (:h2 "Add Memo")
+           (:p "Content" (:br)
+               (:input :type "text" :name "content"))
+           (:p (:input :type "submit" :value "Add Memo")))
+    (dolist (memo (ackfock.model:user-memos current-user))
+      (cl-who:str (render memo)))))
 
 ;;
 ;; Execute package definition
