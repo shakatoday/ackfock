@@ -62,6 +62,22 @@
     (apply #'djula:render-template*
            template nil
            env)))
+
+(defmethod render ((memo ackfock.model:memo) &optional env)
+  (declare (ignore env))
+  ``(:div :class "memo"
+          (:ul
+           (:li
+            ,@(when (ackfock.model:memo-target-user-id memo)
+                (list (cl-who:htm
+                       (:li (:p "with user" (:br)
+                                (cl-who:str (ackfock.model:user-email (ackfock.model:memo-target-user memo)))))))))
+           (:li (:p (cl-who:str (ackfock.model:memo-content memo))))
+           (:li (:p (cl-who:str (or (ackfock.model:memo-source-user-ackfock memo)
+                                    ""))))
+           (:li (:p (cl-who:str (or (ackfock.model:memo-target-user-ackfock memo)
+                                    "")))))))
+
 ;;
 ;; Execute package definition
 
