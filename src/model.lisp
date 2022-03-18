@@ -56,19 +56,18 @@
      (returning :*))
    :as 'user))
 
-(defmethod user-memos ((user user) &key (as-source-user t) as-target-user (limit 20) (offset 0))
-  (with-connection (db)
-    (retrieve-all
-     (select :*
-       (from :memo)
-       (where (:or (:= :source_user_id (cond ((null as-source-user) +DUMMY-UUID+) ; for uuid type consistency in postgresql
-                                             (t (user-uuid user))))
-                   (:= :target_user_id (cond ((null as-target-user) +DUMMY-UUID+) ; for uuid type consistency in postgresql
-                                             (t (user-uuid user))))))
-       (order-by (:desc :updated_at))
-       (limit limit)
-       (offset offset))
-     :as 'memo)))
+(defun-with-db-connection user-memos (user &key (as-source-user t) as-target-user (limit 20) (offset 0))
+  (retrieve-all
+   (select :*
+     (from :memo)
+     (where (:or (:= :source_user_id (cond ((null as-source-user) +DUMMY-UUID+) ; for uuid type consistency in postgresql
+                                           (t (user-uuid user))))
+                 (:= :target_user_id (cond ((null as-target-user) +DUMMY-UUID+) ; for uuid type consistency in postgresql
+                                           (t (user-uuid user))))))
+     (order-by (:desc :updated_at))
+     (limit limit)
+     (offset offset))
+   :as 'memo))
 
 (defun-with-db-connection authenticate (email password)
   (let ((user-data (retrieve-one
