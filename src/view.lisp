@@ -44,27 +44,31 @@
        ,@body))))
 
 (defun login-page (&key message sign-up)
-  (flet ((sign-up-cond (form)
-           (cond ((null sign-up) "Login")
-                 (t form))))
-    (with-page (:title (sign-up-cond "Sign Up"))
-      (:h1 (cl-who:str (sign-up-cond "Sign Up")))
-      (when message
-        (cl-who:htm
-         (:p (cl-who:str message))))
-      (:form :action (cond ((null sign-up) "/login")
-                           (t "/sign-up"))
-             :method "post"
-             (:p "Email" (:br)
-                 (:input :type "text" :name "email"))
-             (:p "Password" (:br)
-                 (:input :type "password" :name "password"))
-             (when sign-up
-               (cl-who:htm
-                (:p "Confirm Password" (:br)
-                    (:input :type "password" :name "confirm_password"))))
-             (:p (:input :type "submit"
-                         :value (cl-who:str (sign-up-cond "Register"))))))))
+  (with-page (:title (if sign-up
+                         "Sign Up"
+                         "Login"))
+    (:h1 (cl-who:str (if sign-up
+                         "Sign Up"
+                         "Login")))
+    (when message
+      (cl-who:htm
+       (:p (cl-who:str message))))
+    (:form :action (if sign-up
+                       "/sign-up"
+                       "/login")
+           :method "post"
+           (:p "Email" (:br)
+               (:input :type "text" :name "email"))
+           (:p "Password" (:br)
+               (:input :type "password" :name "password"))
+           (when sign-up
+             (cl-who:htm
+              (:p "Confirm password" (:br)
+                  (:input :type "password" :name "confirm_password"))))
+           (:p (:input :type "submit"
+                       :value (if sign-up
+                                  "register"
+                                  "login"))))))
 
 (defmethod render ((template-path pathname) &optional env)
   (let ((template (gethash template-path *template-registry*)))
