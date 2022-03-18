@@ -22,8 +22,14 @@
 ;; Routing rules
 
 (defroute "/" ()
-  (print (gethash :user *session*))
-  (render #P"index.html"))
+  (let ((current-user (gethash :user *session*))
+        (memo-list))
+    (cond ((null current-user) (redirect "/login"))
+          (t (with-page (:title "My Memos")
+               (:h1 "My Memos"
+                    (dolist (memo (user-memos current-user) (reverse memo-list))
+                      (push memo memo-list))))))))
+                        
 
 (defroute "/login" ()
   (login-page))
@@ -38,8 +44,6 @@
 (defroute ("/logout" :method :POST) ()
   (setf (gethash :user *session*) nil)
   (redirect "/"))
-
-        
 
 ;;
 ;; Error pages
