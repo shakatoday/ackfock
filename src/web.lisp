@@ -48,10 +48,10 @@
   (let ((email (cdr (assoc "email" _parsed :test #'string=)))
         (username (cdr (assoc "username" _parsed :test #'string=)))
         (password (cdr (assoc "password" _parsed :test #'string=))))
-    (cond ((or (string= email "")
-               (string= username "")
-               (string= password "")) (login-page :message "Email, username, or password empty"
-                                                  :sign-up t))
+    (cond ((find t
+                 (list email username password)
+                 :key #'str:emptyp) (login-page :message "Email, username, or password empty"
+                                                :sign-up t))
           ((null (clavier:validate *email-validator*
                                    email)) (login-page :message "Not a valid email address"
                                                        :sign-up t))
