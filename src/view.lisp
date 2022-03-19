@@ -96,22 +96,24 @@
 
 (defun home-page (current-user &optional message)
   (with-page (:title "My Memos" :with-logout-button t)
-    (:h1 "My Memos")
-    (when message
-      (cl-who:htm
-       (:p (cl-who:str message))))
-    (:form :action "/add-memo" :method "post"
-           (:h2 "Add Memo")
-           (:p "Content" (:br)
-               (:input :type "text" :name "content"))
-           (:p (:input :type "submit" :value "Add Memo")))
+    (:h1 "Me")
+    (:p (cl-who:str (ackfock.model:user-email current-user)))
+    (:p (cl-who:str (ackfock.model:user-username current-user)))
+    (:h2 "My Memos")
     (:table (:tr (:th "|_____Memo______|")
                  (:th "____with_________|")
                  (:th "___I__ack?_______|")
                  (:th "___he/she__ack?__|"))
             (dolist (memo (ackfock.model:user-memos current-user))
-              (cl-who:htm (:tr (cl-who:str (render memo))))))))
-
+              (cl-who:htm (:tr (cl-who:str (render memo))))))
+    (when message
+      (cl-who:htm
+       (:p (cl-who:str message))))
+    (:form :action "/add-memo" :method "post"
+           (:h3 "Add Memo")
+           (:p "Content" (:br)
+               (:input :type "text" :name "content"))
+           (:p (:input :type "submit" :value "Add Memo")))))
 ;;
 ;; Execute package definition
 

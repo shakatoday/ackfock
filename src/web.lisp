@@ -22,7 +22,7 @@
 ;; Routing rules
 
 (defroute "/" ()
-  (let ((current-user (print (gethash :user *session*))))
+  (let ((current-user (gethash :user *session*)))
     (cond ((null current-user) (redirect "/login"))
           (t (home-page current-user)))))
 
