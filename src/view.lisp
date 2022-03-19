@@ -59,6 +59,10 @@
            :method "post"
            (:p "Email" (:br)
                (:input :type "text" :name "email"))
+           (when sign-up
+             (cl-who:htm
+              (:p "Username" (:br)
+                  (:input :type "text" :name "username"))))
            (:p "Password" (:br)
                (:input :type "password" :name "password"))
            (when sign-up
@@ -68,7 +72,10 @@
            (:p (:input :type "submit"
                        :value (if sign-up
                                   "register"
-                                  "login"))))))
+                                  "login")))
+           (if sign-up
+               (cl-who:htm (:a :href "/login" "Login page "))
+               (cl-who:htm (:a :href "/sign-up" "Sign-up page"))))))
 
 (defmethod render ((template-path pathname) &optional env)
   (let ((template (gethash template-path *template-registry*)))

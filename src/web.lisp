@@ -18,6 +18,7 @@
 (defvar *web* (make-instance '<web>))
 (clear-routing-rules *web*)
 
+(defvar *email-validator* (make-instance 'clavier:email-validator))
 ;;
 ;; Routing rules
 
@@ -42,6 +43,21 @@
 
 (defroute "/sign-up" ()
   (login-page :sign-up t))
+
+(defroute ("/sign-up" :method :POST) (&key _parsed)
+  (let ((email (cdr (assoc "email" _parsed :test #'string=)))
+        (username (cdr (assoc "username" _parsed :test #'string=)))
+        (password (cdr (assoc "password" _parsed :test #'string=))))
+    (cond ((or (string= email "")
+               (string= username "")
+               (string= password "")) (login-page :message "Email, username, or password empty"
+                                                  :sign-up t))
+          ((null (clavier:validate *email-validator*
+                                   email)) (login-page :message "Not a valid email address"
+                                                       :sign-up t))
+          (t (setf (gethash :user *session*)
+                   (new-user email username password))
+             (redirect "/")))))
 
 (defroute ("/add-memo" :method :POST) (&key _parsed)
   (let ((current-user (gethash :user *session*))

@@ -21,7 +21,10 @@
                "sxql"
 
                ;; password hashing and verification library
-               "cl-pass")
+               "cl-pass"
+
+               ;; email and more validators
+               "clavier")
   :components ((:module "src"
                 :components
                 ((:file "main" :depends-on ("config" "view" "db"))
