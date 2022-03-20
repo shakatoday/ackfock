@@ -9,6 +9,7 @@
                "cl-ppcre"
                "uiop"
                "str"
+               "alexandria"
 
                ;; for @route annotation
                "cl-syntax-annot"

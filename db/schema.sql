@@ -1,5 +1,5 @@
 
-CREATE TYPE ackfock AS ENUM ('ack', 'fock');
+CREATE TYPE ackfock AS ENUM ('ACK', 'FOCK');
 
 CREATE TABLE "public"."user" (
   uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
