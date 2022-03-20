@@ -104,3 +104,11 @@
      (insert-into :memo
        (set= :source_user_id (user-uuid user)
              :content content)))))
+
+(defun-with-db-connection ackfock-memo (current-user memo-uuid source-user-ackfock)
+  (unless (str:emptyp source-user-ackfock)
+    (execute
+     (update :memo
+       (set= :source_user_ackfock source-user-ackfock)
+       (where (:and (:= :uuid memo-uuid)
+                    (:= :source_user_id current-user)))))))
