@@ -3,7 +3,7 @@
   (:use :cl
         :caveman2
         :ackfock.config
-        :ackfock.view
+        :ackfock.page
         :ackfock.model)
   (:export :*web*))
 (in-package :ackfock.web)
