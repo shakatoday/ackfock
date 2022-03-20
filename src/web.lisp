@@ -63,7 +63,7 @@
   (let ((current-user (gethash :user *session*))
         (content (cdr (assoc "content" _parsed :test #'string=))))
     (when (and current-user
-               content)
+               (not (str:emptyp content)))
       (new-memo current-user content))
     (redirect "/")))
 
