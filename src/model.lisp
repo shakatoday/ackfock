@@ -43,6 +43,7 @@
                         (where (:= :uuid source-user-id)))
                 (:has-a (target-user user)
                         (where (:= :uuid (or target-user-id :null)))))
+  uuid
   content
   source-user-id
   target-user-id

@@ -11,6 +11,7 @@ CREATE TABLE "public"."user" (
 );
 
 CREATE TABLE "public"."memo" (
+  uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   source_user_id UUID NOT NULL REFERENCES "public"."user" (uuid),
   target_user_id UUID REFERENCES "public"."user" (UUID),
   CONTENT TEXT NOT NULL DEFAULT '',
