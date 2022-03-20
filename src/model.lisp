@@ -15,7 +15,10 @@
            #:new-memo))
 (in-package :ackfock.model)
 
-(defconstant +DUMMY-UUID+ "A2543078-7D5B-4F40-B6FD-DBC58E863752")
+(defconstant +DUMMY-UUID+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
+
+(defun dummy-uuid ()
+  (string +DUMMY-UUID+))
 
 (defmodel (user (:inflate created-at #'datetime-to-timestamp))
   uuid
@@ -62,9 +65,9 @@
   (retrieve-all
    (select :*
      (from :memo)
-     (where (:or (:= :source_user_id (cond ((null as-source-user) +DUMMY-UUID+) ; for uuid type consistency in postgresql
+     (where (:or (:= :source_user_id (cond ((null as-source-user) (dummy-uuid)) ; for uuid type consistency in postgresql
                                            (t (user-uuid user))))
-                 (:= :target_user_id (cond ((null as-target-user) +DUMMY-UUID+) ; for uuid type consistency in postgresql
+                 (:= :target_user_id (cond ((null as-target-user) (dummy-uuid)) ; for uuid type consistency in postgresql
                                            (t (user-uuid user))))))
      (order-by (:desc :updated_at))
      (limit limit)
