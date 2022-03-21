@@ -7,7 +7,7 @@
 
 (defmacro with-page ((&key title with-logout-button) &body body)
   `(cl-who:with-html-output-to-string
-       (*standard-output* nil :indent t)
+       (*standard-output* nil :prologue t :indent t)
      (:html
       (:head
        (:meta :charset "utf-8")

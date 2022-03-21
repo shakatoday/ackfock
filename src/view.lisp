@@ -41,7 +41,7 @@
   (flet ((data-row (form)
            (cl-who:with-html-output-to-string
                (*standard-output* nil :indent t)
-             (:td (:p (cl-who:str form))))))
+             (:td (cl-who:str form)))))
     (concatenate 'string
                  (data-row (ackfock.model:memo-content memo))
                  (data-row (cond ((null (ackfock.model:memo-target-user-id memo)) "")
