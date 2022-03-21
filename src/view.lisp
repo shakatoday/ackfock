@@ -38,18 +38,20 @@
 
 (defmethod render ((memo ackfock.model:memo) &optional env)
   (declare (ignore env))
-  (flet ((data-row (form)
-           (cl-who:with-html-output-to-string
-               (*standard-output* nil :indent t)
-             (:td (cl-who:str form)))))
-    (concatenate 'string
-                 (data-row (ackfock.model:memo-content memo))
-                 (data-row (cond ((null (ackfock.model:memo-target-user-id memo)) "")
-                                 (t (ackfock.model:user-email (ackfock.model:memo-target-user memo)))))
-                 (data-row (string (or (ackfock.model:memo-source-user-ackfock memo)
-                                       "")))
-                 (data-row (string (or (ackfock.model:memo-target-user-ackfock memo)
-                                       ""))))))
+  (cl-who:with-html-output-to-string
+      (*standard-output* nil :indent t)
+    (:tr
+     (:td (cl-who:str (ackfock.model:memo-content memo)))
+     (:td (cl-who:str (cond ((null (ackfock.model:memo-target-user-id memo)) "")
+                            (t (ackfock.model:user-email (ackfock.model:memo-target-user memo))))))
+     (:td (cl-who:str (string (or (ackfock.model:memo-source-user-ackfock memo) ; it's :ACK or :FOCK keyword, so we have to build a string from it
+                                  "")))
+          (:form :action "/ackfock-memo" :method "post"
+                 (:input :type "hidden" :name "uuid" :value (ackfock.model:memo-uuid memo))
+                 (:input :type "submit" :value "ACK")
+                 (:input :type "submit" :value "FOCK")))
+     (:td (cl-who:str (string (or (ackfock.model:memo-target-user-ackfock memo)
+                                  "")))))))
 
 ;;
 ;; Execute package definition
