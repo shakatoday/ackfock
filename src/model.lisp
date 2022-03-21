@@ -14,6 +14,7 @@
            #:memo-source-user-ackfock
            #:memo-target-user-ackfock
            #:new-memo
+           #:ackfock-memo
            #:*current-user*))
 (in-package :ackfock.model)
 
@@ -108,10 +109,11 @@
        (set= :source_user_id (user-uuid user)
              :content content)))))
 
-(defun-with-db-connection ackfock-memo (current-user memo-uuid source-user-ackfock)
-  (unless (str:emptyp source-user-ackfock)
+(defun-with-db-connection ackfock-memo (memo-uuid ackfock)
+  "Ackfock the memo with the given MEMO-UUID. This memo has to be owned by current user."
+  (unless (str:emptyp ackfock)
     (execute
      (update :memo
-       (set= :source_user_ackfock source-user-ackfock)
+       (set= :source_user_ackfock ackfock)
        (where (:and (:= :uuid memo-uuid)
-                    (:= :source_user_id current-user)))))))
+                    (:= :source_user_id (user-uuid *current-user*))))))))

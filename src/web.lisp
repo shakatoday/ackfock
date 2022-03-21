@@ -73,6 +73,15 @@
         (new-memo *current-user* content))))
   (redirect "/"))
 
+(defroute ("/ackfock-memo" :method :POST) (&key _parsed)
+  (with-authenticate-or-login-page
+    (let ((memo-uuid (cdr (assoc "uuid" _parsed :test #'string=)))
+          (ackfock (cdr (assoc "ackfock" _parsed :test #'string=))))
+      (unless (or (str:emptyp memo-uuid)
+                  (str:emptyp ackfock))
+        (ackfock-memo memo-uuid ackfock))))
+  (redirect "/"))
+
 ;;
 ;; Error pages
 

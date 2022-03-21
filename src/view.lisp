@@ -48,8 +48,8 @@
                                   "")))
           (:form :action "/ackfock-memo" :method "post"
                  (:input :type "hidden" :name "uuid" :value (ackfock.model:memo-uuid memo))
-                 (:input :type "submit" :value "ACK")
-                 (:input :type "submit" :value "FOCK")))
+                 (:button :type "submit" :name "ackfock" :value "ACK" "ACK")
+                 (:button :type "submit" :name "ackfock" :value "FOCK" "FOCK")))
      (:td (cl-who:str (string (or (ackfock.model:memo-target-user-ackfock memo)
                                   "")))))))
 
