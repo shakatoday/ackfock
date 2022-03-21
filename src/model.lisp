@@ -7,6 +7,7 @@
            #:user-email
            #:user-username
            #:memo
+           #:memo-uuid
            #:memo-target-user-id
            #:memo-target-user
            #:memo-content
