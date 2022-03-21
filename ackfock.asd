@@ -31,7 +31,7 @@
                 :components
                 ((:file "main" :depends-on ("config" "view" "db"))
                  (:file "web" :depends-on ("config" "page" "model"))
-                 (:file "page" :depends-on ("view"))
+                 (:file "page" :depends-on ("model" "view"))
                  (:file "view" :depends-on ("config" "model"))
                  (:file "model" :depends-on ("db"))
                  (:file "db" :depends-on ("config"))

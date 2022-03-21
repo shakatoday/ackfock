@@ -18,14 +18,21 @@
 (defvar *web* (make-instance '<web>))
 (clear-routing-rules *web*)
 
+;;
+;; Utilities
 (defvar *email-validator* (make-instance 'clavier:email-validator))
+
+(defmacro with-authenticate-or-login-page (&body body)
+  "Let *current-user* bound to current user as an ACKFOCK.MODEL:USER if authentication succeeds. Redirect to login page otherwise"
+  `(let ((*current-user* (gethash :user *session*)))
+     (cond ((null *current-user*) (redirect "/login"))
+           (t ,@body))))
 ;;
 ;; Routing rules
 
 (defroute "/" ()
-  (let ((current-user (gethash :user *session*)))
-    (cond ((null current-user) (redirect "/login"))
-          (t (home-page current-user)))))
+  (with-authenticate-or-login-page
+    (home-page)))
 
 (defroute "/login" ()
   (login-page))
@@ -60,12 +67,11 @@
              (redirect "/")))))
 
 (defroute ("/add-memo" :method :POST) (&key _parsed)
-  (let ((current-user (gethash :user *session*))
-        (content (cdr (assoc "content" _parsed :test #'string=))))
-    (when (and current-user
-               (not (str:emptyp content)))
-      (new-memo current-user content))
-    (redirect "/")))
+  (with-authenticate-or-login-page
+    (let ((content (cdr (assoc "content" _parsed :test #'string=))))
+      (unless (str:emptyp content)
+        (new-memo *current-user* content))))
+  (redirect "/"))
 
 ;;
 ;; Error pages

@@ -1,6 +1,11 @@
 (in-package :cl-user)
 (defpackage ackfock.page
   (:use :cl :ackfock.view)
+  (:import-from :ackfock.model
+                #:user-email
+                #:user-username
+                #:user-memos
+                #:*current-user*)
   (:export #:login-page
            #:home-page))
 (in-package :ackfock.page)
@@ -52,11 +57,11 @@
                (cl-who:htm (:a :href "/login" "Login page "))
                (cl-who:htm (:a :href "/sign-up" "Sign-up page"))))))
 
-(defun home-page (current-user &optional message)
+(defun home-page (&optional message)
   (with-page (:title "My Memos" :with-logout-button t)
     (:h1 "Me")
-    (:p (cl-who:str (ackfock.model:user-email current-user)))
-    (:p (cl-who:str (ackfock.model:user-username current-user)))
+    (:p (cl-who:str (user-email *current-user*)))
+    (:p (cl-who:str (user-username *current-user*)))
     (:h2 "My Memos")
     (:table (:tr (:th "|_____Memo______|")
                  (:th "____with_________|")

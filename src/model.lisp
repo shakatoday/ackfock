@@ -13,10 +13,12 @@
            #:memo-content
            #:memo-source-user-ackfock
            #:memo-target-user-ackfock
-           #:new-memo))
+           #:new-memo
+           #:*current-user*))
 (in-package :ackfock.model)
 
 (defconstant +DUMMY-UUID+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
+(defvar *current-user*)
 
 (defun dummy-uuid ()
   (string +DUMMY-UUID+))
