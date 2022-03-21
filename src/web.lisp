@@ -1,10 +1,9 @@
 (in-package :cl-user)
 (defpackage ackfock.web
-  (:use :cl
-        :caveman2
-        :ackfock.config
-        :ackfock.page
-        :ackfock.model)
+  (:use #:cl
+        #:caveman2
+        #:ackfock.config
+        #:ackfock.page)
   (:export :*web*))
 (in-package :ackfock.web)
 
@@ -23,9 +22,9 @@
 (defvar *email-validator* (make-instance 'clavier:email-validator))
 
 (defmacro with-authenticate-or-login-page (&body body)
-  "Let *current-user* bound to current user as an ACKFOCK.MODEL:USER if authentication succeeds. Redirect to login page otherwise"
-  `(let ((*current-user* (gethash :user *session*)))
-     (cond ((null *current-user*) (redirect "/login"))
+  "Let ACKFOCK.MODEL:*CURRENT-USER* bound to current user as an ACKFOCK.MODEL-DEFINITION:USER if authentication succeeds. Redirect to login page otherwise"
+  `(let ((ackfock.model:*current-user* (gethash :user *session*)))
+     (cond ((null ackfock.model:*current-user*) (redirect "/login"))
            (t ,@body))))
 ;;
 ;; Routing rules
@@ -40,7 +39,7 @@
 (defroute ("/login" :method :POST) (&key _parsed)
   (let ((email (cdr (assoc "email" _parsed :test #'string=)))
         (password (cdr (assoc "password" _parsed :test #'string=))))
-    (if (setf (gethash :user *session*) (authenticate email password))
+    (if (setf (gethash :user *session*) (ackfock.model:authenticate email password))
         (redirect "/")
         (login-page :message "Email or password incorrect"))))
 
@@ -63,14 +62,14 @@
                                    email)) (login-page :message "Not a valid email address"
                                                        :sign-up t))
           (t (setf (gethash :user *session*)
-                   (new-user email username password))
+                   (ackfock.model:new-user email username password))
              (redirect "/")))))
 
 (defroute ("/add-memo" :method :POST) (&key _parsed)
   (with-authenticate-or-login-page
     (let ((content (cdr (assoc "content" _parsed :test #'string=))))
       (unless (str:emptyp content)
-        (new-memo *current-user* content))))
+        (ackfock.model:new-memo ackfock.model:*current-user* content))))
   (redirect "/"))
 
 (defroute ("/ackfock-memo" :method :POST) (&key _parsed)
@@ -79,7 +78,7 @@
           (ackfock (cdr (assoc "ackfock" _parsed :test #'string=))))
       (unless (or (str:emptyp memo-uuid)
                   (str:emptyp ackfock))
-        (ackfock-memo memo-uuid ackfock))))
+        (ackfock.model:ackfock-memo memo-uuid ackfock))))
   (redirect "/"))
 
 ;;

@@ -1,18 +1,11 @@
 (in-package :cl-user)
 (defpackage ackfock.model
-  (:use :cl :ackfock.db :datafly :sxql)
+  (:use :cl :datafly :sxql :ackfock.model-definition)
+  (:import-from :ackfock.db
+                :defun-with-db-connection)
   (:export #:new-user
            #:user-memos
            #:authenticate
-           #:user-email
-           #:user-username
-           #:memo
-           #:memo-uuid
-           #:memo-target-user-id
-           #:memo-target-user
-           #:memo-content
-           #:memo-source-user-ackfock
-           #:memo-target-user-ackfock
            #:new-memo
            #:ackfock-memo
            #:*current-user*))
@@ -23,50 +16,6 @@
 
 (defun dummy-uuid ()
   (string +DUMMY-UUID+))
-
-(deftype ackfock () '(member :ACK :FOCK nil)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
-
-(defun string-to-ackfock (string)
-  "If the STRING is \"ACK\" or \"FOCK\", this function returns :ACK or :FOCK. All the other cases it returns nil"
-  (and (stringp string)
-       (member string
-               '("ACK" "FOCK")
-               :test #'string=)
-       (alexandria:make-keyword string)))
-
-(defmodel (user (:inflate created-at #'datetime-to-timestamp))
-  uuid
-  email
-  username
-  created-at)
-
-(defmodel (memo (:inflate created-at #'datetime-to-timestamp)
-                (:inflate source-user-ackfock #'string-to-ackfock)
-                (:inflate target-user-ackfock #'string-to-ackfock)
-                (:has-a (source-user user)
-                        (where (:= :uuid source-user-id)))
-                (:has-a (target-user user)
-                        (where (:= :uuid (or target-user-id :null)))))
-  uuid
-  content
-  source-user-id
-  target-user-id
-  (source-user-ackfock nil :type ackfock)
-  (target-user-ackfock nil :type ackfock)
-  created-at)
-
-(defmacro defun-with-db-connection (name lambda-list &body body)
-  "Define a function by DEFUN and put the BODY inside (WITH-CONNECTION (DB)). Docstring will be safely processed."
-  (let* ((docstring-list (when (and (stringp (first body))
-                                     (> (length body) 1))
-                            (list (first body))))
-         (body (if (null docstring-list)
-                   body
-                   (subseq body 1))))
-    `(defun ,name ,lambda-list
-       ,@docstring-list
-       (with-connection (db)
-         ,@body))))
 
 (defun-with-db-connection new-user (email username password)
   "Insert a new user into database and return an ACKFOCK.MODEL::USER instance"

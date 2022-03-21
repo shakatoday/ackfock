@@ -1,9 +1,10 @@
 (in-package :cl-user)
 (defpackage ackfock.page
   (:use :cl :ackfock.view)
-  (:import-from :ackfock.model
+  (:import-from :ackfock.model-definition
                 #:user-email
-                #:user-username
+                #:user-username)
+  (:import-from :ackfock.model
                 #:user-memos
                 #:*current-user*)
   (:export #:login-page
@@ -59,7 +60,7 @@
 
 (defun home-page (&optional message)
   (with-page (:title "My Memos" :with-logout-button t)
-    (:h1 "Me")
+    (:h1 "My Account")
     (:p (cl-who:str (user-email *current-user*)))
     (:p (cl-who:str (user-username *current-user*)))
     (:h2 "My Memos")
@@ -67,7 +68,7 @@
                  (:th "____with_________|")
                  (:th "___I__ack?_______|")
                  (:th "___he/she__ack?__|"))
-            (dolist (memo (user-memos *current-user*))
+            (dolist (memo (user-memos *current-user* :as-target-user t))
               (cl-who:str (render memo))))
     (when message
       (cl-who:htm

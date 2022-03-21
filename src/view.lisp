@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.view
-  (:use :cl)
+  (:use :cl :ackfock.model-definition)
   (:import-from :ackfock.config
                 :*template-directory*)
   (:import-from :caveman2
@@ -36,21 +36,21 @@
            template nil
            env)))
 
-(defmethod render ((memo ackfock.model:memo) &optional env)
+(defmethod render ((memo memo) &optional env)
   (declare (ignore env))
   (cl-who:with-html-output-to-string
       (*standard-output* nil :indent t)
     (:tr
-     (:td (cl-who:str (ackfock.model:memo-content memo)))
-     (:td (cl-who:str (cond ((null (ackfock.model:memo-target-user-id memo)) "")
-                            (t (ackfock.model:user-email (ackfock.model:memo-target-user memo))))))
-     (:td (cl-who:str (string (or (ackfock.model:memo-source-user-ackfock memo) ; it's :ACK or :FOCK keyword, so we have to build a string from it
+     (:td (cl-who:str (memo-content memo)))
+     (:td (cl-who:str (cond ((null (memo-target-user-id memo)) "")
+                            (t (user-email (memo-target-user memo))))))
+     (:td (cl-who:str (string (or (memo-source-user-ackfock memo) ; it's :ACK or :FOCK keyword, so we have to build a string from it
                                   "")))
           (:form :action "/ackfock-memo" :method "post"
-                 (:input :type "hidden" :name "uuid" :value (ackfock.model:memo-uuid memo))
+                 (:input :type "hidden" :name "uuid" :value (memo-uuid memo))
                  (:button :type "submit" :name "ackfock" :value "ACK" "ACK")
                  (:button :type "submit" :name "ackfock" :value "FOCK" "FOCK")))
-     (:td (cl-who:str (string (or (ackfock.model:memo-target-user-ackfock memo)
+     (:td (cl-who:str (string (or (memo-target-user-ackfock memo)
                                   "")))))))
 
 ;;
