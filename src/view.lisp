@@ -42,8 +42,13 @@
       (*standard-output* nil :indent t)
     (:tr
      (:td (cl-who:str (memo-content memo)))
-     (:td (cl-who:str (cond ((null (memo-target-user-id memo)) "")
-                            (t (user-email (memo-target-user memo))))))
+     (:td (cond ((null (memo-target-user-id memo)) (cl-who:htm
+                                                    (:form :action "/send-memo" :method "post"
+                                                           (:input :type "hidden" :name "uuid" :value (memo-uuid memo))
+                                                           (:input :type "email" :name "recipient")
+                                                           (:br)
+                                                           (:button :type "submit" "Send"))))
+                (t (user-email (memo-target-user memo)))))
      (:td (cl-who:str (string (or (memo-source-user-ackfock memo) ; it's :ACK or :FOCK keyword, so we have to build a string from it
                                   "")))
           (:form :action "/ackfock-memo" :method "post"
