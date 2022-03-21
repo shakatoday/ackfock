@@ -62,8 +62,8 @@
                  (:th "____with_________|")
                  (:th "___I__ack?_______|")
                  (:th "___he/she__ack?__|"))
-            (dolist (memo (ackfock.model:user-memos current-user))
-              (cl-who:htm (:tr (cl-who:str (render memo))))))
+            (dolist (memo (user-memos *current-user*))
+              (cl-who:str (render memo))))
     (when message
       (cl-who:htm
        (:p (cl-who:str message))))
