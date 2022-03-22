@@ -60,6 +60,9 @@
 
 (defun home-page (&optional message)
   (with-page (:title "My Memos" :with-logout-button t)
+    (when message
+      (cl-who:htm
+       (:p (cl-who:str message))))
     (:h1 "My Account")
     (:p (cl-who:str (user-email *current-user*)))
     (:p (cl-who:str (user-username *current-user*)))
@@ -70,9 +73,6 @@
                  (:th "___he/she__ack?__|"))
             (dolist (memo (user-memos *current-user* :as-target-user t))
               (cl-who:str (render memo))))
-    (when message
-      (cl-who:htm
-       (:p (cl-who:str message))))
     (:form :action "/add-memo" :method "post"
            (:h3 "Add Memo")
            (:p "Content" (:br)

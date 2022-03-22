@@ -2,13 +2,15 @@
 (defpackage ackfock.model
   (:use :cl :datafly :sxql :ackfock.model-definition)
   (:import-from :ackfock.db
-                :defun-with-db-connection)
+                #:defun-with-db-connection)
   (:export #:new-user
            #:user-memos
            #:authenticate
            #:new-memo
            #:ackfock-memo
-           #:*current-user*))
+           #:*current-user*
+           #:get-user-by-email
+           #:send-memo))
 (in-package :ackfock.model)
 
 (defconstant +DUMMY-UUID+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
@@ -60,9 +62,24 @@
 
 (defun-with-db-connection ackfock-memo (memo-uuid ackfock)
   "Ackfock the memo with the given MEMO-UUID. This memo has to be owned by current user."
-  (unless (str:emptyp ackfock)
+  (unless (or (str:emptyp ackfock) (null *current-user*))
     (execute
      (update :memo
        (set= :source_user_ackfock ackfock)
        (where (:and (:= :uuid memo-uuid)
-                    (:= :source_user_id (user-uuid *current-user*))))))))
+                    (:or (:= :source_user_id (user-uuid *current-user*))
+                         (:= :target_user_id (user-uuid *current-user*)))))))))
+
+(defun-with-db-connection send-memo (memo-uuid recipient)
+  (execute
+   (update :memo
+     (set= :target_user_id (user-uuid recipient))
+     (where (:and (:= :uuid memo-uuid)
+                  (:= :source_user_id (user-uuid *current-user*)))))))
+
+(defun-with-db-connection get-user-by-email (email)
+  (retrieve-one
+   (select :*
+     (from :user)
+     (where (:= :email email)))
+   :as 'user))

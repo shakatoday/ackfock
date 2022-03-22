@@ -1,7 +1,8 @@
 (in-package :cl-user)
 (defpackage ackfock.model-definition
-  (:use :cl :datafly :sxql)
-  (:export #:user-uuid
+  (:use :cl :ackfock.db :datafly :sxql)
+  (:export #:user
+           #:user-uuid
            #:user-email
            #:user-username
            #:user-p
@@ -34,9 +35,9 @@
 (defmodel (memo (:inflate created-at #'datetime-to-timestamp)
                 (:inflate source-user-ackfock #'string-to-ackfock)
                 (:inflate target-user-ackfock #'string-to-ackfock)
-                (:has-a (source-user user)
+                (:has-a (source-user-func user)
                         (where (:= :uuid source-user-id)))
-                (:has-a (target-user user)
+                (:has-a (target-user-func user)
                         (where (:= :uuid (or target-user-id :null)))))
   uuid
   content
@@ -45,3 +46,11 @@
   (source-user-ackfock nil :type ackfock)
   (target-user-ackfock nil :type ackfock)
   created-at)
+
+(defun memo-source-user (memo)
+  (with-connection (db)
+    (memo-source-user-func memo)))
+
+(defun memo-target-user (memo)
+  (with-connection (db)
+    (memo-target-user-func memo)))

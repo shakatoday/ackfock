@@ -31,7 +31,9 @@
 
 (defroute "/" ()
   (with-authenticate-or-login-page
-    (home-page)))
+    (apply #'home-page
+           (when (gethash :home-page-message *session*)
+             (print (list (pop (gethash :home-page-message *session*))))))))
 
 (defroute "/login" ()
   (login-page))
@@ -79,6 +81,16 @@
       (unless (or (str:emptyp memo-uuid)
                   (str:emptyp ackfock))
         (ackfock.model:ackfock-memo memo-uuid ackfock))))
+  (redirect "/"))
+
+;; TODO: solve race condition
+(defroute ("/send-memo" :method :POST) (&key _parsed)
+  (with-authenticate-or-login-page
+    (let ((memo-uuid (cdr (assoc "uuid" _parsed :test #'string=)))
+          (recipient (ackfock.model:get-user-by-email (cdr (assoc "recipient" _parsed :test #'string=)))))
+      (if recipient
+          (ackfock.model:send-memo memo-uuid recipient)
+          (push "NO SUCH USER" (gethash :home-page-message *session*)))))
   (redirect "/"))
 
 ;;

@@ -48,14 +48,14 @@
                                                            (:input :type "email" :name "recipient")
                                                            (:br)
                                                            (:button :type "submit" "Send"))))
-                (t (user-email (memo-target-user memo)))))
+                (t (cl-who:str (user-email (memo-target-user memo))))))
      (:td (cl-who:str (string (or (memo-source-user-ackfock memo) ; it's :ACK or :FOCK keyword, so we have to build a string from it
                                   "")))
           (:form :action "/ackfock-memo" :method "post"
                  (:input :type "hidden" :name "uuid" :value (memo-uuid memo))
                  (:button :type "submit" :name "ackfock" :value "ACK" "ACK")
                  (:button :type "submit" :name "ackfock" :value "FOCK" "FOCK")))
-     (:td (cl-who:str (string (or (memo-target-user-ackfock memo)
+     (:td (cl-who:str (string (or (memo-target-user-ackfock memo) ; it's :ACK or :FOCK keyword, so we have to build a string from it
                                   "")))))))
 
 ;;
