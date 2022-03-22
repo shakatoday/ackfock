@@ -9,7 +9,7 @@
            #:make-user
            #:memo
            #:memo-uuid
-           #:memo-target-user-id
+           #:memo-source-user
            #:memo-target-user
            #:memo-content
            #:memo-source-user-ackfock

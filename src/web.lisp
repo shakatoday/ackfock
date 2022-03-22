@@ -77,10 +77,13 @@
 (defroute ("/ackfock-memo" :method :POST) (&key _parsed)
   (with-authenticate-or-login-page
     (let ((memo-uuid (cdr (assoc "uuid" _parsed :test #'string=)))
-          (ackfock (cdr (assoc "ackfock" _parsed :test #'string=))))
+          (ackfock (cdr (assoc "ackfock" _parsed :test #'string=)))
+          (as-target-user-ackfock (and (assoc "as_target_user_ackfock" _parsed :test #'string=)
+                                       t)))
       (unless (or (str:emptyp memo-uuid)
                   (str:emptyp ackfock))
-        (ackfock.model:ackfock-memo memo-uuid ackfock))))
+        (ackfock.model:ackfock-memo memo-uuid ackfock
+                                    :as-target-user-ackfock as-target-user-ackfock))))
   (redirect "/"))
 
 ;; TODO: solve race condition
