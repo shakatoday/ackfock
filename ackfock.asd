@@ -32,7 +32,7 @@
                 ((:file "main" :depends-on ("config" "view" "db"))
                  (:file "web" :depends-on ("config" "page" "model"))
                  (:file "page" :depends-on ("model" "model-definition" "view"))
-                 (:file "view" :depends-on ("config" "model-definition"))
+                 (:file "view" :depends-on ("config" "model" "model-definition"))
                  (:file "model" :depends-on ("db" "model-definition"))
                  (:file "model-definition" :depends-on ("db"))
                  (:file "db" :depends-on ("config"))
