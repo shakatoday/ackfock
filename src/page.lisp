@@ -5,8 +5,7 @@
                 #:user-email
                 #:user-username)
   (:import-from :ackfock.model
-                #:user-memos
-                #:*current-user*)
+                #:user-memos)
   (:export #:login-page
            #:home-page))
 (in-package :ackfock.page)
@@ -64,14 +63,14 @@
       (cl-who:htm
        (:p (cl-who:str message))))
     (:h1 "My Account")
-    (:p (cl-who:str (user-email *current-user*)))
-    (:p (cl-who:str (user-username *current-user*)))
+    (:p (cl-who:str (user-email (ackfock.utils:current-user))))
+    (:p (cl-who:str (user-username (ackfock.utils:current-user))))
     (:h2 "My Memos")
     (:table (:tr (:th "|_____Memo______|")
                  (:th "____with_________|")
                  (:th "___I__ack?_______|")
                  (:th "___he/she__ack?__|"))
-            (dolist (memo (user-memos *current-user* :as-target-user t))
+            (dolist (memo (user-memos (ackfock.utils:current-user) :as-target-user t))
               (cl-who:str (render memo))))
     (:form :action "/add-memo" :method "post"
            (:h3 "Add Memo")

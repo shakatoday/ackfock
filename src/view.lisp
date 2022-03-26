@@ -13,8 +13,6 @@
                 :*djula-execute-package*)
   (:import-from :datafly
                 #:encode-json)
-  (:import-from :ackfock.model
-                #:*current-user*)
   (:export #:render
            #:render-json))
 (in-package :ackfock.view)
@@ -43,7 +41,7 @@
   (let* ((memo-target-user (memo-target-user memo))
          (current-user-is-target-user (and memo-target-user
                                            (string= (user-uuid memo-target-user)
-                                                    (user-uuid *current-user*)))))
+                                                    (user-uuid (ackfock.utils:current-user))))))
     (cl-who:with-html-output-to-string
         (*standard-output* nil :indent t)
       (:tr

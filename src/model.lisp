@@ -8,13 +8,11 @@
            #:authenticate
            #:new-memo
            #:ackfock-memo
-           #:*current-user*
            #:get-user-by-email
            #:send-memo))
 (in-package :ackfock.model)
 
 (defconstant +DUMMY-UUID+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
-(defvar *current-user*) ; where should this variable be?
 
 (defun dummy-uuid ()
   (string +DUMMY-UUID+))
@@ -62,7 +60,7 @@
 
 (defun-with-db-connection ackfock-memo (memo-uuid ackfock &key as-target-user-ackfock)
   "Ackfock the memo with the given MEMO-UUID. This memo has to be either created by current user or shared by the creator."
-  (unless (or (str:emptyp ackfock) (null *current-user*))
+  (unless (or (str:emptyp ackfock) (null (ackfock.utils:current-user)))
     (execute
      (update :memo
        (set= (if as-target-user-ackfock
@@ -70,15 +68,15 @@
                  :source_user_ackfock)
              ackfock)
        (where (:and (:= :uuid memo-uuid)
-                    (:or (:= :source_user_id (user-uuid *current-user*))
-                         (:= :target_user_id (user-uuid *current-user*)))))))))
+                    (:or (:= :source_user_id (user-uuid (ackfock.utils:current-user)))
+                         (:= :target_user_id (user-uuid (ackfock.utils:current-user))))))))))
 
 (defun-with-db-connection send-memo (memo-uuid recipient)
   (execute
    (update :memo
      (set= :target_user_id (user-uuid recipient))
      (where (:and (:= :uuid memo-uuid)
-                  (:= :source_user_id (user-uuid *current-user*)))))))
+                  (:= :source_user_id (user-uuid (ackfock.utils:current-user))))))))
 
 (defun-with-db-connection get-user-by-email (email)
   (retrieve-one
