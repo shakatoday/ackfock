@@ -16,6 +16,9 @@
      (:html
       (:head
        (:meta :charset "utf-8")
+       (:link :rel "stylesheet" :href "https://cdn.jsdelivr.net/npm/foundation-sites@6.7.4/dist/css/foundation.min.css" :crossorigin "anonymous")
+       (:link :rel "stylesheet" :href "/css/main.css")
+       (:script :src "https://cdn.jsdelivr.net/npm/foundation-sites@6.7.4/dist/js/foundation.min.js" :crossorigin "anonymous")
        (:title ,title))
       (:body
        ,@(when with-logout-button
