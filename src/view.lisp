@@ -51,7 +51,7 @@
                                                    (:input :type "hidden" :name "uuid" :value (memo-uuid memo))
                                                    (:input :type "email" :name "recipient")
                                                    (:br)
-                                                   (:button :type "submit" "Send"))))
+                                                   (:input :type "submit" :value "Send"))))
                   (current-user-is-target-user (cl-who:str (user-email (memo-source-user memo))))
                   (t (cl-who:str (user-email (memo-target-user memo))))))
        (:td (cl-who:str (string (or (if current-user-is-target-user 
@@ -62,8 +62,8 @@
                    (:input :type "hidden" :name "uuid" :value (memo-uuid memo))
                    (when current-user-is-target-user
                      (cl-who:htm (:input :type "hidden" :name "as_target_user_ackfock" :value "")))
-                   (:button :type "submit" :name "ackfock" :value "ACK" "ACK")
-                   (:button :type "submit" :name "ackfock" :value "FOCK" "FOCK")))
+                   (:input :type "submit" :name "ackfock" :value "ACK")
+                   (:input :type "submit" :name "ackfock" :value "FOCK")))
        (:td (cl-who:str (string (or (if current-user-is-target-user 
                                         (memo-source-user-ackfock memo) ; it's :ACK or :FOCK keyword, so we have to build a string from it
                                         (memo-target-user-ackfock memo))

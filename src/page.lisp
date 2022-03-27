@@ -10,7 +10,7 @@
            #:home-page))
 (in-package :ackfock.page)
 
-(defmacro with-page ((&key title with-logout-button) &body body)
+(defmacro with-page ((&key title) &body body)
   `(cl-who:with-html-output-to-string
        (*standard-output* nil :prologue t :indent t)
      (:html
@@ -21,9 +21,19 @@
        (:script :src "https://cdn.jsdelivr.net/npm/foundation-sites@6.7.4/dist/js/foundation.min.js" :crossorigin "anonymous")
        (:title ,title))
       (:body
-       ,@(when with-logout-button
-           '((:form :action "/logout" :method "post"
-              (:input :type "submit" :value "Logout"))))
+       (:nav :class "top-bar topbar-responsive" 
+             (:div :class "top-bar-title" 
+                   ;; (:span :data-responsive-toggle "topbar-responsive" :data-hide-for "medium" 
+                   ;;        (:button :class "menu-icon" :type "button" "data-toggle" ))
+                   (:a :class "topbar-responsive-logo" :href "#" (:strong "Ackfock")))
+             (:div :id "topbar-responsive" :class "topbar-responsive-links" 
+                   (:div :class "top-bar-right" 
+                         (:ul :class "menu simple vertical medium-horizontal" 
+                              (:li
+                               (when (ackfock.utils:current-user)
+                                 (cl-who:htm (:form :action "/logout" :method "post"
+                                                    (:button :type "submit"
+                                                             :class "button hollow topbar-responsive-button" "Logout")))))))))
        ,@body))))
 
 (defun login-page (&key message sign-up)
@@ -61,7 +71,7 @@
                (cl-who:htm (:a :href "/sign-up" "Sign-up page"))))))
 
 (defun home-page (&optional message)
-  (with-page (:title "My Memos" :with-logout-button t)
+  (with-page (:title "My Memos")
     (when message
       (cl-who:htm
        (:p (cl-who:str message))))
@@ -69,10 +79,10 @@
     (:p (cl-who:str (user-email (ackfock.utils:current-user))))
     (:p (cl-who:str (user-username (ackfock.utils:current-user))))
     (:h2 "My Memos")
-    (:table (:tr (:th "|_____Memo______|")
-                 (:th "____with_________|")
-                 (:th "___I__ack?_______|")
-                 (:th "___he/she__ack?__|"))
+    (:table (:tr (:th "Memo")
+                 (:th "with")
+                 (:th "I ack?")
+                 (:th "he/she ack?"))
             (dolist (memo (user-memos (ackfock.utils:current-user) :as-target-user t))
               (cl-who:str (render memo))))
     (:form :action "/add-memo" :method "post"
