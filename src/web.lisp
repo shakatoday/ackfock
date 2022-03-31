@@ -7,9 +7,6 @@
   (:export :*web*))
 (in-package :ackfock.web)
 
-;; for @route annotation
-(syntax:use-syntax :annot)
-
 ;;
 ;; Application
 
