@@ -12,10 +12,10 @@
            #:send-memo))
 (in-package :ackfock.model)
 
-(defconstant +DUMMY-UUID+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
+(defconstant +dummy-uuid+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
 
 (defun dummy-uuid ()
-  (string +DUMMY-UUID+))
+  (string +dummy-uuid+))
 
 (defun-with-db-connection new-user (email username password)
   "Insert a new user into database and return an ACKFOCK.MODEL::USER instance"
