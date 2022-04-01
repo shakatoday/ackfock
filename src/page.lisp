@@ -42,7 +42,7 @@
     (:div :class "promo-hero promo-hero-bg-image" 
           (:div :class "promo-hero-content" 
                 (:h1 :class "promo-hero-title" "Evolve mini agreements")
-                (:p :class "promo-hero-description" "Write/get something you want to reach consensus with casual or business friends." (:br) "Ack it when agree." (:br) "Fock it when disagree.")
+                (:p :class "promo-hero-description" "Add/get memo you want to reach consensus with casual or business friends." (:br) "Ack it when agree." (:br) "Fock it when disagree.")
                 (:div :class "promo-hero-ctas" 
                       (:a :href "/sign-up" :class "promo-section-cta button primary" "Sign Up")
                       (:a :href "/login" :class "promo-section-cta button white-hollow" "Log In"))))))
