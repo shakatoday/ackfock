@@ -64,13 +64,16 @@
   (unless-authorize
     (let ((email (cdr (assoc "email" _parsed :test #'string=)))
           (username (cdr (assoc "username" _parsed :test #'string=)))
-          (password (cdr (assoc "password" _parsed :test #'string=))))
+          (password (cdr (assoc "password" _parsed :test #'string=)))
+          (confirm-password (cdr (assoc "confirm_password" _parsed :test #'string=))))
       (cond ((find t
-                   (list email username password)
-                   :key #'str:emptyp) (login-page :message "Email, username, or password empty"
+                   (list email username password confirm-password)
+                   :key #'str:emptyp) (login-page :message "Email, username, password, or password confirmation empty"
                                                   :sign-up t))
             ((null (clavier:validate *email-validator*
                                      email)) (login-page :message "Not a valid email address"
+                                                         :sign-up t))
+            ((null (string= password confirm-password)) (login-page :message "Password and passord confirmation unmatched."
                                                          :sign-up t))
             (t (setf (ackfock.utils:current-user)
                      (ackfock.model:new-user email username password))
