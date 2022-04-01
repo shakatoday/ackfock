@@ -39,7 +39,13 @@
                                     (:form :action "/login" :method "get"
                                            (:button :type "submit"
                                                     :class "button hollow topbar-responsive-button" "Login")))))
-    (:h1 "landing page")))
+    (:div :class "promo-hero promo-hero-bg-image" 
+          (:div :class "promo-hero-content" 
+                (:h1 :class "promo-hero-title" "Promo Headline Will Display Here")
+                (:p :class "promo-hero-description" "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tortor ante, varius eget lacinia porta, faucibus ut eros. Donec quis dui id felis pharetra fermentum.")
+                (:div :class "promo-hero-ctas" 
+                      (:a :href "/sign-up" :class "promo-section-cta button primary" "Sign Up")
+                      (:a :href "/login" :class "promo-section-cta button white-hollow" "Log In"))))))
 
 (defun login-page (&key message sign-up)
   (with-page (:title (if sign-up
