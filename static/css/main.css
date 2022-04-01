@@ -27,12 +27,6 @@
   color: #c6d1d8;
 }
 
-@media screen and (max-width: 39.9375em) {
-  .topbar-responsive .menu a {
-    padding: 0.875rem 0;
-  }
-}
-
 .topbar-responsive .menu .topbar-responsive-button {
   color: #fefefe;
   border-color: #fefefe;
@@ -43,37 +37,6 @@
 .topbar-responsive .menu .topbar-responsive-button:hover {
   color: #c6d1d8;
   border-color: #c6d1d8;
-}
-
-@media screen and (max-width: 39.9375em) {
-  .topbar-responsive .menu .topbar-responsive-button {
-    width: 100%;
-    margin: 0.875rem 0;
-  }
-}
-
-@media screen and (max-width: 39.9375em) {
-  .topbar-responsive {
-    padding: 0.75rem;
-  }
-  .topbar-responsive .top-bar-title {
-    position: relative;
-    width: 100%;
-  }
-  .topbar-responsive .top-bar-title span {
-    position: absolute;
-    right: 0;
-    border: 1px solid #fefefe;
-    border-radius: 5px;
-    padding: 0.25rem 0.45rem;
-    top: 50%;
-    -webkit-transform: translateY(-50%);
-        -ms-transform: translateY(-50%);
-            transform: translateY(-50%);
-  }
-  .topbar-responsive .top-bar-title span .menu-icon {
-    margin-bottom: 4px;
-  }
 }
 
 @-webkit-keyframes fadeIn {
@@ -122,7 +85,6 @@
             animation-fill-mode: both;
     -webkit-animation-duration: 0.5s;
             animation-duration: 0.5s;
-    width: 100%;
     -webkit-animation: fadeIn 1s ease-in;
             animation: fadeIn 1s ease-in;
   }
