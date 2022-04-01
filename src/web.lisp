@@ -19,8 +19,8 @@
 (defvar *email-validator* (make-instance 'clavier:email-validator))
 
 (defmacro when-authorize (&body body)
-  "Continue only if current user is logged-in, redirect to login page otherwise."
-  `(cond ((null (ackfock.utils:current-user)) (redirect "/login"))
+  "Continue only if current user is logged-in, redirect to landing page otherwise."
+  `(cond ((null (ackfock.utils:current-user)) (redirect "/landing"))
          (t ,@body)))
 
 (defmacro unless-authorize (&body body)
@@ -36,6 +36,9 @@
     (apply #'home-page
            (when (gethash :home-page-message *session*)
              (print (list (pop (gethash :home-page-message *session*))))))))
+
+(defroute "/landing" ()
+  (landing-page))
 
 (defroute "/login" ()
   (unless-authorize
