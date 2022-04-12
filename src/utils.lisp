@@ -2,7 +2,7 @@
 (defpackage ackfock.utils
   (:use :cl)
   (:export #:current-user
-           #:*email-validator*)
+           #:*email-validator*))
 (in-package :ackfock.utils)
 
 (defvar *email-validator* (make-instance 'clavier:email-validator))
