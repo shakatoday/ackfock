@@ -13,6 +13,10 @@
            #:defun-with-db-connection))
 (in-package :ackfock.db)
 
+(defparameter *migration-provider*
+  (migratum.provider.local-path:make-provider (list (merge-pathnames #p"db/migrations/"
+                                                                     ackfock.config:*application-root*))))
+
 (defun connection-settings (&optional (db :maindb))
   (cdr (assoc db (config :databases))))
 
@@ -35,3 +39,14 @@
        ,@docstring-list
        (with-connection (db)
          ,@body))))
+
+;; This has to be a function because *connection* can change.
+;;
+;; NOTICE: making two drivers as arguments of one function invocation can cause ERROR
+;; for example
+;; (migratum:driver-register-migration :up
+;;                                     (migration-driver)
+;;                                     (first (migratum:list-pending (migration-driver)))))
+
+(defun-with-db-connection migration-driver ()
+  (migratum.driver.dbi:make-driver *migration-provider* *connection*))

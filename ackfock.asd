@@ -19,6 +19,11 @@
                "datafly"
                "sxql"
 
+               ;; for DB migration
+               "cl-migratum"
+               "cl-migratum.provider.local-path"
+               "cl-migratum.driver.dbi"
+
                ;; password hashing and verification library
                "cl-pass"
 
