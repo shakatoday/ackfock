@@ -16,7 +16,6 @@
 
 ;;
 ;; Utilities
-(defvar *email-validator* (make-instance 'clavier:email-validator))
 
 (defmacro when-authorize (&body body)
   "Continue only if current user is logged-in, redirect to landing page otherwise."
@@ -66,12 +65,13 @@
           (username (cdr (assoc "username" _parsed :test #'string=)))
           (password (cdr (assoc "password" _parsed :test #'string=)))
           (confirm-password (cdr (assoc "confirm_password" _parsed :test #'string=))))
-            ((null (clavier:validate *email-validator*
-                                     email)) (login-page :message "Not a valid email address"
-                                                         :sign-up t))
       (cond ((member-if #'str:emptyp
                         (list email username password confirm-password))
              (login-page :message "Email, username, password, or password confirmation empty"
+                         :sign-up t))
+            ((null (clavier:validate ackfock.utils:*email-validator*
+                                     email))
+             (login-page :message "Not a valid email address"
                          :sign-up t))
             ((null (string= password confirm-password)) (login-page :message "Password and passord confirmation unmatched."
                                                                     :sign-up t))
