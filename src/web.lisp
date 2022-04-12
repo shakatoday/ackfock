@@ -74,7 +74,7 @@
              (login-page :message "Email, username, password, or password confirmation empty"
                          :sign-up t))
             ((null (string= password confirm-password)) (login-page :message "Password and passord confirmation unmatched."
-                                                         :sign-up t))
+                                                                    :sign-up t))
             (t (setf (ackfock.utils:current-user)
                      (ackfock.model:new-user email username password))
                (redirect "/"))))))
