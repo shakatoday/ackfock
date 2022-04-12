@@ -10,7 +10,8 @@
   (:export #:connection-settings
            #:db
            #:with-connection
-           #:defun-with-db-connection))
+           #:defun-with-db-connection
+           #:all-migrations-applied-p))
 (in-package :ackfock.db)
 
 (defparameter *migration-provider*
@@ -50,3 +51,7 @@
 
 (defun-with-db-connection migration-driver ()
   (migratum.driver.dbi:make-driver *migration-provider* *connection*))
+
+(defun all-migrations-applied-p ()
+  (unless (migratum:list-pending (migration-driver))
+    t))

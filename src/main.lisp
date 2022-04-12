@@ -16,6 +16,11 @@
 
 (defun start (&rest args &key server port debug &allow-other-keys)
   (declare (ignore server port debug))
+  (unless (ackfock.db:all-migrations-applied-p)
+    (restart-case (error "There are pending database migrations.")
+      (apply-pending ()
+        :report "Apply all pending migrations."
+        (migratum:apply-pending (ackfock.db::migration-driver)))))
   (when *handler*
     (restart-case (error "Server is already running.")
       (restart-server ()
