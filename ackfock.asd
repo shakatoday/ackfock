@@ -11,9 +11,6 @@
                "str"
                "alexandria"
 
-               ;; for @route annotation
-               "cl-syntax-annot"
-
                ;; HTML Template
                "djula"
                "cl-who"
