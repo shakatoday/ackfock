@@ -35,10 +35,18 @@
 (defmodel (memo (:inflate created-at #'datetime-to-timestamp)
                 (:inflate source-user-ackfock #'string-to-ackfock)
                 (:inflate target-user-ackfock #'string-to-ackfock)
-                (:has-a (source-user-func user)
-                        (where (:= :uuid source-user-id)))
-                (:has-a (target-user-func user)
-                        (where (:= :uuid (or target-user-id :null)))))
+                ;; only one user, but :has-one doesn't support query from table with different names
+                (:has-many (source-users-func user)
+                           (select :*
+                             (from :users)
+                             (where (:= :uuid source-user-id))
+                             (limit 1)))
+                ;; only one user, but :has-one doesn't support query from table with different names
+                (:has-many (target-users-func user)
+                           (select :*
+                             (from :users)
+                             (where (:= :uuid (or target-user-id :null)))
+                             (limit 1))))
   uuid
   content
   source-user-id
@@ -49,8 +57,10 @@
 
 (defun memo-source-user (memo)
   (with-connection (db)
-    (memo-source-user-func memo)))
+    ;; only one user, but :has-one doesn't support query from table with different names
+    (first (memo-source-users-func memo))))
 
 (defun memo-target-user (memo)
   (with-connection (db)
-    (memo-target-user-func memo)))
+    ;; only one user, but :has-one doesn't support query from table with different names
+    (first (memo-target-users-func memo))))

@@ -20,7 +20,7 @@
 (defun-with-db-connection new-user (email username password)
   "Insert a new user into database and return an ACKFOCK.MODEL::USER instance"
   (retrieve-one 
-   (insert-into :user
+   (insert-into :users
      (set= :email email
            :username username
            :password_salted (cl-pass:hash password))
@@ -43,7 +43,7 @@
 (defun-with-db-connection authenticate (email password)
   (let ((user-data (retrieve-one
                     (select :*
-                      (from :user)
+                      (from :users)
                       (where (:= :email email))))))
     (and user-data
          (cl-pass:check-password password
@@ -81,6 +81,6 @@
 (defun-with-db-connection get-user-by-email (email)
   (retrieve-one
    (select :*
-     (from :user)
+     (from :users)
      (where (:= :email email)))
    :as 'user))
