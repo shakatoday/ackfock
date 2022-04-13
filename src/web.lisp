@@ -65,8 +65,8 @@
           (username (cdr (assoc "username" _parsed :test #'string=)))
           (password (cdr (assoc "password" _parsed :test #'string=)))
           (confirm-password (cdr (assoc "confirm_password" _parsed :test #'string=))))
-      (cond ((member-if #'str:emptyp
-                        (list email username password confirm-password))
+      (cond ((some #'str:emptyp
+                   (list email username password confirm-password))
              (login-page :message "Email, username, password, or password confirmation empty"
                          :sign-up t))
             ((null (clavier:validate ackfock.utils:*email-validator*
