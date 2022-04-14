@@ -34,19 +34,8 @@
 
 (defmodel (memo (:inflate created-at #'datetime-to-timestamp)
                 (:inflate source-user-ackfock #'string-to-ackfock)
-                (:inflate target-user-ackfock #'string-to-ackfock)
-                ;; only one user, but :has-one doesn't support query from table with different names
-                (:has-many (source-users-func user)
-                           (select :*
-                             (from :users)
-                             (where (:= :uuid source-user-id))
-                             (limit 1)))
-                ;; only one user, but :has-one doesn't support query from table with different names
-                (:has-many (target-users-func user)
-                           (select :*
-                             (from :users)
-                             (where (:= :uuid (or target-user-id :null)))
-                             (limit 1))))
+                (:inflate target-user-ackfock #'string-to-ackfock))
+                                        ; :has-one doesn't support query from table with different names, so we'll defun memo-source-user and memo-target-user after defmodel
   uuid
   content
   source-user-id
@@ -55,12 +44,20 @@
   (target-user-ackfock nil :type ackfock)
   created-at)
 
-(defun memo-source-user (memo)
-  (with-connection (db)
-    ;; only one user, but :has-one doesn't support query from table with different names
-    (first (memo-source-users-func memo))))
+;; defmodel :has-one doesn't support query from table with different names, so we have to defun memo-source-user and memo-target-user
+(defun-with-db-connection memo-source-user (memo)
+  (retrieve-one
+   (select :*
+     (from :users)
+     (where (:= :uuid (memo-source-user-id memo))))
+   :as 'user))
 
-(defun memo-target-user (memo)
-  (with-connection (db)
-    ;; only one user, but :has-one doesn't support query from table with different names
-    (first (memo-target-users-func memo))))
+;; defmodel :has-one doesn't support query from table with different names, so we have to defun memo-source-user and memo-target-user
+(defun-with-db-connection memo-target-user (memo)
+  (retrieve-one
+   (select :*
+     (from :users)
+     (where (:= :uuid (or (memo-target-user-id memo)
+                          :null))))
+   :as 'user))
+
