@@ -10,7 +10,9 @@
                "uiop"
                "str"
                "alexandria"
-
+               "uuid"
+               "local-time"
+               
                ;; HTML Template
                "djula"
                "cl-who"

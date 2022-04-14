@@ -13,7 +13,8 @@
            #:memo-target-user
            #:memo-content
            #:memo-source-user-ackfock
-           #:memo-target-user-ackfock))
+           #:memo-target-user-ackfock
+           #:authentication-code))
 (in-package :ackfock.model-definition)
 
 (deftype ackfock () '(member :ACK :FOCK nil)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
@@ -61,3 +62,9 @@
                           :null))))
    :as 'user))
 
+(defmodel (authentication-code (:inflate created-at #'datetime-to-timestamp)
+                               (:inflate valid-until #'datetime-to-timestamp))
+  email
+  code
+  created-at
+  valid-until)
