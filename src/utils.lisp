@@ -8,7 +8,8 @@
 (defvar *email-validator* (make-instance 'clavier:email-validator))
 
 (defun current-user ()
-  (gethash :user caveman2:*session*))
+  (gethash :current-user caveman2:*session*))
 
 (defun (setf current-user) (new-value)
-  (setf (gethash :user caveman2:*session*) new-value))
+  (setf (gethash :current-user caveman2:*session*) new-value))
+
