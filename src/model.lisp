@@ -129,4 +129,11 @@
        (returning :*))
      :as 'authentication-code)))
 
+(defun-with-db-connection get-authentication-code-by-code (code)
+  (retrieve-one
+   (select :*
+     (from :authentication_code)
+     (where #?(:= code)))
+   :as 'authentication-code))
+
 (set-dispatch-macro-character #\# #\? nil)
