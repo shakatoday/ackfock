@@ -14,6 +14,9 @@
            #:memo-content
            #:memo-source-user-ackfock
            #:memo-target-user-ackfock
+           #:authentication-code-code
+           #:authentication-code-email
+           #:authentication-code-valid-until
            #:authentication-code))
 (in-package :ackfock.model-definition)
 

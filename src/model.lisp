@@ -10,7 +10,8 @@
            #:ackfock-memo
            #:get-user-by-email
            #:send-memo
-           #:create-authentication-code))
+           #:create-authentication-code
+           #:authenticate-user-email))
 (in-package :ackfock.model)
 
 (defconstant +dummy-uuid+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
@@ -34,24 +35,22 @@
                            (recur-gen-args (cdr args) (not parse-keyword-p))))))))
     (recur-gen-args args t)))
 
-(set-dispatch-macro-character #\# #\?
-                              (lambda (stream subchar n)
-                                (declare (ignore subchar n))
-                                (let ((input (read stream)))
-                                  (if (trivial-types:proper-list-p input)
-                                      (cons (first input)
-                                            (recursive-append-keywords-to-args (cdr input)))
-                                      input))))
+(set-macro-character #\$ nil) ; see the comment right after the next form.
 
-(defmacro $set= (&rest args)
-  "Expand to SXQL:SET= with args reproduced by RECURSIVE-APPEND-KEYWORDS-TO-ARGS"
-  `(set= ,@(recursive-append-keywords-to-args args)))
+(set-macro-character #\$
+                     (lambda (stream char)
+                       (declare (ignore char))
+                       (let ((input (read stream)))
+                         (if (trivial-types:proper-list-p input)
+                             (cons (first input)
+                                   (recursive-append-keywords-to-args (cdr input)))
+                             (alexandria:symbolicate '$ input))))) ; there is a self reference, so we call (set-macro-character #\$ nil) before to avoid '$ here trigger another reader macro call.
 
 (defun-with-db-connection new-user (email username password)
   "Insert a new user into database and return an ACKFOCK.MODEL::USER instance"
   (retrieve-one 
    (insert-into :users
-     ($set= email
+     $(set= email
             username
             :password_salted (cl-pass:hash password))
      (returning :*))
@@ -85,7 +84,7 @@
   (when (user-p user)
     (execute
      (insert-into :memo
-       ($set= :source_user_id (user-uuid user)
+       $(set= :source_user_id (user-uuid user)
               content)))))
 
 (defun-with-db-connection ackfock-memo (memo-uuid ackfock &key as-target-user-ackfock)
@@ -112,7 +111,7 @@
   (retrieve-one
    (select :*
      (from :users)
-     (where #?(:= email)))
+     (where $(:= email)))
    :as 'user))
 
 (defun-with-db-connection create-authentication-code (email &key (ttl-in-sec (* 60 60))) ; by default code will expire in 1 hour
@@ -123,7 +122,7 @@
         (code (str:downcase (uuid:print-bytes nil (uuid:make-v4-uuid)))))
     (retrieve-one
      (insert-into :authentication_code
-       ($set= email
+       $(set= email
               code
               valid-until)
        (returning :*))
@@ -133,7 +132,22 @@
   (retrieve-one
    (select :*
      (from :authentication_code)
-     (where #?(:= code)))
+     (where $(:= code)))
    :as 'authentication-code))
 
-(set-dispatch-macro-character #\# #\? nil)
+(defun-with-db-connection update-user-email-authenticated-at (email email-authenticated-at)
+  (retrieve-one
+   (update :users
+     $(set= email-authenticated-at)
+     (where $(:= email))
+     (returning :*))
+   :as 'users))
+
+(defun authenticate-user-email (email code)
+  "Return corresponding ACKFOCK.MODEL-DEFINITION:USERS when success, return nil otherwise"
+  (let ((authentication-code (get-authentication-code-by-code code)) ; Race condition?
+        (now (local-time:now)))
+    (when (and (string= email (authentication-code-email authentication-code))
+               (local-time:timestamp<= now ; otherwise the code is timeout
+                                       (authentication-code-valid-until authentication-code)))
+      (update-user-email-authenticated-at email now))))
