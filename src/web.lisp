@@ -34,7 +34,7 @@
   (when-authorize
     (apply #'home-page
            (when (gethash :home-page-message *session*)
-             (print (list (pop (gethash :home-page-message *session*))))))))
+             (list (pop (gethash :home-page-message *session*)))))))
 
 (defroute "/landing" ()
   (landing-page))
@@ -77,7 +77,20 @@
                                                                     :sign-up t))
             (t (setf (ackfock.utils:current-user)
                      (ackfock.model:new-user email username password))
+               ;; Race condition!!!
+               (ackfock.utils:send-authentication-email email
+                                                        username
+                                                        (format nil
+                                                                "~a/activate/~a"
+                                                                ackfock.config:*application-url*
+                                                                (ackfock.model-definition:authentication-code-code (ackfock.model:create-authentication-code email))))
                (redirect "/"))))))
+
+(defroute "/activate/:code" (&key code)
+  (when (setf (ackfock.utils:current-user)
+              (ackfock.model:authenticate-user-email code))
+    (push "Your email is authenticated!" (gethash :home-page-message *session*)))
+  (redirect "/login")) ; better to give 404
 
 (defroute ("/add-memo" :method :POST) (&key _parsed)
   (when-authorize

@@ -2,15 +2,16 @@
 (defpackage ackfock.config
   (:use :cl)
   (:import-from :envy
-                :config-env-var
-                :defconfig)
-  (:export :config
-           :*application-root*
-           :*static-directory*
-           :*template-directory*
-           :appenv
-           :developmentp
-           :productionp))
+                #:config-env-var
+                #:defconfig)
+  (:export #:config
+           #:*application-root*
+           #:*static-directory*
+           #:*template-directory*
+           #:*application-url*
+           #:appenv
+           #:developmentp
+           #:productionp))
 (in-package :ackfock.config)
 
 (setf (config-env-var) "APP_ENV")
@@ -18,6 +19,7 @@
 (defparameter *application-root*   (asdf:system-source-directory :ackfock))
 (defparameter *static-directory*   (merge-pathnames #P"static/" *application-root*))
 (defparameter *template-directory* (merge-pathnames #P"templates/" *application-root*))
+(defparameter *application-url* "https://www.ackfock.com")
 
 (defconfig :common
     '(:debug T

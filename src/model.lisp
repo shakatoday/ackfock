@@ -141,13 +141,14 @@
      $(set= email-authenticated-at)
      (where $(:= email))
      (returning :*))
-   :as 'users))
+   :as 'user))
 
-(defun authenticate-user-email (email code)
+(defun authenticate-user-email (code)
   "Return corresponding ACKFOCK.MODEL-DEFINITION:USERS when success, return nil otherwise"
   (let ((authentication-code (get-authentication-code-by-code code)) ; Race condition?
         (now (local-time:now)))
-    (when (and (string= email (authentication-code-email authentication-code))
+    (when (and authentication-code
                (local-time:timestamp<= now ; otherwise the code is timeout
                                        (authentication-code-valid-until authentication-code)))
-      (update-user-email-authenticated-at email now))))
+      (update-user-email-authenticated-at (authentication-code-email authentication-code)
+                                          now))))
