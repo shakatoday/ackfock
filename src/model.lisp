@@ -9,7 +9,8 @@
            #:new-memo
            #:ackfock-memo
            #:get-user-by-email
-           #:send-memo))
+           #:send-memo
+           #:create-authentication-code))
 (in-package :ackfock.model)
 
 (defconstant +dummy-uuid+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
@@ -119,7 +120,7 @@
   (let ((valid-until (local-time:timestamp+ (local-time:now)
                                             ttl-in-sec
                                             :sec))
-        (code (uuid:print-bytes nil (uuid:make-v4-uuid))))
+        (code (str:downcase (uuid:print-bytes nil (uuid:make-v4-uuid)))))
     (retrieve-one
      (insert-into :authentication_code
        ($set= email
