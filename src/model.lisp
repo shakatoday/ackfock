@@ -17,13 +17,42 @@
 (defun dummy-uuid ()
   (string +dummy-uuid+))
 
+(defun recursive-append-keywords-to-args (args)
+  "If any arg in args doesn't have a keyword nor a list before it, append a keyword with the same symbol name as the arg." ; not a correct doc!
+  (labels ((recur-gen-args (args parse-keyword-p)
+             (when args
+               (let ((first-arg (car args)))
+                 (if (and parse-keyword-p
+                          (symbolp first-arg)
+                          (not (keywordp first-arg)))
+                     (append (list (intern (str:upcase (str:snake-case (symbol-name first-arg)))
+                                           :keyword)
+                                   first-arg)
+                             (recur-gen-args (cdr args) parse-keyword-p))
+                     (cons first-arg
+                           (recur-gen-args (cdr args) (not parse-keyword-p))))))))
+    (recur-gen-args args t)))
+
+(set-dispatch-macro-character #\# #\?
+                              (lambda (stream subchar n)
+                                (declare (ignore subchar n))
+                                (let ((input (read stream)))
+                                  (if (trivial-types:proper-list-p input)
+                                      (cons (first input)
+                                            (recursive-append-keywords-to-args (cdr input)))
+                                      input))))
+
+(defmacro $set= (&rest args)
+  "Expand to SXQL:SET= with args reproduced by RECURSIVE-APPEND-KEYWORDS-TO-ARGS"
+  `(set= ,@(recursive-append-keywords-to-args args)))
+
 (defun-with-db-connection new-user (email username password)
   "Insert a new user into database and return an ACKFOCK.MODEL::USER instance"
   (retrieve-one 
    (insert-into :users
-     (set= :email email
-           :username username
-           :password_salted (cl-pass:hash password))
+     ($set= email
+            username
+            :password_salted (cl-pass:hash password))
      (returning :*))
    :as 'user))
 
@@ -55,8 +84,8 @@
   (when (user-p user)
     (execute
      (insert-into :memo
-       (set= :source_user_id (user-uuid user)
-             :content content)))))
+       ($set= :source_user_id (user-uuid user)
+              content)))))
 
 (defun-with-db-connection ackfock-memo (memo-uuid ackfock &key as-target-user-ackfock)
   "Ackfock the memo with the given MEMO-UUID. This memo has to be either created by current user or shared by the creator."
@@ -82,7 +111,7 @@
   (retrieve-one
    (select :*
      (from :users)
-     (where (:= :email email)))
+     (where #?(:= email)))
    :as 'user))
 
 (defun-with-db-connection create-authentication-code (email &key (ttl-in-sec (* 60 60))) ; by default code will expire in 1 hour
@@ -93,8 +122,10 @@
         (code (uuid:print-bytes nil (uuid:make-v4-uuid))))
     (retrieve-one
      (insert-into :authentication_code
-       (set= :email email
-             :code code
-             :valid_until valid-until)
+       ($set= email
+              code
+              valid-until)
        (returning :*))
      :as 'authentication-code)))
+
+(set-dispatch-macro-character #\# #\? nil)
