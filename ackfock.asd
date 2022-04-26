@@ -30,7 +30,10 @@
                "cl-pass"
 
                ;; email and more validators
-               "clavier")
+               "clavier"
+
+               ;; email delivery
+               "mailgun")
   :components ((:module "src"
                 :components
                 ((:file "main" :depends-on ("config" "view" "db"))
