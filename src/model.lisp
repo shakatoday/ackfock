@@ -14,14 +14,8 @@
            #:authenticate-user-email))
 (in-package :ackfock.model)
 
-(defconstant +dummy-uuid+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
-
-(defun dummy-uuid ()
-  (string +dummy-uuid+))
-
-(defun recursive-append-keywords-to-args (args)
-  "If any arg in args doesn't have a keyword nor a list before it, append a keyword with the same symbol name as the arg." ; not a correct doc!
-  (labels ((recur-gen-args (args parse-keyword-p)
+(eval-when (:compile-toplevel :load-toplevel)
+  (labels ((recur-gen-args (args parse-keyword-p) ;  If any arg in args doesn't have a keyword nor a list before it, append a keyword with the same symbol name as the arg. ; <- not a correct comment!
              (when args
                (let ((first-arg (car args)))
                  (if (and parse-keyword-p
@@ -33,18 +27,21 @@
                              (recur-gen-args (cdr args) parse-keyword-p))
                      (cons first-arg
                            (recur-gen-args (cdr args) (not parse-keyword-p))))))))
-    (recur-gen-args args t)))
+    (set-macro-character #\$ nil) ; see the comment right after the next form.
+    (set-macro-character #\$
+                         (lambda (stream char)
+                           (declare (ignore char))
+                           (let ((input (read stream)))
+                             (if (trivial-types:proper-list-p input)
+                                 (cons (first input)
+                                       (recur-gen-args (cdr input)
+                                                       t))
+                                 (alexandria:symbolicate '$ input))))))) ; there is a self reference, so we call (set-macro-character #\$ nil) before to avoid '$ here trigger another reader macro call.
 
-(set-macro-character #\$ nil) ; see the comment right after the next form.
+(defconstant +dummy-uuid+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
 
-(set-macro-character #\$
-                     (lambda (stream char)
-                       (declare (ignore char))
-                       (let ((input (read stream)))
-                         (if (trivial-types:proper-list-p input)
-                             (cons (first input)
-                                   (recursive-append-keywords-to-args (cdr input)))
-                             (alexandria:symbolicate '$ input))))) ; there is a self reference, so we call (set-macro-character #\$ nil) before to avoid '$ here trigger another reader macro call.
+(defun dummy-uuid ()
+  (string +dummy-uuid+))
 
 (defun-with-db-connection new-user (email username password)
   "Insert a new user into database and return an ACKFOCK.MODEL::USER instance"
@@ -152,3 +149,6 @@
                                        (authentication-code-valid-until authentication-code)))
       (update-user-email-authenticated-at (authentication-code-email authentication-code)
                                           now))))
+
+(eval-when (:compile-toplevel :load-toplevel)
+  (set-macro-character #\$ nil))
