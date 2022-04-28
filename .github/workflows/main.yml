@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      # with:
+      #   ref: $GITHUB_REF # This should be the value set by the release event
       - name: rsync deployments
         uses: burnett01/rsync-deployments@5.2
         with:
