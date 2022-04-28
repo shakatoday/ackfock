@@ -15,7 +15,7 @@ jobs:
         uses: burnett01/rsync-deployments@5.2
         with:
           switches: -avzr --delete
-          path: ./ackfock
+          path: ./
           remote_path: ./ackfock
           remote_host: ${{ secrets.HOST }}
           remote_user: ackfock
