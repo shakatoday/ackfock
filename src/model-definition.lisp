@@ -20,7 +20,7 @@
            #:authentication-code))
 (in-package :ackfock.model-definition)
 
-(deftype ackfock () '(member :ACK :FOCK nil)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
+(deftype ackfock () '(member :ACK :FOCK)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
 
 (defun string-to-ackfock (string)
   "If the STRING is \"ACK\" or \"FOCK\", this function returns :ACK or :FOCK. All the other cases it returns nil"
@@ -30,23 +30,26 @@
                :test #'string=)
        (alexandria:make-keyword string)))
 
-(defmodel (user (:inflate created-at #'datetime-to-timestamp))
+(defmodel (user (:inflate created-at #'datetime-to-timestamp)
+                (:has-many (archives archive)))
   uuid
   email
   username
   created-at)
 
+(defmodel (archive (:has-many (users user))
+                   (:has-many (memos memo)))
+  uuid
+  name)
+
 (defmodel (memo (:inflate created-at #'datetime-to-timestamp)
-                (:inflate source-user-ackfock #'string-to-ackfock)
-                (:inflate target-user-ackfock #'string-to-ackfock))
-                                        ; :has-one doesn't support query from table with different names, so we'll defun memo-source-user and memo-target-user after defmodel
+                (:has-a archive (where (:= :uuid archive-id))))
   uuid
   content
-  source-user-id
-  target-user-id
-  (source-user-ackfock nil :type ackfock)
-  (target-user-ackfock nil :type ackfock)
+  archive-id
   created-at)
+
+;; memo-user-ackfocks should be a function in model.lisp
 
 ;; defmodel :has-one doesn't support query from table with different names, so we have to defun memo-source-user and memo-target-user
 (defun-with-db-connection memo-source-user (memo)
