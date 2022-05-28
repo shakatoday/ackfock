@@ -31,7 +31,8 @@
        (alexandria:make-keyword string)))
 
 (defmodel (user (:inflate created-at #'datetime-to-timestamp)
-                (:has-many (archives archive)))
+                (:has-many (archives archive))
+                (:has-many (private-memos memo)))
   uuid
   email
   username
