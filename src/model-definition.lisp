@@ -1,19 +1,25 @@
 (in-package :cl-user)
 (defpackage ackfock.model-definition
   (:use :cl :ackfock.db :datafly :sxql)
-  (:export #:user
+  (:export #:ackfock
+           #:user-ackfock
+           #:user
            #:user-uuid
            #:user-email
            #:user-username
            #:user-p
            #:make-user
+           #:user-archives
+           #:user-private-memos
+           #:archive
+           #:archive-uuid
+           #:archive-name
+           #:archive-users
+           #:archive-memos
            #:memo
            #:memo-uuid
-           #:memo-source-user
-           #:memo-target-user
            #:memo-content
-           #:memo-source-user-ackfock
-           #:memo-target-user-ackfock
+           #:memo-archive
            #:authentication-code-code
            #:authentication-code-email
            #:authentication-code-valid-until
