@@ -43,6 +43,14 @@
 (defun dummy-uuid ()
   (string +dummy-uuid+))
 
+(defun string-to-ackfock (string)
+  "If the STRING is \"ACK\" or \"FOCK\", this function returns :ACK or :FOCK. All the other cases it returns nil"
+  (and (stringp string)
+       (member string
+               '("ACK" "FOCK")
+               :test #'string=)
+       (alexandria:make-keyword string)))
+
 (defun-with-db-connection new-user (email username password)
   "Insert a new user into database and return an ACKFOCK.MODEL::USER instance"
   (retrieve-one 
