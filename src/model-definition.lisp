@@ -30,6 +30,10 @@
                :test #'string=)
        (alexandria:make-keyword string)))
 
+;; memo-user-ackfocks should be a function in model.lisp
+(defstruct user-ackfock
+  user ackfock created-at)
+
 (defmodel (user (:inflate created-at #'datetime-to-timestamp)
                 (:has-many (archives archive)
                            (select :*
@@ -72,10 +76,6 @@
   content
   archive-id
   created-at)
-
-(defstruct user-ackfock
-  user ackfock created-at)
-;; memo-user-ackfocks should be a function in model.lisp
 
 ;; defmodel :has-one doesn't support query from table with different names, so we have to defun memo-source-user and memo-target-user
 (defun-with-db-connection memo-source-user (memo)
