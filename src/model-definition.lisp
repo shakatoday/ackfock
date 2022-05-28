@@ -77,23 +77,6 @@
   archive-id
   created-at)
 
-;; defmodel :has-one doesn't support query from table with different names, so we have to defun memo-source-user and memo-target-user
-(defun-with-db-connection memo-source-user (memo)
-  (retrieve-one
-   (select :*
-     (from :users)
-     (where (:= :uuid (memo-source-user-id memo))))
-   :as 'user))
-
-;; defmodel :has-one doesn't support query from table with different names, so we have to defun memo-source-user and memo-target-user
-(defun-with-db-connection memo-target-user (memo)
-  (retrieve-one
-   (select :*
-     (from :users)
-     (where (:= :uuid (or (memo-target-user-id memo)
-                          :null))))
-   :as 'user))
-
 (defmodel (authentication-code (:inflate created-at #'datetime-to-timestamp)
                                (:inflate valid-until #'datetime-to-timestamp))
   email
