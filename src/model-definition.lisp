@@ -31,7 +31,15 @@
        (alexandria:make-keyword string)))
 
 (defmodel (user (:inflate created-at #'datetime-to-timestamp)
-                (:has-many (archives archive))
+                (:has-many (archives archive)
+                           (select :*
+                             (from :archive)
+                             (inner-join (:as (select :*
+                                                (from :user_archive_access)
+                                                (where (:= :user_archive_access.user_id uuid)))
+                                          :user_archive_access_join)
+                                         :on (:= :archive.uuid :user_archive_access_join.archive_id))
+                             (order-by (:desc :user_archive_access_join.created_at))))
                 (:has-many (private-memos memo)))
   uuid
   email
