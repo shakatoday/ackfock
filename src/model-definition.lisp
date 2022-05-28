@@ -28,14 +28,6 @@
 
 (deftype ackfock () '(member :ACK :FOCK)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
 
-(defun string-to-ackfock (string)
-  "If the STRING is \"ACK\" or \"FOCK\", this function returns :ACK or :FOCK. All the other cases it returns nil"
-  (and (stringp string)
-       (member string
-               '("ACK" "FOCK")
-               :test #'string=)
-       (alexandria:make-keyword string)))
-
 ;; memo-user-ackfocks should be a function in model.lisp
 (defstruct user-ackfock
   user ackfock created-at)
