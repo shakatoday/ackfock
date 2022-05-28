@@ -50,8 +50,19 @@
   username
   created-at)
 
-(defmodel (archive (:has-many (users user))
-                   (:has-many (memos memo)))
+(defmodel (archive (:has-many (users user)
+                              (select :*
+                                (from :users)
+                                (inner-join (:as (select :*
+                                                   (from :user_archive_access)
+                                                   (where (:= :user_archive_access.archive_id uuid)))
+                                             :user_archive_access_join)
+                                            :on (:= :users.uuid :user_archive_access_join.user_id))
+                                (order-by (:desc :user_archive_access_join.created_at))))
+                   (:has-many (memos memo)
+                              (select :*
+                                (from :memo)
+                                (where (:= :memo.archive_id uuid)))))
   uuid
   name)
 
