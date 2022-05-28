@@ -40,7 +40,11 @@
                                           :user_archive_access_join)
                                          :on (:= :archive.uuid :user_archive_access_join.archive_id))
                              (order-by (:desc :user_archive_access_join.created_at))))
-                (:has-many (private-memos memo)))
+                (:has-many (private-memos memo)
+                           (select :*
+                             (from :memo)
+                             (where (:and (:= :memo.user_id uuid)
+                                          (:= :memo.archive_id :null))))))
   uuid
   email
   username
