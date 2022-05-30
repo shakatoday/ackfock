@@ -92,26 +92,6 @@
        $(set= :source_user_id (user-uuid user)
               content)))))
 
-(defun-with-db-connection ackfock-memo (memo-uuid ackfock &key as-target-user-ackfock)
-  "Ackfock the memo with the given MEMO-UUID. This memo has to be either created by current user or shared by the creator."
-  (unless (or (str:emptyp ackfock) (null (ackfock.utils:current-user)))
-    (execute
-     (update :memo
-       (set= (if as-target-user-ackfock
-                 :target_user_ackfock
-                 :source_user_ackfock)
-             ackfock)
-       (where (:and (:= :uuid memo-uuid)
-                    (:or (:= :source_user_id (user-uuid (ackfock.utils:current-user)))
-                         (:= :target_user_id (user-uuid (ackfock.utils:current-user))))))))))
-
-(defun-with-db-connection send-memo (memo-uuid recipient)
-  (execute
-   (update :memo
-     (set= :target_user_id (user-uuid recipient))
-     (where (:and (:= :uuid memo-uuid)
-                  (:= :source_user_id (user-uuid (ackfock.utils:current-user))))))))
-
 (defun-with-db-connection get-user-by-email (email)
   (retrieve-one
    (select :*

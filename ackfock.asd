@@ -2,20 +2,12 @@
   :version "0.1.0"
   :author "Shaka Chen"
   :license ""
-  :depends-on ("clack"
-               "lack"
-               "caveman2"
-               "envy"
-               "cl-ppcre"
+  :depends-on ("envy"
                "uiop"
                "str"
                "alexandria"
                "uuid"
                "local-time"
-               
-               ;; HTML Template
-               "djula"
-               "cl-who"
 
                ;; for DB
                "datafly"
@@ -25,6 +17,9 @@
                "cl-migratum"
                "cl-migratum.provider.local-path"
                "cl-migratum.driver.dbi"
+
+               ;; GUI framework
+               "clog"
 
                ;; password hashing and verification library
                "cl-pass"
@@ -36,11 +31,7 @@
                "mailgun")
   :components ((:module "src"
                 :components
-                ((:file "main" :depends-on ("config" "view" "db"))
-                 (:file "web" :depends-on ("config" "utils" "model" "page"))
-                 (:file "page" :depends-on ("utils" "model" "model-definition" "view"))
-                 (:file "view" :depends-on ("config" "utils" "model-definition"))
-                 (:file "model" :depends-on ("db" "utils" "model-definition"))
+                ((:file "model" :depends-on ("db" "utils" "model-definition"))
                  (:file "utils")
                  (:file "model-definition" :depends-on ("db"))
                  (:file "db" :depends-on ("config"))

@@ -8,12 +8,6 @@
 
 (defvar *email-validator* (make-instance 'clavier:email-validator))
 
-(defun current-user ()
-  (gethash :current-user caveman2:*session*))
-
-(defun (setf current-user) (new-value)
-  (setf (gethash :current-user caveman2:*session*) new-value))
-
 (defun send-authentication-email (email recipient-name link)
   (let ((mailgun:*domain* (uiop:getenv "MAILGUN_DOMAIN"))
         (mailgun:*api-key* (uiop:getenv "MAILGUN_API_KEY")))
