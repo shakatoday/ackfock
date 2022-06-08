@@ -31,7 +31,7 @@
                "mailgun")
   :components ((:module "src"
                 :components
-                ((:file "ackfock")
+                ((:file "ackfock" :depends-on ("db"))
                  (:file "model" :depends-on ("db" "utils" "model-definition"))
                  (:file "utils")
                  (:file "model-definition" :depends-on ("db"))

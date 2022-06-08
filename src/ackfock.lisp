@@ -9,8 +9,6 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar *sql-connection* nil)
-
 ;; Default user/pass is username: admin and password: admin
 
 ;; /content is our root content URL, if you are authorized as an
@@ -44,25 +42,6 @@
 				         :content-comment))
   (add-authorization '(:editor)        '(:content-edit))
   (add-authorization '(:admin)         '(:users :content-admin))
-  ;; Setup database connection
-  (when *sql-connection*
-    (dbi:disconnect *sql-connection*))
-  (let ((db-dir (format nil "~A~A" (asdf:system-source-directory :ackfock) "ackfock.db")))
-    (setf *sql-connection* (dbi:connect :sqlite3 :database-name db-dir))
-    (format t "Database location: ~A~%" db-dir))
-  ;; Check if need to setup sample data
-  (handler-case
-      (dbi:fetch (dbi:execute (dbi:prepare *sql-connection* "select * from config")))
-    (error ()
-      (print "Create database and tables.")
-      (create-base-tables *sql-connection*)
-      ;; A main page was added, but let's also add an about page:
-      (dbi:do-sql
-	*sql-connection*
-	(sql-insert* "content" `(:key        "about"
-				 :title      "About"
-				 :value      "All about this site."
-				 :createdate (,*sqlite-timestamp*))))))
   ;; Setup clog
   (initialize 'on-main
               :port port
@@ -89,7 +68,7 @@
   (set-on-authentication-change body (lambda (body)
 				       (url-replace (location body) "/")))
   ;; Initialzie the clog-web-site environment
-  (let ((profile (get-profile body *sql-connection*)))
+  (let ((profile (get-profile body (ackfock.db:db))))
     (create-web-site body
 		     :settings '(:color-class  "w3-blue-gray"
 				 :border-class ""
@@ -120,7 +99,7 @@
    body
    :login `(:menu      ,*menu*
 	    :on-submit ,(lambda (obj)
-			  (if (login body *sql-connection*
+			  (if (login body (ackfock.db:db)
 				     (name-value obj "username")
 				     (name-value obj "password"))
 			      (url-replace (location body) "/")
@@ -138,14 +117,15 @@
   (create-web-page body
 		   :signup `(:menu    ,*menu*
 			     :content ,(lambda (body)
-					 (sign-up body *sql-connection*)))
+					 (sign-up body (ackfock.db:db))))
 		   :authorize t))
 
 (defun on-main (body)
   (init-site body)
   (create-web-page body :index `(:menu    ,*menu*
-				 :content ,(clog-web-content *sql-connection*
-							     :comment-table "content"))))
+				 :content ,(clog-web-content (ackfock.db:db)
+							     :comment-table "content"
+                                                             :sql-timestamp-func "now()"))))
 
 (defun on-users (body)
   (init-site body)
@@ -155,7 +135,7 @@
 				 (let ((users (dbi:fetch-all
 					       (dbi:execute
 						(dbi:prepare
-						 *sql-connection*
+						 (ackfock.db:db)
 						 "select * from users")))))
 				   (dolist (user users)
 				     (let* ((box   (create-div body))
@@ -165,7 +145,7 @@
 				       (declare (ignore suser))
 				       (set-on-click rbut (lambda (obj)
 							    (declare (ignore obj))
-							    (reset-password *sql-connection*
+							    (reset-password (ackfock.db:db)
 									    (getf user :|username|))
 							    (setf (disabledp rbut) t)
 							    (setf (text rbut) "Done"))))))))
@@ -176,5 +156,5 @@
   (create-web-page body
 		   :change-password `(:menu    ,*menu*
 				      :content ,(lambda (body)
-						  (change-password body *sql-connection*)))
+						  (change-password body (ackfock.db:db))))
 		   :authorize t))
