@@ -49,8 +49,8 @@
 ;;                                     (migration-driver)
 ;;                                     (first (migratum:list-pending (migration-driver)))))
 
-(defun-with-db-connection migration-driver ()
-  (migratum.driver.dbi:make-driver *migration-provider* *connection*))
+(defun migration-driver ()
+  (migratum.driver.dbi:make-driver *migration-provider* (db)))
 
 (defun all-migrations-applied-p ()
   (unless (migratum:list-pending (migration-driver))
