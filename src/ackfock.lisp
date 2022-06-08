@@ -77,6 +77,7 @@
 		     :roles (if profile
 				'(:member)
 				'(:guest))
+                     :theme 'ackfock.theme:ackfock-theme
 		     :title "Ackfock"
 		     :footer "(c) 2022 Shaka Chen"
 		     :logo nil)))
@@ -92,11 +93,12 @@
    body
    :login `(:menu      ,*menu*
 	    :on-submit ,(lambda (obj)
-			  (if (login body (ackfock.db:db)
-				     (name-value obj "username")
-				     (name-value obj "password"))
+			  (if (ackfock.auth:login body
+                                                  (ackfock.db:db)
+				                  (name-value obj "email")
+				                  (name-value obj "password"))
 			      (url-replace (location body) "/")
-			      (clog-web-alert obj "Invalid" "The username and password are invalid."
+			      (clog-web-alert obj "Invalid" "The email and password are invalid."
 					      :time-out 3
 					      :place-top t))))
    :authorize t))
@@ -110,7 +112,7 @@
   (create-web-page body
 		   :signup `(:menu    ,*menu*
 			     :content ,(lambda (body)
-					 (sign-up body (ackfock.db:db))))
+					 (ackfock.auth:sign-up body (ackfock.db:db))))
 		   :authorize t))
 
 (defun on-main (body)
