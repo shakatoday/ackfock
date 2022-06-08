@@ -46,7 +46,7 @@
 	      :long-poll-first t
 	      :extended-routing t
               :static-root (merge-pathnames "./www/"
-	                    (asdf:system-source-directory :ackfock))
+	                                    (asdf:system-source-directory :ackfock))
 	      :boot-function (clog-web-meta
 			      "Some meta data about site"))
   (clog-web-routes-from-menu *menu*)
