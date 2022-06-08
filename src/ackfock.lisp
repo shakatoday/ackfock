@@ -21,7 +21,6 @@
 ;; /content in this case on-main. So our about page has no handler set
 ;; but functions as we added to out database.
 
-                      ; Menu         Menu Item         URL        Handler     Actions Auth
 (defparameter *menu* `(("Features" (("Home"            "/")
 				    ("Login"           "/login"   on-login    :login)
 				    ("Signup"          "/signup"  on-signup   :signup)
@@ -75,9 +74,6 @@
 				 :signup-link  "/signup"
 				 :login-link   "/login")
 		     :profile profile
-		     ;; We define the roles simply if logged out a :guest
-		     ;; if logged in a :member and if username is admin
-		     ;; a :member, :editor and :admin.
 		     :roles (if profile
 				(if (equalp "admin"
 					    (getf profile :|username|))
