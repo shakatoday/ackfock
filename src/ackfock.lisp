@@ -68,7 +68,7 @@
   ;; Initialzie the clog-web-site environment
   (let ((profile (get-profile body (ackfock.db:db))))
     (create-web-site body
-		     :settings '(:color-class  "w3-blue-gray"
+		     :settings '(:color-class  "w3-khaki"
 				 :border-class ""
 				 :signup-link  "/signup"
 				 :login-link   "/login")
