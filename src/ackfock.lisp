@@ -75,10 +75,7 @@
 				 :login-link   "/login")
 		     :profile profile
 		     :roles (if profile
-				(if (equalp "admin"
-					    (getf profile :|username|))
-				    '(:member :editor :admin)			    
-				    '(:member))
+				'(:member)
 				'(:guest))
 		     :title "This site"
 		     :footer "(c) 2022 Someone"
