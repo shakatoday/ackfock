@@ -27,7 +27,6 @@
 				    ("Change Password" "/pass"    on-new-pass :change-password)
 				    ("Content"         "/content" on-main     :content)
 				    ("Logout"          "/logout"  on-logout   :logout)))
-		       ("Admin"    (("User List"       "/users"   on-users    :users)))
 		       ("Help"     (("About"           "/content/about"))))
   "Setup website menu")
 
@@ -121,30 +120,6 @@
 				 :content ,(clog-web-content (ackfock.db:db)
 							     :comment-table "content"
                                                              :sql-timestamp-func "now()"))))
-
-(defun on-users (body)
-  (init-site body)
-  (create-web-page body :users
-		   `(:menu    ,*menu*
-		     :content ,(lambda (body)
-				 (let ((users (dbi:fetch-all
-					       (dbi:execute
-						(dbi:prepare
-						 (ackfock.db:db)
-						 "select * from users")))))
-				   (dolist (user users)
-				     (let* ((box   (create-div body))
-					    (suser (create-span box :content (getf user :|username|)))
-					    (rbut  (create-button box :content "Reset Password"
-								      :class "w3-margin-left")))
-				       (declare (ignore suser))
-				       (set-on-click rbut (lambda (obj)
-							    (declare (ignore obj))
-							    (reset-password (ackfock.db:db)
-									    (getf user :|username|))
-							    (setf (disabledp rbut) t)
-							    (setf (text rbut) "Done"))))))))
-			:authorize t))
 
 (defun on-new-pass (body)
   (init-site body)
