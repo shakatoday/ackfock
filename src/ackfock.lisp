@@ -77,8 +77,8 @@
 		     :roles (if profile
 				'(:member)
 				'(:guest))
-		     :title "This site"
-		     :footer "(c) 2022 Someone"
+		     :title "Ackfock"
+		     :footer "(c) 2022 Shaka Chen"
 		     :logo nil)))
 
 ;;
