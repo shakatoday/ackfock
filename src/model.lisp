@@ -21,8 +21,7 @@
                  (if (and parse-keyword-p
                           (symbolp first-arg)
                           (not (keywordp first-arg)))
-                     (append (list (intern (str:upcase (str:snake-case (symbol-name first-arg)))
-                                           :keyword)
+                     (append (list (alexandria:make-keyword (str:upcase (str:snake-case (symbol-name first-arg))))
                                    first-arg)
                              (recur-gen-args (cdr args) parse-keyword-p))
                      (cons first-arg
