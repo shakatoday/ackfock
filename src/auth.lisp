@@ -55,16 +55,23 @@ if one is present and login fails."
 			    "The username must be at least 4 characters."
 			    :time-out 3
 			    :place-top t))
+           ((null (clavier:validate ackfock.utils:*email-validator*
+                                    (form-result result "email")))
+            (clog-web-alert body "Email invalid"
+			    "Not a valid email address"
+			    :time-out 3
+			    :place-top t))
 	   (t
 	    (let ((contents (dbi:fetch-all
 			     (dbi:execute
 			      (dbi:prepare
 			       sql-connection
-			       "select username from users where username=?")
-			      (list (form-result result "username"))))))
+			       "select email from users where email=?")
+			      (list (form-result result "email"))))))
+              ;; Race condition between check email availability and sql-insert*
 	      (cond (contents
 		     (clog-web-alert body "Exists"
-				     "The username is not available."
+				     "The email is not available."
 				     :time-out 3
 				     :place-top t))
 		    (t
@@ -72,7 +79,8 @@ if one is present and login fails."
 		       sql-connection
 		       (sql-insert*
 			"users"
-			`(:username ,(form-result result "username")
+			`(:email ,(form-result result "email")
+                          :username ,(form-result result "username")
 			  :password ,(cl-pass:hash (form-result result "password"))
 			  :token    ,(make-token))))
 		     (url-replace (location body) next-step)))))))))
