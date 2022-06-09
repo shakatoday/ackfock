@@ -223,9 +223,12 @@ Page properties:
 		 (when (eql count 0)
 		   (destroy (parent-element drop)))))
 	     (if (getf (profile website) :|username|)
-		 (create-web-menu-item menu :class "w3-right"
-					    :content (getf (profile website) :|username|)
-					    :link username-link)
+		 (progn
+                   (create-web-menu-item menu :class "w3-right"
+                                              :content "logout"
+                                              :link "logout")
+                   (create-web-menu-item menu :class "w3-right"
+					      :content (getf (profile website) :|username|)))
 		 (when login-link
 		   (create-web-menu-item menu :class "w3-right"
 					      :content "login"
