@@ -2,8 +2,7 @@
 (defpackage ackfock.auth
   (:use :cl :clog :clog-web :clog-auth)
   (:export #:login
-           #:sign-up
-           #:reset-password))
+           #:sign-up))
 (in-package :ackfock.auth)
 
 ;; think about how to redefine below functions in a meta way on clog-web-dbi
