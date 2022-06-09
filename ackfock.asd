@@ -33,9 +33,10 @@
                 :components
                 ((:file "ackfock" :depends-on ("db" "theme" "auth"))
                  (:file "theme")
+                 (:file "auth" :depends-on ("db" "utils" "authenticate-user-email"))
+                 (:file "authenticate-user-email" :depends-on ("db" "utils" "model-definition"))
                  (:file "model" :depends-on ("db" "utils" "model-definition"))
                  (:file "utils")
-                 (:file "auth" :depends-on ("db" "model-definition"))
                  (:file "model-definition" :depends-on ("db"))
                  (:file "db" :depends-on ("config"))
                  (:file "config"))))

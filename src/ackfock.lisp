@@ -1,5 +1,5 @@
 (defpackage #:ackfock
-  (:use #:cl #:clog #:clog-web #:clog-auth #:clog-web-dbi)
+  (:use #:cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.theme)
   (:export start-app))
 
 (in-package :ackfock)
@@ -8,8 +8,6 @@
 ;; Setup website structure, database and CLOG
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Default user/pass is username: admin and password: admin
 
 ;; /content is our root content URL, if you are authorized as an
 ;; editor or admin you are able to add additional pages by going to
@@ -30,7 +28,7 @@
 		       ("Help"     (("About"           "/content/about"))))
   "Setup website menu")
 
-(defun start-app (&key (port 8080))
+(defun start-app (&key (port 8080) (open-browser-p nil))
   ;; Here we add authorizations for content and editting content, not just
   ;; access to pages.
   (add-authorization '(:guest :member) '(:content-show-comments))
@@ -48,10 +46,12 @@
               :static-root (merge-pathnames "./www/"
 	                                    (asdf:system-source-directory :ackfock))
 	      :boot-function (clog-web-meta
-			      "Some meta data about site"))
+			      "Ackfock is a platform of mini agreements and mini memos of understanding."))
   (clog-web-routes-from-menu *menu*)
-  ;; see clog/WEBSITE.md for directions on installing this as a webserver
-  (open-browser))
+  (set-on-new-window 'on-activate :path "/activate")
+
+  (when open-browser-p
+    (open-browser)))
 
 ;;
 ;; Look and Feel
@@ -76,7 +76,7 @@
 		     :roles (if profile
 				'(:member)
 				'(:guest))
-                     :theme 'ackfock.theme:ackfock-theme
+                     :theme 'ackfock-theme
 		     :title "Ackfock"
 		     :footer "(c) 2022 Shaka Chen"
 		     :logo nil)))
@@ -85,6 +85,22 @@
 ;; URL Path Handlers
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun on-activate (body)
+  (let* ((path-name (path-name (location body)))
+         (user-token (when (> (length path-name) (length "/activate/"))
+                       (ackfock.authenticate-user-email:authenticate-user-email (subseq path-name (length "/activate/")))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
+    (when user-token
+      (init-site body)
+      (clog-web-alert body
+                      "Success"
+                      "Email verification success"
+                      :color-class "w3-green"
+                      :time-out 3
+                      :place-top t)
+      (store-authentication-token body user-token))
+    (url-replace (location body) "/")))
+
 
 (defun on-login (body)
   (init-site body)

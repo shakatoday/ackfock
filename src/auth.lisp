@@ -1,6 +1,8 @@
 (in-package :cl-user)
 (defpackage ackfock.auth
-  (:use :cl :clog :clog-web :clog-auth)
+  (:use :cl :clog :clog-web :clog-auth :ackfock.authenticate-user-email)
+  (:import-from :ackfock.db
+                #:defun-with-db-connection)
   (:export #:login
            #:sign-up))
 (in-package :ackfock.auth)
@@ -9,9 +11,7 @@
 
 (defun make-token ()
   "Create a unique token used to associate a browser with a user"
-  (cl-pass:hash (get-universal-time)
-                :type :pbkdf2-sha1
-                :iterations 512))
+  (str:downcase (uuid:print-bytes nil (uuid:make-v4-uuid))))
 
 (defun login (body sql-connection email password)
   "Login and set current authentication token, it does not remove token
@@ -38,49 +38,58 @@ if one is present and login fails."
      ("Password" "password" :password)
      ("Retype Password" "repass" :password))
    (lambda (result)
-     (cond ((not
-	     (equal (form-result result "password")
-		    (form-result result "repass")))
-	    (clog-web-alert body "Mismatch"
-			    "The passwords do match."
-			    :time-out 3
-			    :place-top t))
-	   ((< (length (form-result result "password")) 4)
-	    (clog-web-alert body "Missize"
-			    "The passwords must at least 4 characters."
-			    :time-out 3
-			    :place-top t))
-	   ((< (length (form-result result "username")) 4)
-	    (clog-web-alert body "Missize"
-			    "The username must be at least 4 characters."
-			    :time-out 3
-			    :place-top t))
-           ((null (clavier:validate ackfock.utils:*email-validator*
-                                    (form-result result "email")))
-            (clog-web-alert body "Email invalid"
-			    "Not a valid email address"
-			    :time-out 3
-			    :place-top t))
-	   (t
-	    (let ((contents (dbi:fetch-all
-			     (dbi:execute
-			      (dbi:prepare
-			       sql-connection
-			       "select email from users where email=?")
-			      (list (form-result result "email"))))))
-              ;; Race condition between check email availability and sql-insert*
-	      (cond (contents
-		     (clog-web-alert body "Exists"
-				     "The email is not available."
-				     :time-out 3
-				     :place-top t))
-		    (t
-		     (dbi:do-sql
-		       sql-connection
-		       (sql-insert*
-			"users"
-			`(:email ,(form-result result "email")
-                          :username ,(form-result result "username")
-			  :password ,(cl-pass:hash (form-result result "password"))
-			  :token    ,(make-token))))
-		     (url-replace (location body) next-step)))))))))
+     (let #.(mapcar (lambda (variable)
+                      `(,variable (form-result result ,(str:downcase (symbol-name variable)))))
+                    '(email username password))
+       (cond ((not
+	       (equal password
+		      (form-result result "repass")))
+	      (clog-web-alert body "Mismatch"
+			      "The passwords do match."
+			      :time-out 3
+			      :place-top t))
+	     ((< (length password) 4)
+	      (clog-web-alert body "Missize"
+			      "The passwords must at least 4 characters."
+			      :time-out 3
+			      :place-top t))
+	     ((< (length username) 4)
+	      (clog-web-alert body "Missize"
+			      "The username must be at least 4 characters."
+			      :time-out 3
+			      :place-top t))
+             ((null (clavier:validate ackfock.utils:*email-validator*
+                                      email))
+              (clog-web-alert body "Email invalid"
+			      "Not a valid email address"
+			      :time-out 3
+			      :place-top t))
+	     (t
+	      (let ((contents (dbi:fetch-all
+			       (dbi:execute
+			        (dbi:prepare
+			         sql-connection
+			         "select email from users where email=?")
+			        (list email)))))
+                ;; Race condition between check email availability and sql-insert*
+	        (cond (contents
+		       (clog-web-alert body "Exists"
+				       "The email is not available."
+				       :time-out 3
+				       :place-top t))
+		      (t
+		       (dbi:do-sql
+		         sql-connection
+		         (sql-insert*
+			  "users"
+			  `(:email ,email
+                            :username ,username
+			    :password ,(cl-pass:hash password)
+			    :token    ,(make-token))))
+                       (ackfock.utils:send-authentication-email email
+                                                                username
+                                                                (format nil
+                                                                        "~a/activate/~a"
+                                                                        ackfock.config:*application-url*
+                                                                        (ackfock.model-definition:authentication-code-code (create-authentication-code email))))
+		       (url-replace (location body) next-step))))))))))
