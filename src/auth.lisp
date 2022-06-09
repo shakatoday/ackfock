@@ -77,14 +77,3 @@ if one is present and login fails."
 			  :password ,(cl-pass:hash (form-result result "password"))
 			  :token    ,(make-token))))
 		     (url-replace (location body) next-step)))))))))
-
-(defun reset-password (sql-connection username &key (new-password "password"))
-  "Reset USERNAME's password to :NEW-PASSWORD"
-  (print username)
-  (dbi:do-sql
-    sql-connection
-    (sql-update
-     "users"
-     `(:password ,(cl-pass:hash new-password))
-     "username=?")
-    (list username)))
