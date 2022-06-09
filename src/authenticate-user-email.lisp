@@ -42,4 +42,4 @@
                                        (authentication-code-valid-until authentication-code)))
       (getf (update-user-email-authenticated-at (authentication-code-email authentication-code)
                                                 now)
-            :|token|))))
+            :token))))
