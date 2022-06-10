@@ -226,7 +226,10 @@ Page properties:
 		 (progn
                    (create-web-menu-item menu :class "w3-right"
                                               :content "logout"
-                                              :link "logout")
+                                              :link "/logout")
+                   (create-web-menu-item menu :class "w3-right"
+                                              :content "change password"
+                                              :link "/pass")
                    (create-web-menu-item menu :class "w3-right"
 					      :content (getf (profile website) :|username|)))
 		 (when login-link
