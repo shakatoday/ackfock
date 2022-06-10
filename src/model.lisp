@@ -45,12 +45,12 @@
                                                  user-id
                                                  archive-id)))))
        (insert-into :memo
-         #.(utils-ackfock:ensure-plist '(:=
+         #.(utils-ackfock:ensure-plist '(set=
                                          :creator_id user-id
                                          content
                                          archive-id)))
        (insert-into :memo
-         #.(utils-ackfock:ensure-plist '(:=
+         #.(utils-ackfock:ensure-plist '(set=
                                          :creator_id user-id
                                          content))))))
 
