@@ -55,10 +55,11 @@
                                          content))))))
 
 (defun-with-user-id-bind-from-token new-archive (archive-name)
-  (let ((archive-id (retrieve-one
-                     (insert-into :archive
-                       (set= :name archive-name)
-                       (returning :uuid)))))
+  (let ((archive-id (archive-uuid (retrieve-one
+                                   (insert-into :archive
+                                     (set= :name archive-name)
+                                     (returning :*))
+                                   :as 'archive))))
     (execute
      (insert-into :user_archive_access
        #.(utils-ackfock:ensure-plist '(set=
