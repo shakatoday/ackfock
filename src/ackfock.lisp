@@ -90,17 +90,19 @@
   (let* ((path-name (path-name (location body)))
          (user-token (when (> (length path-name) (length "/activate/"))
                        (ackfock.authenticate-user-email:authenticate-user-email (subseq path-name (length "/activate/")))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
-    (when user-token
-      (init-site body)
-      (clog-web-alert body
-                      "Success"
-                      "Email verification success"
-                      :color-class "w3-green"
-                      :time-out 3
-                      :place-top t)
-      (store-authentication-token body user-token))
-    (url-replace (location body) "/")))
-
+    (cond (user-token
+           (clog-web-initialize body)
+           (clog-web-alert body
+                           "Success"
+                           "Email verification success"
+                           :color-class "w3-green")
+           (store-authentication-token body user-token)
+           (print "success")
+           (sb-ext:schedule-timer (sb-ext:make-timer (lambda ()
+                                                       (url-replace (location body) "/")))
+                                  3))
+          (t
+           (url-replace (location body) "/")))))
 
 (defun on-login (body)
   (init-site body)
