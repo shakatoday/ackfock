@@ -88,7 +88,18 @@
                                          archive-id))
          (on-conflict-do-nothing))))))
 
-(defun-with-db-connection add-memo-to-archive (source-user-token memo-id archive-id))
+(defun-with-user-id-bind-from-token add-memo-to-archive (memo-id archive-id)
+  (when (and archive-id
+             (retrieve-one
+              (select :*
+                (from :memo)
+                (where (:and (:= :uuid memo-id)
+                             (:= :creator_id user-id)
+                             (:= :archive_id :null))))))
+    (execute
+     (update :memo
+       #.(utils-ackfock:ensure-plist '(set= archive-id))
+       (where (:= :uuid memo-id))))))
 
 (defun-with-db-connection memo-user-ackfocks (user-token memo-id))
 
