@@ -27,29 +27,44 @@
                :test #'string=)
        (alexandria:make-keyword string)))
 
-(defun-with-db-connection new-memo (user-token archive-id content)
-  (handler-case
-      ;; race condition notice below!
-      (let* ((user-id (user-uuid (user-by-user-token user-token))))
-        (execute
-         (if (retrieve-one
-                  (select :*
-                    (from :user_archive_access)
-                    (where #.(utils-ackfock:ensure-plist '(:=
-                                                           user-id
-                                                           archive-id)))))
-             (insert-into :memo
-               #.(utils-ackfock:ensure-plist '(:=
-                                               :creator_id user-id
-                                               content
-                                               archive-id)))
-             (insert-into :memo
-               #.(utils-ackfock:ensure-plist '(:=
-                                               :creator_id user-id
-                                               content))))))
-    (type-error () nil)))
+(defmacro defun-with-user-id-bind-from-token (name lambda-list &body body)
+  (let ((lambda-list (cons 'user-token lambda-list)))
+    `(defun-with-db-connection ,name ,lambda-list
+       (handler-case
+           ;; race condition notice below!
+           (let* ((user-id (user-uuid (user-by-user-token user-token))))
+             ,@body)
+         (type-error () nil)))))
 
-(defun-with-db-connection new-archive (user-token))
+(defun-with-user-id-bind-from-token new-memo (archive-id content)
+  (execute
+   (if (retrieve-one
+        (select :*
+          (from :user_archive_access)
+          (where #.(utils-ackfock:ensure-plist '(:=
+                                                 user-id
+                                                 archive-id)))))
+       (insert-into :memo
+         #.(utils-ackfock:ensure-plist '(:=
+                                         :creator_id user-id
+                                         content
+                                         archive-id)))
+       (insert-into :memo
+         #.(utils-ackfock:ensure-plist '(:=
+                                         :creator_id user-id
+                                         content))))))
+
+(defun-with-user-id-bind-from-token new-archive (archive-name)
+  (let ((archive-id (retrieve-one
+                     (insert-into :archive
+                       (set= :name archive-name)
+                       (returning :uuid)))))
+    (execute
+     (insert-into :user_archive_access
+       #.(utils-ackfock:ensure-plist '(set=
+                                       user-id
+                                       archive-id))))
+    archive-id))
 
 (defun-with-db-connection invite-to-archive (source-user-token target-user-email archive-id))
 
