@@ -9,9 +9,10 @@
 
 (defun-with-db-connection create-authentication-code (email &key (ttl-in-sec (* 60 60))) ; by default code will expire in 1 hour
   "Create an authentication code for EMAIL with TTL-IN-SEC, insert it into database, and return an AUTHENTICATION-CODE object if success."
-  (let ((valid-until (local-time:timestamp+ (local-time:now)
-                                            ttl-in-sec
-                                            :sec))
+  (let ((valid-until (local-time:format-timestring nil
+                                                   (local-time:timestamp+ (local-time:now)
+                                                                          ttl-in-sec
+                                                                          :sec)))
         (code (str:downcase (uuid:print-bytes nil (uuid:make-v4-uuid)))))
     (retrieve-one
      (insert-into :authentication_code
