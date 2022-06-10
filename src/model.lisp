@@ -67,7 +67,25 @@
                                        archive-id))))
     archive-id))
 
-(defun-with-db-connection invite-to-archive (source-user-token target-user-email archive-id))
+(defun-with-user-id-bind-from-token invite-to-archive (target-user-email archive-id)
+  (let ((target-user-id (user-uuid (retrieve-one
+                                    (select :uuid
+                                      (from :users)
+                                      (where (:= :email target-user-email)))
+                                    :as 'user))))
+    (when (and archive-id
+               (retrieve-one
+                (select :*
+                  (from :user_archive_access)
+                  (where #.(utils-ackfock:ensure-plist '(:=
+                                                         user-id
+                                                         archive-id))))))
+      (execute
+       (insert-into :user_archive_access
+         #.(utils-ackfock:ensure-plist '(set=
+                                         :user_id target-user-id
+                                         archive-id))
+         (on-conflict-do-nothing))))))
 
 (defun-with-db-connection add-memo-to-archive (source-user-token memo-id archive-id))
 
