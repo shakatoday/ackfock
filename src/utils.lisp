@@ -1,6 +1,5 @@
 (in-package :cl-user)
 (defpackage ackfock.utils
-  (:nicknames :utils-ackfock)
   (:use :cl)
   (:export #:*email-validator*
            #:send-authentication-email

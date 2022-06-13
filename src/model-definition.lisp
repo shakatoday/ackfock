@@ -3,6 +3,7 @@
   (:use :cl :ackfock.db :datafly :sxql)
   (:export #:ackfock
            #:user-ackfock
+           #:make-user-ackfock
            #:user
            #:user-uuid
            #:user-email
@@ -20,6 +21,7 @@
            #:memo-uuid
            #:memo-content
            #:memo-archive
+           #:memo-archive-id
            #:authentication-code-code
            #:authentication-code-email
            #:authentication-code-valid-until

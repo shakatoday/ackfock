@@ -1,8 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.model
-  (:use :cl :datafly :sxql :ackfock.model-definition)
-  (:import-from :ackfock.db
-                #:defun-with-db-connection)
+  (:use :cl :ackfock.db :datafly :sxql :ackfock.model-definition)
   (:export #:new-user
            #:user-memos
            #:authenticate
@@ -13,6 +11,13 @@
            #:create-authentication-code
            #:authenticate-user-email))
 (in-package :ackfock.model)
+
+(eval-when (:compile-toplevel :load-toplevel)
+  (set-macro-character #\$ nil)
+  (set-macro-character #\$
+                       (lambda (stream char)
+                         (declare (ignore char))
+                         (ackfock.utils:ensure-plist (read stream)))))
 
 (defconstant +dummy-uuid+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
 
@@ -27,34 +32,61 @@
                :test #'string=)
        (alexandria:make-keyword string)))
 
-(defmacro defun-with-user-id-bind-from-token (name lambda-list &body body)
-  (let ((lambda-list (cons 'user-token lambda-list)))
-    `(defun-with-db-connection ,name ,lambda-list
-       (handler-case
-           ;; race condition notice below!
-           (let* ((user-id (user-uuid (user-by-user-token user-token))))
-             ,@body)
-         (type-error () nil)))))
+(defun plist-to-user-ackfock (plist)
+  (make-user-ackfock :user #.(cons 'make-user
+                                   (reduce #'append
+                                           (mapcar (lambda (keyword-arg)
+                                                     `(,keyword-arg (getf (reverse plist) ,keyword-arg))) ; use the later created-at so we need a reverse
+                                                   '(:uuid :email :username :created-at))))
+                     :ackfock (getf plist :ackfock)
+                     :created-at (getf plist :ackfock)))
 
-(defun-with-user-id-bind-from-token new-memo (archive-id content)
+(defmacro defun-with-db-connection-and-user-id (name lambda-list &body body)
+  (let* ((docstring-list (when (and (stringp (first body))
+                                    (cdr body)) ; which means (> (length body) 1))
+                           (list (first body))))
+         (body (if (null docstring-list)
+                   body
+                   (subseq body 1)))
+         (lambda-list (cons 'user-token lambda-list)))
+    `(flet ((user-by-user-token (user-token)
+              (retrieve-one
+               (select :*
+                 (from :users)
+                 (where (:= :token user-token)))
+               :as 'user)))
+       (defun ,name ,lambda-list
+         ,@docstring-list
+         (with-connection (db)
+           (handler-case
+               ;; race condition notice below!
+               (let* ((user-id (user-uuid (user-by-user-token user-token))))
+                 ,@body)
+             (type-error (condition)
+               (when (ackfock.config:developmentp)
+                 (print condition))
+               nil)
+             (sb-pcl::no-primary-method-error (condition)
+               (when (ackfock.config:developmentp)
+                 (print condition))
+               nil)))))))
+
+(defun-with-db-connection-and-user-id new-memo (archive-id content)
   (execute
    (if (retrieve-one
         (select :*
           (from :user_archive_access)
-          (where #.(utils-ackfock:ensure-plist '(:=
-                                                 user-id
-                                                 archive-id)))))
+          (where (:and (:= :user-id user-id)
+                       (:= archive-id)))))
        (insert-into :memo
-         #.(utils-ackfock:ensure-plist '(set=
-                                         :creator_id user-id
-                                         content
-                                         archive-id)))
+         $(set= :creator_id user-id
+                content
+                archive-id))
        (insert-into :memo
-         #.(utils-ackfock:ensure-plist '(set=
-                                         :creator_id user-id
-                                         content))))))
+         $(set= :creator_id user-id
+                content)))))
 
-(defun-with-user-id-bind-from-token new-archive (archive-name)
+(defun-with-db-connection-and-user-id new-archive (archive-name)
   (let ((archive-id (archive-uuid (retrieve-one
                                    (insert-into :archive
                                      (set= :name archive-name)
@@ -62,20 +94,18 @@
                                    :as 'archive))))
     (execute
      (insert-into :user_archive_access
-       #.(utils-ackfock:ensure-plist '(set=
-                                       user-id
-                                       archive-id))))
+       $(set= user-id
+              archive-id)))
     archive-id))
 
-(defun-with-user-id-bind-from-token invite-to-archive (target-user-email archive-id)
+(defun-with-db-connection-and-user-id invite-to-archive (target-user-email archive-id)
   ;; make sure current user got the access
   (when (and archive-id
              (retrieve-one
               (select :*
                 (from :user_archive_access)
-                (where #.(utils-ackfock:ensure-plist '(:=
-                                                       user-id
-                                                       archive-id))))))
+                (where (:and $(:= user-id)
+                             $(:= archive-id))))))
     (let ((target-user-id (user-uuid (retrieve-one
                                       (select :uuid
                                         (from :users)
@@ -83,12 +113,11 @@
                                       :as 'user))))
       (execute
        (insert-into :user_archive_access
-         #.(utils-ackfock:ensure-plist '(set=
-                                         :user_id target-user-id
-                                         archive-id))
+         $(set= :user_id target-user-id
+                archive-id)
          (on-conflict-do-nothing))))))
 
-(defun-with-user-id-bind-from-token add-memo-to-archive (memo-id archive-id)
+(defun-with-db-connection-and-user-id add-memo-to-archive (memo-id archive-id)
   (when (and archive-id
              (retrieve-one
               (select :*
@@ -98,16 +127,54 @@
                              (:= :archive_id :null))))))
     (execute
      (update :memo
-       #.(utils-ackfock:ensure-plist '(set= archive-id))
+       $(set= archive-id)
        (where (:= :uuid memo-id))))))
 
-(defun-with-db-connection memo-user-ackfocks (user-token memo-id))
+(defun-with-db-connection-and-user-id memo-user-ackfocks (memo-id)
+  (when (or (retrieve-one
+             (select :*
+               (from :user_archive_access)
+               (where (:and $(:= memo-id)
+                            $(:= user-id)))))
+            (retrieve-one
+             (select :*
+               (from :memo)
+               (where (:and $(:= memo-id)
+                            $(:= :creator_id user-id))))))
+    ;; race condition gap notice!
+    (let ((data-plist-list (retrieve-all
+                            (select :*
+                              (from :user_ackfock)
+                              (inner-join :users
+                                          :on (:= :users.uuid :user_ackfock.user_id))
+                              (where $(:= memo-id))))))
+      (mapcar #'plist-to-user-ackfock
+              data-plist-list))))
 
-(defun-with-db-connection ackfock-memo (user-token memo-id ackfock))
+(defun-with-db-connection-and-user-id ackfock-memo (memo-id ackfock)
+  "Return an ACKFOCK::USER-ACKFOCK if success. Nil otherwise."
+  (when (or (retrieve-one
+             (select :*
+               (from :user_archive_access)
+               (where (:and $(:= memo-id)
+                            $(:= user-id)))))
+            (retrieve-one
+             (select :*
+               (from :memo)
+               (where (:and $(:= memo-id)
+                            $(:= :creator_id user-id))))))
+    ;; race condition gap notice!
+    (plist-to-user-ackfock
+     (retrieve-one
+      (select :*
+        (from (insert-into :user_ackfock
+                $(set= memo-id
+                       user-id
+                       ackfock)
+                (returning :*)
+                :as :new_user_ackfock))
+        (inner-join :users
+                    :on (:= :users.uuid :new_user_ackfock.user_id)))))))
 
-(defun-with-db-connection user-by-user-token (user-token)
-  (retrieve-one
-   (select :*
-     (from :users)
-     (where (:= :token user-token)))
-   :as 'user))
+(eval-when (:compile-toplevel :load-toplevel)
+  (set-macro-character #\$ nil))
