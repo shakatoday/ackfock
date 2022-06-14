@@ -203,25 +203,10 @@ Page properties:
 			  :content (title website)
 			  :class "w3-xlarge w3-sans-serif"))
 	   ;; SECTION: Menu bar
-	   (let ((menu  (create-web-menu-bar body :class "w3-card-4 w3-margin-top")))
+	   (let ((menu (create-web-menu-bar body :class "w3-card-4 w3-margin-top")))
 	     (add-class menu color-class)
-	     (dolist (drop-down menu-property)
-	       (let ((drop  (create-web-menu-drop-down menu
-						       :content (first drop-down)
-						       :class "w3-border"))
-		     (count 0))
-		 (dolist (item (second drop-down))
-		   (when (or (and (fourth item)
-				  (clog-auth:is-authorized-p (roles website)
-							     (fourth item)))
-			     (eq (fourth item) nil))
-		     (incf count)
-		     (create-web-menu-item drop
-					   :class "clog-theme"
-					   :content (first item)
-					   :link (second item))))
-		 (when (eql count 0)
-		   (destroy (parent-element drop)))))
+             (create-form-element menu :search :class "w3-padding w3-margin-left")
+             (create-button menu :content "search")
 	     (if (getf (profile website) :|username|)
 		 (progn
                    (create-web-menu-item menu :class "w3-right"
