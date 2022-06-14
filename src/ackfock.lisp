@@ -19,13 +19,11 @@
 ;; /content in this case on-main. So our about page has no handler set
 ;; but functions as we added to out database.
 
-(defparameter *menu* `(("Features" (("Home"            "/")
-				    ("Login"           "/login"   on-login    :login)
-				    ("Signup"          "/signup"  on-signup   :signup)
-				    ("Change Password" "/pass"    on-new-pass :change-password)
-				    ("Content"         "/content" on-main     :content)
-				    ("Logout"          "/logout"  on-logout   :logout)))
-		       ("Help"     (("About"           "/content/about"))))
+(defparameter *routes* `(("Account" (("Login"           "/login"   on-login    :login)
+				     ("Signup"          "/signup"  on-signup   :signup)
+				     ("Change Password" "/pass"    on-new-pass :change-password)
+				     ("Logout"          "/logout"  on-logout   :logout)))
+                         ("Content" (("Content"         "/content" on-main     :content))))
   "Setup website menu")
 
 (defun start-app (&key (port 8080) (open-browser-p nil))
@@ -47,7 +45,7 @@
 	                                    (asdf:system-source-directory :ackfock))
 	      :boot-function (clog-web-meta
 			      "Ackfock is a platform of mini agreements and mini memos of understanding."))
-  (clog-web-routes-from-menu *menu*)
+  (clog-web-routes-from-menu *routes*)
   (set-on-new-window 'on-activate :path "/activate")
 
   (when open-browser-p
@@ -108,7 +106,7 @@
   (init-site body)
   (create-web-page
    body
-   :login `(:menu      ,*menu*
+   :login `(:menu      ,'(())
 	    :on-submit ,(lambda (obj)
 			  (if (ackfock.auth:login body
                                                   (ackfock.db:db)
@@ -127,14 +125,14 @@
 (defun on-signup (body)
   (init-site body)
   (create-web-page body
-		   :signup `(:menu    ,*menu*
+		   :signup `(:menu    ,'(())
 			     :content ,(lambda (body)
 					 (ackfock.auth:sign-up body (ackfock.db:db))))
 		   :authorize t))
 
 (defun on-main (body)
   (init-site body)
-  (create-web-page body :index `(:menu    ,*menu*
+  (create-web-page body :index `(:menu    ,'(())
 				 :content ,(clog-web-content (ackfock.db:db)
 							     :comment-table "content"
                                                              :sql-timestamp-func "now()"))))
@@ -142,7 +140,7 @@
 (defun on-new-pass (body)
   (init-site body)
   (create-web-page body
-		   :change-password `(:menu    ,*menu*
+		   :change-password `(:menu    ,'(())
 				      :content ,(lambda (body)
 						  (change-password body (ackfock.db:db))))
 		   :authorize t))
