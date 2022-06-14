@@ -30,9 +30,9 @@ Page properties:
 	 (menu-property  (get-property properties :menu "w3-black"))
 	 (content        (get-property properties :content "")))
 
-    (cond ;; Sub-section: Table of Contents
-          ((or (eq page :content-contents) ; data based contents layout
-	       (eq page :blog-contents))   ; blog based contents layout
+    (cond ((or ; Sub-section: Table of Contents
+            (eq page :content-contents) ; data based contents layout
+	    (eq page :blog-contents))   ; blog based contents layout
 	   (let ((contents (get-property properties :content nil))
 		 (do-add   (get-property properties :do-add nil)))
 	     (when do-add
@@ -218,9 +218,9 @@ Page properties:
 	       (if (getf (profile website) :|username|)
 		   (progn
                      (create-web-menu-item menu-right-div :content "logout"
-                                                :link "/logout")
+                                                          :link "/logout")
                      (create-web-menu-item menu-right-div :content "change password"
-                                                :link "/pass")
+                                                          :link "/pass")
                      (create-web-menu-item menu-right-div :content (getf (profile website) :|username|)))
 		   (when login-link
 		     (create-web-menu-item menu-right-div :content "login"
