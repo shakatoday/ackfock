@@ -24,7 +24,7 @@
 				     ("Change Password" "/pass"    on-new-pass :change-password)
 				     ("Logout"          "/logout"  on-logout   :logout)))
                          ("Content" (("Content"         "/content" on-main     :content))))
-  "Setup website menu")
+  "Setup website routes")
 
 (defun start-app (&key (port 8080) (open-browser-p nil))
   ;; Here we add authorizations for content and editting content, not just
@@ -132,10 +132,7 @@
 
 (defun on-main (body)
   (init-site body)
-  (create-web-page body :index `(:menu    ,'(())
-				 :content ,(clog-web-content (ackfock.db:db)
-							     :comment-table "content"
-                                                             :sql-timestamp-func "now()"))))
+  (create-web-page body :index '()))
 
 (defun on-new-pass (body)
   (init-site body)
