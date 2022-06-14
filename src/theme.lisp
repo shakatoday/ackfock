@@ -205,22 +205,26 @@ Page properties:
 	   ;; SECTION: Menu bar
 	   (let ((menu (create-web-menu-bar body :class "w3-card-4 w3-margin-top")))
 	     (add-class menu color-class)
-             (create-form-element menu :search :class "w3-padding w3-margin-left")
-             (create-button menu :content "search")
-	     (if (getf (profile website) :|username|)
-		 (progn
-                   (create-web-menu-item menu :class "w3-right"
-                                              :content "logout"
-                                              :link "/logout")
-                   (create-web-menu-item menu :class "w3-right"
-                                              :content "change password"
-                                              :link "/pass")
-                   (create-web-menu-item menu :class "w3-right"
-					      :content (getf (profile website) :|username|)))
-		 (when login-link
-		   (create-web-menu-item menu :class "w3-right"
-					      :content "login"
-					      :link login-link))))
+             (with-clog-create menu
+                 (div (:bind menu-inner-div)
+                      (div ()
+	                   (form-element (:search :class "w3-margin-left"))
+                           (button (:content "search")))
+                      (div (:bind menu-right-div)))
+               (center-children menu-inner-div
+                                :vertical t
+                                :horizontal nil)
+               (setf (justify-content menu-inner-div) :space-between)
+	       (if (getf (profile website) :|username|)
+		   (progn
+                     (create-web-menu-item menu-right-div :content "logout"
+                                                :link "/logout")
+                     (create-web-menu-item menu-right-div :content "change password"
+                                                :link "/pass")
+                     (create-web-menu-item menu-right-div :content (getf (profile website) :|username|)))
+		   (when login-link
+		     (create-web-menu-item menu-right-div :content "login"
+					                  :link login-link)))))
 	   ;; SECTION: Content area
 	   (create-br body)
 	   (when content
