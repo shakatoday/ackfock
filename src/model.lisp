@@ -41,7 +41,8 @@
                      :ackfock (getf plist :ackfock)
                      :created-at (getf plist :ackfock)))
 
-(defmacro defun-with-db-connection-and-user-id (name lambda-list &body body)
+(defmacro defun-with-db-connection-and-current-user (name lambda-list &body body)
+  "Wrap with WITH-CONNECTION (DB) and handler-case. bound CURRENT-USER and USER-ID according to USER-TOKEN"
   (let* ((docstring-list (when (and (stringp (first body))
                                     (cdr body)) ; which means (> (length body) 1))
                            (list (first body))))
@@ -60,7 +61,8 @@
          (with-connection (db)
            (handler-case
                ;; race condition notice below!
-               (let* ((user-id (user-uuid (user-by-user-token user-token))))
+               (let* ((current-user (user-by-user-token user-token))
+                      (user-id (user-uuid current-user)))
                  ,@body)
              (type-error (condition)
                (when (ackfock.config:developmentp)
@@ -71,13 +73,13 @@
                  (print condition))
                nil)))))))
 
-(defun-with-db-connection-and-user-id new-memo (archive-id content)
+(defun-with-db-connection-and-current-user new-memo (archive-id content)
   (execute
    (if (retrieve-one
         (select :*
           (from :user_archive_access)
-          (where (:and (:= :user-id user-id)
-                       (:= archive-id)))))
+          (where (:and $(:= user-id)
+                       $(:= archive-id)))))
        (insert-into :memo
          $(set= :creator_id user-id
                 content
@@ -86,7 +88,7 @@
          $(set= :creator_id user-id
                 content)))))
 
-(defun-with-db-connection-and-user-id new-archive (archive-name)
+(defun-with-db-connection-and-current-user new-archive (archive-name)
   (let ((archive-id (archive-uuid (retrieve-one
                                    (insert-into :archive
                                      (set= :name archive-name)
@@ -98,7 +100,7 @@
               archive-id)))
     archive-id))
 
-(defun-with-db-connection-and-user-id invite-to-archive (target-user-email archive-id)
+(defun-with-db-connection-and-current-user invite-to-archive (target-user-email archive-id)
   ;; make sure current user got the access
   (when (and archive-id
              (retrieve-one
@@ -117,7 +119,7 @@
                 archive-id)
          (on-conflict-do-nothing))))))
 
-(defun-with-db-connection-and-user-id add-memo-to-archive (memo-id archive-id)
+(defun-with-db-connection-and-current-user add-memo-to-archive (memo-id archive-id)
   (when (and archive-id
              (retrieve-one
               (select :*
@@ -130,7 +132,7 @@
        $(set= archive-id)
        (where (:= :uuid memo-id))))))
 
-(defun-with-db-connection-and-user-id memo-user-ackfocks (memo-id)
+(defun-with-db-connection-and-current-user memo-user-ackfocks (memo-id)
   (when (or (retrieve-one
              (select :*
                (from :user_archive_access)
@@ -151,7 +153,7 @@
       (mapcar #'plist-to-user-ackfock
               data-plist-list))))
 
-(defun-with-db-connection-and-user-id ackfock-memo (memo-id ackfock)
+ (defun-with-db-connection-and-current-user ackfock-memo (memo-id ackfock)
   "Return an ACKFOCK::USER-ACKFOCK if success. Nil otherwise."
   (when (or (retrieve-one
              (select :*
