@@ -73,69 +73,69 @@
                  (print condition))
                nil)))))))
 
-(defun-with-db-connection-and-current-user new-memo (archive-id content)
+(defun-with-db-connection-and-current-user new-memo (channel-id content)
   (execute
    (if (retrieve-one
         (select :*
-          (from :user_archive_access)
+          (from :user_channel_access)
           (where (:and $(:= user-id)
-                       $(:= archive-id)))))
+                       $(:= channel-id)))))
        (insert-into :memo
          $(set= :creator_id user-id
                 content
-                archive-id))
+                channel-id))
        (insert-into :memo
          $(set= :creator_id user-id
                 content)))))
 
-(defun-with-db-connection-and-current-user new-archive (archive-name)
-  (let ((archive-id (archive-uuid (retrieve-one
-                                   (insert-into :archive
-                                     (set= :name archive-name)
+(defun-with-db-connection-and-current-user new-channel (channel-name)
+  (let ((channel-id (channel-uuid (retrieve-one
+                                   (insert-into :channel
+                                     (set= :name channel-name)
                                      (returning :*))
-                                   :as 'archive))))
+                                   :as 'channel))))
     (execute
-     (insert-into :user_archive_access
+     (insert-into :user_channel_access
        $(set= user-id
-              archive-id)))
-    archive-id))
+              channel-id)))
+    channel-id))
 
-(defun-with-db-connection-and-current-user invite-to-archive (target-user-email archive-id)
+(defun-with-db-connection-and-current-user invite-to-channel (target-user-email channel-id)
   ;; make sure current user got the access
-  (when (and archive-id
+  (when (and channel-id
              (retrieve-one
               (select :*
-                (from :user_archive_access)
+                (from :user_channel_access)
                 (where (:and $(:= user-id)
-                             $(:= archive-id))))))
+                             $(:= channel-id))))))
     (let ((target-user-id (user-uuid (retrieve-one
                                       (select :uuid
                                         (from :users)
                                         (where (:= :email target-user-email)))
                                       :as 'user))))
       (execute
-       (insert-into :user_archive_access
+       (insert-into :user_channel_access
          $(set= :user_id target-user-id
-                archive-id)
+                channel-id)
          (on-conflict-do-nothing))))))
 
-(defun-with-db-connection-and-current-user add-memo-to-archive (memo-id archive-id)
-  (when (and archive-id
+(defun-with-db-connection-and-current-user add-memo-to-channel (memo-id channel-id)
+  (when (and channel-id
              (retrieve-one
               (select :*
                 (from :memo)
                 (where (:and (:= :uuid memo-id)
                              (:= :creator_id user-id)
-                             (:= :archive_id :null))))))
+                             (:= :channel_id :null))))))
     (execute
      (update :memo
-       $(set= archive-id)
+       $(set= channel-id)
        (where (:= :uuid memo-id))))))
 
 (defun-with-db-connection-and-current-user memo-user-ackfocks (memo-id)
   (when (or (retrieve-one
              (select :*
-               (from :user_archive_access)
+               (from :user_channel_access)
                (where (:and $(:= memo-id)
                             $(:= user-id)))))
             (retrieve-one
@@ -157,7 +157,7 @@
   "Return an ACKFOCK::USER-ACKFOCK if success. Nil otherwise."
   (when (or (retrieve-one
              (select :*
-               (from :user_archive_access)
+               (from :user_channel_access)
                (where (:and $(:= memo-id)
                             $(:= user-id)))))
             (retrieve-one

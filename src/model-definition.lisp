@@ -10,18 +10,18 @@
            #:user-username
            #:user-p
            #:make-user
-           #:user-archives
+           #:user-channels
            #:user-private-memos
-           #:archive
-           #:archive-uuid
-           #:archive-name
-           #:archive-users
-           #:archive-memos
+           #:channel
+           #:channel-uuid
+           #:channel-name
+           #:channel-users
+           #:channel-memos
            #:memo
            #:memo-uuid
            #:memo-content
-           #:memo-archive
-           #:memo-archive-id
+           #:memo-channel
+           #:memo-channel-id
            #:authentication-code-code
            #:authentication-code-email
            #:authentication-code-valid-until
@@ -35,46 +35,46 @@
   user ackfock created-at)
 
 (defmodel (user (:inflate created-at #'datetime-to-timestamp)
-                (:has-many (archives archive)
+                (:has-many (channels channel)
                            (select :*
-                             (from :archive)
+                             (from :channel)
                              (inner-join (:as (select :*
-                                                (from :user_archive_access)
-                                                (where (:= :user_archive_access.user_id uuid)))
-                                          :user_archive_access_join)
-                                         :on (:= :archive.uuid :user_archive_access_join.archive_id))
-                             (order-by (:desc :user_archive_access_join.created_at))))
+                                                (from :user_channel_access)
+                                                (where (:= :user_channel_access.user_id uuid)))
+                                          :user_channel_access_join)
+                                         :on (:= :channel.uuid :user_channel_access_join.channel_id))
+                             (order-by (:desc :user_channel_access_join.created_at))))
                 (:has-many (private-memos memo)
                            (select :*
                              (from :memo)
                              (where (:and (:= :memo.user_id uuid)
-                                          (:= :memo.archive_id :null))))))
+                                          (:= :memo.channel_id :null))))))
   uuid
   email
   username
   created-at)
 
-(defmodel (archive (:has-many (users user)
+(defmodel (channel (:has-many (users user)
                               (select :*
                                 (from :users)
                                 (inner-join (:as (select :*
-                                                   (from :user_archive_access)
-                                                   (where (:= :user_archive_access.archive_id uuid)))
-                                             :user_archive_access_join)
-                                            :on (:= :users.uuid :user_archive_access_join.user_id))
-                                (order-by (:desc :user_archive_access_join.created_at))))
+                                                   (from :user_channel_access)
+                                                   (where (:= :user_channel_access.channel_id uuid)))
+                                             :user_channel_access_join)
+                                            :on (:= :users.uuid :user_channel_access_join.user_id))
+                                (order-by (:desc :user_channel_access_join.created_at))))
                    (:has-many (memos memo)
                               (select :*
                                 (from :memo)
-                                (where (:= :memo.archive_id uuid)))))
+                                (where (:= :memo.channel_id (or uuid :null))))))
   uuid
   name)
 
 (defmodel (memo (:inflate created-at #'datetime-to-timestamp)
-                (:has-a archive (where (:= :uuid archive-id))))
+                (:has-a channel (where (:= :uuid channel-id))))
   uuid
   content
-  archive-id
+  channel-id
   created-at)
 
 (defmodel (authentication-code (:inflate created-at #'datetime-to-timestamp)
