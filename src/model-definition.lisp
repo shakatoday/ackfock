@@ -34,46 +34,20 @@
 (defstruct user-ackfock
   user ackfock created-at)
 
-(defmodel (user (:inflate created-at #'datetime-to-timestamp)
-                (:has-many (channels channel)
-                           (select :*
-                             (from :channel)
-                             (inner-join (:as (select :*
-                                                (from :user_channel_access)
-                                                (where (:= :user_channel_access.user_id uuid)))
-                                          :user_channel_access_join)
-                                         :on (:= :channel.uuid :user_channel_access_join.channel_id))
-                             (order-by (:desc :user_channel_access_join.created_at))))
-                (:has-many (private-memos memo)
-                           (select :*
-                             (from :memo)
-                             (where (:and (:= :memo.user_id uuid)
-                                          (:= :memo.channel_id :null))))))
+(defmodel (user (:inflate created-at #'datetime-to-timestamp))
   uuid
   email
   username
   created-at)
 
-(defmodel (channel (:has-many (users user)
-                              (select :*
-                                (from :users)
-                                (inner-join (:as (select :*
-                                                   (from :user_channel_access)
-                                                   (where (:= :user_channel_access.channel_id uuid)))
-                                             :user_channel_access_join)
-                                            :on (:= :users.uuid :user_channel_access_join.user_id))
-                                (order-by (:desc :user_channel_access_join.created_at))))
-                   (:has-many (memos memo)
-                              (select :*
-                                (from :memo)
-                                (where (:= :memo.channel_id (or uuid :null))))))
+(defmodel (channel)
   uuid
   name)
 
-(defmodel (memo (:inflate created-at #'datetime-to-timestamp)
-                (:has-a channel (where (:= :uuid channel-id))))
+(defmodel (memo (:inflate created-at #'datetime-to-timestamp))
   uuid
   content
+  creator-id
   channel-id
   created-at)
 
@@ -83,3 +57,50 @@
   code
   created-at
   valid-until)
+
+(defun-with-db-connection user-channels (user)
+  (retrieve-all
+   (select :*
+     (from :channel)
+     (inner-join (:as (select :*
+                        (from :user_channel_access)
+                        (where (:= :user_channel_access.user_id (user-uuid user))))
+                  :user_channel_access_join)
+                 :on (:= :channel.uuid :user_channel_access_join.channel_id))
+     (order-by (:desc :user_channel_access_join.created_at)))
+   :as 'channel))
+
+(defun-with-db-connection user-private-memos (user)
+  (retrieve-all
+   (select :*
+     (from :memo)
+     (where (:and (:= :memo.creator_id (user-uuid user))
+                  (:= :memo.channel_id :null))))
+   :as 'memo))
+
+(defun-with-db-connection channel-users (channel)
+  (retrieve-all
+   (select :*
+     (from :users)
+     (inner-join (:as (select :*
+                        (from :user_channel_access)
+                        (where (:= :user_channel_access.channel_id (channel-uuid channel))))
+                  :user_channel_access_join)
+                 :on (:= :users.uuid :user_channel_access_join.user_id))
+     (order-by (:desc :user_channel_access_join.created_at)))
+   :as 'user))
+
+(defun-with-db-connection channel-memos (channel)
+  (retrieve-all
+   (select :*
+     (from :memo)
+     (where (:= :memo.channel_id (channel-uuid channel))))
+   :as 'memo))
+
+(defun-with-db-connection memo-channel (memo)
+  (when (memo-channel-id memo)
+    (retrieve-one
+     (select :*
+       (from :channel)
+       (where (:= :channel.uuid (memo-channel-id memo))))
+     :as 'channel)))
