@@ -133,8 +133,22 @@
 		   :authorize t))
 
 (defun on-main (body)
-  (init-site body)
-  (create-web-page body :index '()))
+  (let ((web-site (init-site body)))
+    (create-web-page body
+                     :index
+                     `(:content ,(when (profile web-site)
+                                   (lambda (body)
+                                     (let ((side (create-web-sidebar body))
+                                           (main (create-div body :content "where am I?")))
+                                       (add-card-look side)
+                                       (set-margin-side main
+                                                        :left (format nil "~apx" (width side)))
+                                       (create-web-sidebar-item side :content "Not in Channels" :class "w3-border")
+                                       (create-div side :content "<b>Channels</b>")
+                                       (loop for channel in (user-channels (profile web-site))
+                                             do (create-web-sidebar-item side
+                                                                         :content (channel-name channel)
+                                                                         :class "w3-border")))))))))
 
 (defun on-new-pass (body)
   (init-site body)
