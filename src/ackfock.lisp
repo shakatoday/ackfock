@@ -1,7 +1,9 @@
+(in-package :cl-user)
 (defpackage #:ackfock
-  (:use #:cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.theme)
+  (:use #:cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.model-definition #:ackfock.theme)
+  (:import-from :ackfock.auth
+                #:current-user)
   (:export start-app))
-
 (in-package :ackfock)
 
 ;;
@@ -64,7 +66,7 @@
   (set-on-authentication-change body (lambda (body)
 				       (url-replace (location body) "/")))
   ;; Initialzie the clog-web-site environment
-  (let ((profile (get-profile body (ackfock.db:db))))
+  (let ((profile (current-user body)))
     (create-web-site body
 		     :settings '(:color-class  "w3-khaki"
 				 :border-class ""

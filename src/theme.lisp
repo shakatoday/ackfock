@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.theme
-  (:use :cl :clog :clog-web)
+  (:use :cl :clog :clog-web :ackfock.model-definition)
   (:export #:ackfock-theme))
 (in-package :ackfock.theme)
 
@@ -63,13 +63,13 @@ Page properties:
                          :vertical t
                          :horizontal nil)
         (setf (justify-content menu-inner-div) :space-between)
-	(if (getf (profile website) :|username|)
+	(if (profile website)
 	    (progn
-              (create-web-menu-item menu-right-div :content "logout"
-                                                   :link "/logout")
+              (create-web-menu-item menu-right-div :content (user-username (profile website)))
               (create-web-menu-item menu-right-div :content "change password"
                                                    :link "/pass")
-              (create-web-menu-item menu-right-div :content (getf (profile website) :|username|)))
+              (create-web-menu-item menu-right-div :content "logout"
+                                                   :link "/logout"))
 	    (when login-link
 	      (create-web-menu-item menu-right-div :content "login"
 					           :link login-link)))))

@@ -6,6 +6,7 @@
                "uiop"
                "str"
                "alexandria"
+               "rutils"
                "uuid"
                "local-time"
 
@@ -31,11 +32,12 @@
                "mailgun")
   :components ((:module "src"
                 :components
-                ((:file "ackfock" :depends-on ("db" "theme" "auth"))
-                 (:file "theme")
-                 (:file "auth" :depends-on ("db" "utils" "authenticate-user-email"))
-                 (:file "authenticate-user-email" :depends-on ("db" "utils" "model-definition"))
-                 (:file "model" :depends-on ("db" "utils" "model-definition"))
+                ((:file "ackfock" :depends-on ("theme" "auth" "model-definition" "db"))
+                 (:file "view" :depends-on ("model-definition"))
+                 (:file "theme" :depends-on ("auth" "model-definition"))
+                 (:file "auth" :depends-on ("authenticate-user-email" "utils" "model-definition" "db"))
+                 (:file "authenticate-user-email" :depends-on ("model-definition" "utils" "db"))
+                 (:file "model" :depends-on ("model-definition" "utils" "db"))
                  (:file "utils")
                  (:file "model-definition" :depends-on ("db"))
                  (:file "db" :depends-on ("config"))

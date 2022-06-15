@@ -4,7 +4,8 @@
   (:import-from :ackfock.db
                 #:defun-with-db-connection)
   (:export #:login
-           #:sign-up))
+           #:sign-up
+           #:current-user))
 (in-package :ackfock.auth)
 
 ;; think about how to redefine below functions in a meta way on clog-web-dbi
@@ -12,6 +13,15 @@
 (defun make-token ()
   "Create a unique token used to associate a browser with a user"
   (str:downcase (uuid:print-bytes nil (uuid:make-v4-uuid))))
+
+(defun-with-db-connection current-user (clog-body)
+  (rutils:when-it (get-authentication-token clog-body)
+    ;; servere symbol conflicts between datafly, sxql, and clog
+    (datafly:retrieve-one
+     (sxql:select :*
+       (sxql:from :users)
+       (sxql:where (:= :token rutils:it)))
+     :as 'ackfock.model-definition:user)))
 
 (defun login (body sql-connection email password)
   "Login and set current authentication token, it does not remove token
