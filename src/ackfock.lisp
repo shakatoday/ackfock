@@ -138,17 +138,22 @@
                      :index
                      `(:content ,(when (profile web-site)
                                    (lambda (body)
-                                     (let ((side (create-web-sidebar body))
-                                           (main (create-div body :content "where am I?")))
+                                     (let* ((side (create-web-sidebar body))
+                                            (main (create-div body))
+                                            (channel-content (create-web-content main)))
                                        (add-card-look side)
-                                       (set-margin-side main
-                                                        :left (format nil "~apx" (width side)))
                                        (create-web-sidebar-item side :content "Not in Channels" :class "w3-border")
                                        (create-div side :content "<b>Channels</b>")
                                        (loop for channel in (user-channels (profile web-site))
                                              do (create-web-sidebar-item side
                                                                          :content (channel-name channel)
-                                                                         :class "w3-border")))))))))
+                                                                         :class "w3-border"))
+                                       (set-margin-side main
+                                                        :left (format nil "~apx" (width side)))
+                                       (setf (inner-html channel-content) (reduce #'str:concat
+                                                                                  (mapcar (lambda (memo)
+                                                                                            (ackfock.view:render memo (profile web-site)))
+                                                                                          (user-private-memos (profile web-site))))))))))))
 
 (defun on-new-pass (body)
   (init-site body)

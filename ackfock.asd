@@ -9,6 +9,7 @@
                "rutils"
                "uuid"
                "local-time"
+               "spinneret"
 
                ;; for DB
                "datafly"
@@ -32,8 +33,8 @@
                "mailgun")
   :components ((:module "src"
                 :components
-                ((:file "ackfock" :depends-on ("theme" "auth" "model-definition" "db"))
-                 (:file "view" :depends-on ("model-definition"))
+                ((:file "ackfock" :depends-on ("view" "theme" "auth" "model-definition" "db"))
+                 (:file "view" :depends-on ("model" "model-definition"))
                  (:file "theme" :depends-on ("auth" "model-definition"))
                  (:file "auth" :depends-on ("authenticate-user-email" "utils" "model-definition" "db"))
                  (:file "authenticate-user-email" :depends-on ("model-definition" "utils" "db"))

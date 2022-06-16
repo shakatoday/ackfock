@@ -3,6 +3,8 @@
   (:use :cl :ackfock.db :datafly :sxql)
   (:export #:ackfock
            #:user-ackfock
+           #:user-ackfock-user
+           #:user-ackfock-ackfock
            #:make-user-ackfock
            #:user
            #:user-uuid
@@ -22,6 +24,8 @@
            #:memo-content
            #:memo-channel
            #:memo-channel-id
+           #:memo-creator
+           #:memo-creator-id
            #:authentication-code-code
            #:authentication-code-email
            #:authentication-code-valid-until
@@ -75,7 +79,7 @@
    (select :*
      (from :memo)
      (where (:and (:= :memo.creator_id (user-uuid user))
-                  (:= :memo.channel_id :null))))
+                  (:is-null :memo.channel_id))))
    :as 'memo))
 
 (defun-with-db-connection channel-users (channel)
@@ -104,3 +108,10 @@
        (from :channel)
        (where (:= :channel.uuid (memo-channel-id memo))))
      :as 'channel)))
+
+(defun-with-db-connection memo-creator (memo)
+  (retrieve-one
+   (select :*
+     (from :users)
+     (where (:= :users.uuid (memo-creator-id memo))))
+   :as 'user))

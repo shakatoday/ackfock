@@ -1,18 +1,16 @@
 (in-package :cl-user)
 (defpackage ackfock.model
   (:use :cl :ackfock.db :datafly :sxql :ackfock.model-definition)
-  (:export #:new-user
-           #:user-memos
-           #:authenticate
-           #:new-memo
-           #:ackfock-memo
-           #:get-user-by-email
-           #:send-memo
-           #:create-authentication-code
-           #:authenticate-user-email))
+  (:export #:new-memo
+           #:new-channel
+           #:invite-to-channel
+           #:add-memo-to-channel
+           #:memo-user-ackfocks
+           #:memo-latest-ackfocks-per-user-by-ackfock
+           #:ackfock-memo))
 (in-package :ackfock.model)
 
-(eval-when (:compile-toplevel :load-toplevel)
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (set-macro-character #\$ nil)
   (set-macro-character #\$
                        (lambda (stream char)
@@ -41,15 +39,25 @@
                      :ackfock (getf plist :ackfock)
                      :created-at (getf plist :ackfock)))
 
+(defun user-ackfock-list-to-alist-by-ackfock (user-ackfock-list)
+  (list (cons "ACK"
+              (remove-if-not (lambda (ackfock) (string= ackfock "ACK"))
+                             user-ackfock-list
+                             :key #'user-ackfock-ackfock))
+        (cons "FOCK"
+              (remove-if-not (lambda (ackfock) (string= ackfock "FOCK"))
+                             user-ackfock-list
+                             :key #'user-ackfock-ackfock))))
+
 (defmacro defun-with-db-connection-and-current-user (name lambda-list &body body)
-  "Wrap with WITH-CONNECTION (DB) and handler-case. bound CURRENT-USER and USER-ID according to USER-TOKEN"
+  "Wrap with WITH-CONNECTION (DB) and handler-case. bound USER-ID according to CURRENT-USER"
   (let* ((docstring-list (when (and (stringp (first body))
                                     (cdr body)) ; which means (> (length body) 1))
                            (list (first body))))
          (body (if (null docstring-list)
                    body
                    (subseq body 1)))
-         (lambda-list (cons 'user-token lambda-list)))
+         (lambda-list (cons 'current-user lambda-list)))
     `(flet ((user-by-user-token (user-token)
               (retrieve-one
                (select :*
@@ -61,8 +69,7 @@
          (with-connection (db)
            (handler-case
                ;; race condition notice below!
-               (let* ((current-user (user-by-user-token user-token))
-                      (user-id (user-uuid current-user)))
+               (let ((user-id (user-uuid current-user)))
                  ,@body)
              (type-error (condition)
                (when (ackfock.config:developmentp)
@@ -126,7 +133,7 @@
                 (from :memo)
                 (where (:and (:= :uuid memo-id)
                              (:= :creator_id user-id)
-                             (:= :channel_id :null))))))
+                             (:is-null :channel_id))))))
     (execute
      (update :memo
        $(set= channel-id)
@@ -141,8 +148,8 @@
             (retrieve-one
              (select :*
                (from :memo)
-               (where (:and $(:= memo-id)
-                            $(:= :creator_id user-id))))))
+               (where (:and (:= :memo.uuid memo-id)
+                            (:= :creator_id user-id))))))
     ;; race condition gap notice!
     (let ((data-plist-list (retrieve-all
                             (select :*
@@ -153,8 +160,40 @@
       (mapcar #'plist-to-user-ackfock
               data-plist-list))))
 
- (defun-with-db-connection-and-current-user ackfock-memo (memo-id ackfock)
-  "Return an ACKFOCK::USER-ACKFOCK if success. Nil otherwise."
+(defun-with-db-connection-and-current-user memo-latest-ackfocks-per-user-by-ackfock (memo)
+  "Return an alist by \"ACK\" and \"FOCK\" associated with corresponding USER-ACKFOCK"
+  (let ((memo-id (memo-uuid memo)))
+    (if (null (memo-channel-id memo))
+        ;; private memo
+        (when (string= (memo-creator-id memo) user-id)
+          (let ((current-user-ackfock (plist-to-user-ackfock
+                                       (retrieve-one
+                                        (select :*
+                                          (from :user_ackfock)
+                                          (inner-join :users
+                                                      :on (:= :users.uuid :user_ackfock.user_id))
+                                          (where (:and $(:= memo-id)
+                                                       (:= :users.uuid user-id)))
+                                          (order-by (:desc :user_ackfock.created_at))
+                                          (limit 1))))))
+            (user-ackfock-list-to-alist-by-ackfock (list current-user-ackfock))))
+        ;; memo in a channel
+        (when (retrieve-one
+               (select :*
+                 (from :user_channel_access)
+                 (where (:and $(:= memo-id)
+                              $(:= user-id)))))
+          (let ((data-plist-list (retrieve-all
+                                  (select :*
+                                    (from :user_ackfock)
+                                    (inner-join :users
+                                                :on (:= :users.uuid :user_ackfock.user_id))
+                                    (where $(:= memo-id))))))
+            (user-ackfock-list-to-alist-by-ackfock (mapcar #'plist-to-user-ackfock
+                                                           data-plist-list)))))))
+
+(defun-with-db-connection-and-current-user ackfock-memo (memo-id ackfock)
+  "Return an ACKFOCK.MODEL-DEFINITION::USER-ACKFOCK if success. Nil otherwise."
   (when (or (retrieve-one
              (select :*
                (from :user_channel_access)
@@ -177,6 +216,3 @@
                 :as :new_user_ackfock))
         (inner-join :users
                     :on (:= :users.uuid :new_user_ackfock.user_id)))))))
-
-(eval-when (:compile-toplevel :load-toplevel)
-  (set-macro-character #\$ nil))
