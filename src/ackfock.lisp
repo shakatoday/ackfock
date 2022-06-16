@@ -161,19 +161,21 @@
                                               (current-sidebar-item (getf (aref channel-selects 0)
                                                                           :sidebar-item)))
                                          (flet ((set-channel-content (channel)
-                                                  (setf (inner-html channel-content) (reduce #'str:concat
-                                                                                             (mapcar (lambda (memo)
-                                                                                                       (ackfock.view:render memo (profile web-site)))
-                                                                                                     (if channel
-                                                                                                         (channel-memos channel)
-                                                                                                         (user-private-memos (profile web-site))))))))
+                                                  (setf (inner-html channel-content)
+                                                        (reduce #'str:concat
+                                                                (mapcar (lambda (memo)
+                                                                          (ackfock.view:render memo (profile web-site)))
+                                                                        (if channel
+                                                                            (channel-memos channel)
+                                                                            (user-private-memos (profile web-site))))))))
                                            (loop for channel-select across channel-selects
-                                                 do (set-on-click (getf channel-select :sidebar-item)
-                                                                  (lambda (obj)
-                                                                    (remove-class current-sidebar-item "w3-blue-gray")
-                                                                    (setf current-sidebar-item obj)
-                                                                    (add-class obj "w3-blue-gray")
-                                                                    (set-channel-content (getf channel-select :channel)))))
+                                                 do (let ((channel (getf channel-select :channel)))
+                                                      (set-on-click (getf channel-select :sidebar-item)
+                                                                    (lambda (obj)
+                                                                      (remove-class current-sidebar-item "w3-blue-gray")
+                                                                      (setf current-sidebar-item obj)
+                                                                      (add-class obj "w3-blue-gray")
+                                                                      (set-channel-content channel)))))
                                            (set-margin-side main
                                                             :left (format nil "~apx" (width side)))
                                            (set-channel-content nil)
