@@ -138,22 +138,46 @@
                      :index
                      `(:content ,(when (profile web-site)
                                    (lambda (body)
-                                     (let* ((side (create-web-sidebar body))
-                                            (main (create-div body))
-                                            (channel-content (create-web-content main)))
+                                     (with-clog-create body
+                                         (web-sidebar (:bind side)
+                                                      (div (:content "<b>Channels</b>" :class "w3-margin-top")))
                                        (add-card-look side)
-                                       (create-web-sidebar-item side :content "Not in Channels" :class "w3-border")
-                                       (create-div side :content "<b>Channels</b>")
-                                       (loop for channel in (user-channels (profile web-site))
-                                             do (create-web-sidebar-item side
-                                                                         :content (channel-name channel)
-                                                                         :class "w3-border"))
-                                       (set-margin-side main
-                                                        :left (format nil "~apx" (width side)))
-                                       (setf (inner-html channel-content) (reduce #'str:concat
-                                                                                  (mapcar (lambda (memo)
-                                                                                            (ackfock.view:render memo (profile web-site)))
-                                                                                          (user-private-memos (profile web-site))))))))))))
+                                       (let* ((main (create-div body))
+                                              (channel-content (create-web-content main))
+                                              (channels (cons nil ; for user-private-memos
+                                                              (user-channels (profile web-site))))
+                                              (channel-selects
+                                                (make-array (length channels)
+                                                            :initial-contents (mapcar
+                                                                               (lambda (channel)
+                                                                                 `(:channel
+                                                                                   ,channel
+                                                                                   :sidebar-item
+                                                                                   ,(create-web-sidebar-item side
+                                                                                                             :content (if channel
+                                                                                                                          (channel-name channel)
+                                                                                                                          "Only visible to me"))))
+                                                                               channels)))
+                                              (current-sidebar-item (getf (aref channel-selects 0)
+                                                                          :sidebar-item)))
+                                         (flet ((set-channel-content (channel)
+                                                  (setf (inner-html channel-content) (reduce #'str:concat
+                                                                                             (mapcar (lambda (memo)
+                                                                                                       (ackfock.view:render memo (profile web-site)))
+                                                                                                     (if channel
+                                                                                                         (channel-memos channel)
+                                                                                                         (user-private-memos (profile web-site))))))))
+                                           (loop for channel-select across channel-selects
+                                                 do (set-on-click (getf channel-select :sidebar-item)
+                                                                  (lambda (obj)
+                                                                    (remove-class current-sidebar-item "w3-blue-gray")
+                                                                    (setf current-sidebar-item obj)
+                                                                    (add-class obj "w3-blue-gray")
+                                                                    (set-channel-content (getf channel-select :channel)))))
+                                           (set-margin-side main
+                                                            :left (format nil "~apx" (width side)))
+                                           (set-channel-content nil)
+                                           (add-class current-sidebar-item "w3-blue-gray"))))))))))
 
 (defun on-new-pass (body)
   (init-site body)

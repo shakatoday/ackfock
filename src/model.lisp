@@ -181,7 +181,7 @@
         (when (retrieve-one
                (select :*
                  (from :user_channel_access)
-                 (where (:and $(:= memo-id)
+                 (where (:and (:= :channel_id (memo-channel-id memo))
                               $(:= user-id)))))
           (let ((data-plist-list (retrieve-all
                                   (select :*

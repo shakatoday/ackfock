@@ -20,11 +20,13 @@
                   (:p (reduce (lambda (usernames next-username)
                                 (format nil "~a, ~a" usernames next-username))
                               (mapcar #'user-username
-                                      latest-ack-users)
+                                      (mapcar #'user-ackfock-user
+                                              latest-ack-users))
                               :initial-value "")))
             (:div (:button :class "w3-btn w3-ripple w3-round-xlarge w3-purple" "Fock")
                   (:p (reduce (lambda (usernames next-username)
                                 (format nil "~a, ~a" usernames next-username))
                               (mapcar #'user-username
-                                      latest-fock-users)
+                                      (mapcar #'user-ackfock-user
+                                              latest-fock-users))
                               :initial-value "")))))))
