@@ -31,13 +31,15 @@
        (alexandria:make-keyword string)))
 
 (defun plist-to-user-ackfock (plist)
-  (make-user-ackfock :user #.(cons 'make-user
-                                   (reduce #'append
-                                           (mapcar (lambda (keyword-arg)
-                                                     `(,keyword-arg (getf (reverse plist) ,keyword-arg))) ; use the later created-at so we need a reverse
-                                                   '(:uuid :email :username :created-at))))
-                     :ackfock (getf plist :ackfock)
-                     :created-at (getf plist :ackfock)))
+  (let ((copy-plist (copy-list plist)))
+    (remf copy-plist :created-at)
+    (make-user-ackfock :user #.(cons 'make-user
+                                     (reduce #'append
+                                             (mapcar (lambda (keyword-arg)
+                                                       `(,keyword-arg (getf copy-plist ,keyword-arg))) ; use the later created-at so we need a copy and remf
+                                                     '(:uuid :email :username :created-at))))
+                       :ackfock (getf plist :ackfock)
+                       :created-at (getf plist :created-at))))
 
 (defun user-ackfock-list-to-alist-by-ackfock (user-ackfock-list)
   (list (cons "ACK"
