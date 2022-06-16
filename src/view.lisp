@@ -16,17 +16,16 @@
                          ("~a:" (user-username (memo-creator model-obj))))
                   (:br)
                   (memo-content model-obj))
-            (:div (:button :class "w3-btn w3-ripple w3-round-xlarge w3-green" "Ack")
-                  (:p (reduce (lambda (usernames next-username)
-                                (format nil "~a, ~a" usernames next-username))
-                              (mapcar #'user-username
-                                      (mapcar #'user-ackfock-user
-                                              latest-ack-users))
-                              :initial-value "")))
+            (:div :class "w3-margin-bottom"
+                  (:button :class "w3-btn w3-ripple w3-round-xlarge w3-green" "Ack")
+                  (:span (format nil
+                                 "~{~a~^, ~}"
+                                 (mapcar #'user-username
+                                         (mapcar #'user-ackfock-user
+                                                 latest-ack-users)))))
             (:div (:button :class "w3-btn w3-ripple w3-round-xlarge w3-purple" "Fock")
-                  (:p (reduce (lambda (usernames next-username)
-                                (format nil "~a, ~a" usernames next-username))
-                              (mapcar #'user-username
-                                      (mapcar #'user-ackfock-user
-                                              latest-fock-users))
-                              :initial-value "")))))))
+                  (:span (format nil
+                                 "~{~a~^, ~}"
+                                 (mapcar #'user-username
+                                         (mapcar #'user-ackfock-user
+                                                 latest-fock-users)))))))))
