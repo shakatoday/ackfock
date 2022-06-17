@@ -160,22 +160,42 @@
                                                                                channels)))
                                               (current-sidebar-item (getf (aref channel-selects 0)
                                                                           :sidebar-item)))
-                                         (flet ((set-channel-content (channel)
-                                                  (setf (inner-html channel-content) "") ; memory leak?
-                                                  (center-children (create-div channel-content :class "w3-xlarge"
-                                                                                               :content (if channel
-                                                                                                            "Channel members"
-                                                                                                            "My private memos")))
-                                                  (when channel
-                                                    (center-children (create-div channel-content :class "w3-large"
-                                                                                                 :content (format nil
-                                                                                                                  "~{~a~^, ~}"
-                                                                                                                  (mapcar #'user-username
-                                                                                                                          (channel-users channel))))))
-                                                  (loop for memo in (if channel
-                                                                        (channel-memos channel)
-                                                                        (user-private-memos (profile web-site)))
-                                                        do (ackfock.view:render memo (profile web-site) channel-content))))
+                                         (labels ((set-channel-content (channel)
+                                                    (setf (inner-html channel-content) "") ; memory leak?
+                                                    (center-children (create-div channel-content :class "w3-xlarge"
+                                                                                                 :content (if channel
+                                                                                                              "Channel members"
+                                                                                                              "My private memos")))
+                                                    (when channel
+                                                      (center-children (create-div channel-content :class "w3-large"
+                                                                                                   :content (format nil
+                                                                                                                    "~{~a~^, ~}"
+                                                                                                                    (mapcar #'user-username
+                                                                                                                            (channel-users channel))))))
+                                                    (loop for memo in (if channel
+                                                                          (channel-memos channel)
+                                                                          (user-private-memos (profile web-site)))
+                                                          do (ackfock.view:render memo (profile web-site) channel-content))
+                                                    (with-clog-create channel-content
+                                                        (web-container ()
+                                                                       (form (:bind new-memo-form)
+                                                                             (p ()
+                                                                                (label (:content "New Memo" :class "w3-large"))
+                                                                                (form-element (:bind memo-content-input
+                                                                                                :textarea
+                                                                                                :name "content"
+                                                                                                :class "w3-input")))
+                                                                             (form-element (:submit :value "Submit"
+                                                                                                    :class (format nil "w3-button ~a" (get-setting web-site
+                                                                                                                                                   :color-class
+                                                                                                                                                   "w3-black"))))))
+                                                      (setf (requiredp memo-content-input) t)
+                                                      (set-on-submit new-memo-form
+                                                                     (lambda (form-obj)
+                                                                       (ackfock.model:new-memo (profile web-site)
+                                                                                               channel ; will check the null case inside the function
+                                                                                               (name-value form-obj "content"))
+                                                                       (set-channel-content channel))))))
                                            (loop for channel-select across channel-selects
                                                  do (let ((channel (getf channel-select :channel)))
                                                       (set-on-click (getf channel-select :sidebar-item)

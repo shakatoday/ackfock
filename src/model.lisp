@@ -81,17 +81,19 @@
                  (print condition))
                nil)))))))
 
-(defun-with-db-connection-and-current-user new-memo (channel-id content)
+(defun-with-db-connection-and-current-user new-memo (channel content)
   (execute
-   (if (retrieve-one
-        (select :*
-          (from :user_channel_access)
-          (where (:and $(:= user-id)
-                       $(:= channel-id)))))
-       (insert-into :memo
-         $(set= :creator_id user-id
-                content
-                channel-id))
+   (if channel
+       (let ((channel-id (channel-uuid channel)))
+         (when (retrieve-one
+                (select :*
+                  (from :user_channel_access)
+                  (where (:and $(:= user-id)
+                               $(:= channel-id)))))
+           (insert-into :memo
+             $(set= :creator_id user-id
+                    content
+                    channel-id))))
        (insert-into :memo
          $(set= :creator_id user-id
                 content)))))
