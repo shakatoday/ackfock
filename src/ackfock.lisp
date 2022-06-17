@@ -156,18 +156,16 @@
                                                                                    ,(create-web-sidebar-item side
                                                                                                              :content (if channel
                                                                                                                           (channel-name channel)
-                                                                                                                          "Only visible to me"))))
+                                                                                                                          "My private memos"))))
                                                                                channels)))
                                               (current-sidebar-item (getf (aref channel-selects 0)
                                                                           :sidebar-item)))
                                          (flet ((set-channel-content (channel)
-                                                  (setf (inner-html channel-content)
-                                                        (reduce #'str:concat
-                                                                (mapcar (lambda (memo)
-                                                                          (ackfock.view:render memo (profile web-site)))
-                                                                        (if channel
-                                                                            (channel-memos channel)
-                                                                            (user-private-memos (profile web-site))))))))
+                                                  (setf (inner-html channel-content) "") ; memory leak?
+                                                  (loop for memo in (if channel
+                                                                        (channel-memos channel)
+                                                                        (user-private-memos (profile web-site)))
+                                                        do (ackfock.view:render memo (profile web-site) channel-content))))
                                            (loop for channel-select across channel-selects
                                                  do (let ((channel (getf channel-select :channel)))
                                                       (set-on-click (getf channel-select :sidebar-item)

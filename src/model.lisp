@@ -5,7 +5,6 @@
            #:new-channel
            #:invite-to-channel
            #:add-memo-to-channel
-           #:memo-user-ackfocks
            #:memo-latest-ackfocks-per-user-by-ackfock
            #:ackfock-memo))
 (in-package :ackfock.model)
@@ -141,27 +140,6 @@
        $(set= channel-id)
        (where (:= :uuid memo-id))))))
 
-(defun-with-db-connection-and-current-user memo-user-ackfocks (memo-id)
-  (when (or (retrieve-one
-             (select :*
-               (from :user_channel_access)
-               (where (:and $(:= memo-id)
-                            $(:= user-id)))))
-            (retrieve-one
-             (select :*
-               (from :memo)
-               (where (:and (:= :memo.uuid memo-id)
-                            (:= :creator_id user-id))))))
-    ;; race condition gap notice!
-    (let ((data-plist-list (retrieve-all
-                            (select :*
-                              (from :user_ackfock)
-                              (inner-join :users
-                                          :on (:= :users.uuid :user_ackfock.user_id))
-                              (where $(:= memo-id))))))
-      (mapcar #'plist-to-user-ackfock
-              data-plist-list))))
-
 (defun-with-db-connection-and-current-user memo-latest-ackfocks-per-user-by-ackfock (memo)
   "Return an alist by \"ACK\" and \"FOCK\" associated with corresponding USER-ACKFOCK"
   (let ((memo-id (memo-uuid memo)))
@@ -185,36 +163,37 @@
                  (from :user_channel_access)
                  (where (:and (:= :channel_id (memo-channel-id memo))
                               $(:= user-id)))))
-          (let ((data-plist-list (retrieve-all
-                                  (select :*
-                                    (from :user_ackfock)
-                                    (inner-join :users
-                                                :on (:= :users.uuid :user_ackfock.user_id))
-                                    (where $(:= memo-id))))))
+          (let ((data-plist-list (mapcar #'datafly.db::convert-row
+                                  (dbi:fetch-all
+                                   (dbi:execute
+                                    (dbi:prepare *connection*
+                                                 "select distinct on (user_ackfock.user_id) *
+                                                 from user_ackfock
+                                                 inner join users on users.uuid = user_ackfock.user_id
+                                                 where memo_id = ?
+                                                 order by user_ackfock.user_id, user_ackfock.created_at desc")
+                                    (list memo-id))))))
             (user-ackfock-list-to-alist-by-ackfock (mapcar #'plist-to-user-ackfock
                                                            data-plist-list)))))))
 
-(defun-with-db-connection-and-current-user ackfock-memo (memo-id ackfock)
+(defun-with-db-connection-and-current-user ackfock-memo (memo ackfock)
   "Return an ACKFOCK.MODEL-DEFINITION::USER-ACKFOCK if success. Nil otherwise."
-  (when (or (retrieve-one
-             (select :*
-               (from :user_channel_access)
-               (where (:and $(:= memo-id)
-                            $(:= user-id)))))
-            (retrieve-one
-             (select :*
-               (from :memo)
-               (where (:and $(:= memo-id)
-                            $(:= :creator_id user-id))))))
-    ;; race condition gap notice!
-    (plist-to-user-ackfock
-     (retrieve-one
-      (select :*
-        (from (insert-into :user_ackfock
-                $(set= memo-id
-                       user-id
-                       ackfock)
-                (returning :*)
-                :as :new_user_ackfock))
-        (inner-join :users
-                    :on (:= :users.uuid :new_user_ackfock.user_id)))))))
+  (let ((memo-id (memo-uuid memo)))
+    (when (or (string= (memo-creator-id memo) (user-uuid current-user))
+              (retrieve-one
+               (select :*
+                 (from :user_channel_access)
+                 (inner-join :memo
+                             :on (:= :user_channel_access.channel_id :memo.channel_id))
+                 (where (:and (:= :memo.uuid memo-id)
+                              $(:= user-id))))))
+      ;; race condition gap notice!
+      (apply #'make-user-ackfock
+             (append (retrieve-one
+                      (insert-into :user_ackfock
+                        $(set= memo-id
+                               user-id
+                               ackfock)
+                        (returning :created_at)))
+                     (list :user current-user
+                           :ackfock ackfock))))))
