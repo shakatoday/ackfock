@@ -162,6 +162,16 @@
                                                                           :sidebar-item)))
                                          (flet ((set-channel-content (channel)
                                                   (setf (inner-html channel-content) "") ; memory leak?
+                                                  (center-children (create-div channel-content :class "w3-xlarge"
+                                                                                               :content (if channel
+                                                                                                            "Channel members"
+                                                                                                            "My private memos")))
+                                                  (when channel
+                                                    (center-children (create-div channel-content :class "w3-large"
+                                                                                                 :content (format nil
+                                                                                                                  "~{~a~^, ~}"
+                                                                                                                  (mapcar #'user-username
+                                                                                                                          (channel-users channel))))))
                                                   (loop for memo in (if channel
                                                                         (channel-memos channel)
                                                                         (user-private-memos (profile web-site)))
