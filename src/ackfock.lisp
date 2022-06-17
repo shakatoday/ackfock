@@ -180,8 +180,12 @@
                                                                        :class (str:concat "w3-button fa fa-user-plus w3-margin-left " (get-setting web-site
                                                                                                                                                    :color-class
                                                                                                                                                    "w3-black")))
-                                                                     (div (:content "Invite" :class "w3-small"))))
-                                                        (center-children channel-members-div)))
+                                                                     (div (:content "Invite" :class "w3-small")))
+                                                               (dialog (:bind invite-to-channel-dialog :content "clicked!")))
+                                                        (center-children channel-members-div)
+                                                        (set-on-click invite-to-channel-btn
+                                                                      (lambda (obj)
+                                                                        (setf (dialog-openp invite-to-channel-dialog) t)))))
                                                     (loop for memo in (if channel
                                                                           (channel-memos channel)
                                                                           (user-private-memos (profile web-site)))
