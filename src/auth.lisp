@@ -79,14 +79,21 @@ if one is present and login fails."
 			       (dbi:execute
 			        (dbi:prepare
 			         sql-connection
-			         "select email from users where email=?")
-			        (list email)))))
+			         "select email from users where email=? or username=?")
+			        (list email username)))))
                 ;; Race condition between check email availability and sql-insert*
 	        (cond (contents
-		       (clog-web-alert body "Exists"
-				       "The email is not available."
-				       :time-out 3
-				       :place-top t))
+                       (if (find email contents
+                                 :key (lambda (row) (getf row :|email|))
+                                 :test #'string=)
+		           (clog-web-alert body "Exists"
+				           "The email is not available."
+				           :time-out 3
+				           :place-top t)
+		           (clog-web-alert body "Exists"
+				           "The username is not available."
+				           :time-out 3
+				           :place-top t)))
 		      (t
 		       (dbi:do-sql
 		         sql-connection
