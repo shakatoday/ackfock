@@ -65,7 +65,9 @@
   ;; Instantly reload other windows open on authentication change
   (set-on-authentication-change body (lambda (body)
 				       (url-replace (location body) "/")))
-  ;; Initialzie the clog-web-site environment
+  (load-css (html-document body)
+            "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
+    ;; Initialzie the clog-web-site environment
   (let ((profile (current-user body)))
     (create-web-site body
 		     :settings '(:color-class  "w3-khaki"
@@ -167,11 +169,19 @@
                                                                                                               "Channel members"
                                                                                                               "My private memos")))
                                                     (when channel
-                                                      (center-children (create-div channel-content :class "w3-large"
-                                                                                                   :content (format nil
-                                                                                                                    "~{~a~^, ~}"
-                                                                                                                    (mapcar #'user-username
-                                                                                                                            (channel-users channel))))))
+                                                      (with-clog-create channel-content
+                                                          (div (:bind channel-members-div)
+                                                               (span (:class "w3-large"
+                                                                      :content (format nil
+                                                                                       "~{~a~^, ~}"
+                                                                                       (mapcar #'user-username
+                                                                                               (channel-users channel)))))
+                                                               (span (:bind invite-to-channel-btn
+                                                                       :class (str:concat "w3-button fa fa-user-plus w3-margin-left " (get-setting web-site
+                                                                                                                                                   :color-class
+                                                                                                                                                   "w3-black")))
+                                                                     (div (:content "Invite" :class "w3-small"))))
+                                                        (center-children channel-members-div)))
                                                     (loop for memo in (if channel
                                                                           (channel-memos channel)
                                                                           (user-private-memos (profile web-site)))
