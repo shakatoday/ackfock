@@ -18,9 +18,8 @@
              (div (:class "w3-border-bottom w3-padding")
                   (div (:class "w3-panel w3-light-gray")
                        (span (:class "w3-large"
-                              :content (format nil
-                                               "~a:"
-                                               (user-username (memo-creator model-obj)))))
+                              :content (str:concat (user-username (memo-creator model-obj))
+                                                   ":")))
                        (br ())
                        (span (:content (memo-content model-obj))))
                   (div (:class "w3-margin-bottom")
