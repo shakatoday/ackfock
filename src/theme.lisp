@@ -1,8 +1,11 @@
 (in-package :cl-user)
 (defpackage ackfock.theme
   (:use :cl :clog :clog-web :ackfock.model-definition)
-  (:export #:ackfock-theme))
+  (:export #:ackfock-theme
+           #:*color-class*))
 (in-package :ackfock.theme)
+
+(defparameter *color-class* "w3-khaki")
 
 (defun ackfock-theme (body page properties)
   "The Ackfock theme for clog-web-site.

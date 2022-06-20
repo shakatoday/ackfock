@@ -70,7 +70,7 @@
     ;; Initialzie the clog-web-site environment
   (let ((profile (current-user body)))
     (create-web-site body
-		     :settings '(:color-class  "w3-khaki"
+		     :settings '(:color-class  *color-class*
 				 :border-class ""
 				 :signup-link  "/signup"
 				 :login-link   "/login")
@@ -141,12 +141,12 @@
                      `(:content ,(when (profile web-site)
                                    (lambda (body)
                                      (with-clog-create body
-                                         (web-sidebar (:bind side)
+                                         (web-sidebar (:bind sidebar)
                                                       (div (:content "<b>Channels</b>" :class "w3-margin-top")))
-                                       (add-card-look side)
-                                       (let* ((main (create-div body))
-                                              (channel-content (create-web-content main))
-                                              (channels (cons nil ; for user-private-memos
+                                       (add-card-look sidebar)
+                                       (let* ((main-div (create-div body))
+                                              (channel-content (create-web-content main-div))
+                                              (channels (cons (make-private-channel) ; for user-private-memos
                                                               (user-channels (profile web-site))))
                                               (channel-selects
                                                 (make-array (length channels)
@@ -155,73 +155,26 @@
                                                                                  `(:channel
                                                                                    ,channel
                                                                                    :sidebar-item
-                                                                                   ,(create-web-sidebar-item side
-                                                                                                             :content (if channel
-                                                                                                                          (channel-name channel)
-                                                                                                                          "My private memos"))))
+                                                                                   ,(create-web-sidebar-item sidebar
+                                                                                                             :content (channel-name channel))))
                                                                                channels)))
-                                              (current-sidebar-item (getf (aref channel-selects 0)
-                                                                          :sidebar-item)))
-                                         (labels ((set-channel-content (channel)
-                                                    (setf (inner-html channel-content) "") ; memory leak?
-                                                    (center-children (create-div channel-content :class "w3-xlarge"
-                                                                                                 :content (if channel
-                                                                                                              "Channel members"
-                                                                                                              "My private memos")))
-                                                    (when channel
-                                                      (with-clog-create channel-content
-                                                          (div (:bind channel-members-div)
-                                                               (span (:class "w3-large"
-                                                                      :content (format nil
-                                                                                       "~{~a~^, ~}"
-                                                                                       (mapcar #'user-username
-                                                                                               (channel-users channel)))))
-                                                               (span (:bind invite-to-channel-btn
-                                                                       :class (str:concat "w3-button fa fa-user-plus w3-margin-left " (get-setting web-site
-                                                                                                                                                   :color-class
-                                                                                                                                                   "w3-black")))
-                                                                     (div (:content "Invite" :class "w3-small")))
-                                                               (dialog (:bind invite-to-channel-dialog :content "clicked!")))
-                                                        (center-children channel-members-div)
-                                                        (set-on-click invite-to-channel-btn
-                                                                      (lambda (obj)
-                                                                        (setf (dialog-openp invite-to-channel-dialog) t)))))
-                                                    (loop for memo in (if channel
-                                                                          (channel-memos channel)
-                                                                          (user-private-memos (profile web-site)))
-                                                          do (ackfock.view:render memo (profile web-site) channel-content))
-                                                    (with-clog-create channel-content
-                                                        (web-container ()
-                                                                       (form (:bind new-memo-form)
-                                                                             (p ()
-                                                                                (label (:content "New Memo" :class "w3-large"))
-                                                                                (form-element (:bind memo-content-input
-                                                                                                :textarea
-                                                                                                :name "content"
-                                                                                                :class "w3-input")))
-                                                                             (form-element (:submit :value "Submit"
-                                                                                                    :class (format nil "w3-button ~a" (get-setting web-site
-                                                                                                                                                   :color-class
-                                                                                                                                                   "w3-black"))))))
-                                                      (setf (requiredp memo-content-input) t)
-                                                      (set-on-submit new-memo-form
-                                                                     (lambda (form-obj)
-                                                                       (ackfock.model:new-memo (profile web-site)
-                                                                                               channel ; will check the null case inside the function
-                                                                                               (name-value form-obj "content"))
-                                                                       (set-channel-content channel))))))
-                                           (loop for channel-select across channel-selects
-                                                 do (let ((channel (getf channel-select :channel)))
-                                                      (set-on-click (getf channel-select :sidebar-item)
-                                                                    (lambda (obj)
-                                                                      (remove-class current-sidebar-item "w3-blue-gray")
-                                                                      (setf current-sidebar-item obj)
-                                                                      (add-class obj "w3-blue-gray")
-                                                                      (set-channel-content channel)))))
-                                           (set-margin-side main
-                                                            :left (format nil "~apx" (width side)))
-                                           (set-channel-content nil)
-                                           (add-class current-sidebar-item "w3-blue-gray"))))))))))
+                                              (current-sidebar-item (getf (aref channel-selects 0) :sidebar-item)))
+                                         (loop for channel-select across channel-selects
+                                               do (let ((channel (getf channel-select :channel)))
+                                                    (set-on-click (getf channel-select :sidebar-item)
+                                                                  (lambda (obj)
+                                                                    (remove-class current-sidebar-item "w3-blue-gray")
+                                                                    (setf current-sidebar-item obj)
+                                                                    (add-class obj "w3-blue-gray")
+                                                                    (ackfock.view:render channel
+                                                                                         (profile web-site)
+                                                                                         channel-content)))))
+                                         (set-margin-side main-div
+                                                          :left (format nil "~apx" (width sidebar)))
+                                         (ackfock.view:render (getf (aref channel-selects 0) :channel)
+                                                              (profile web-site)
+                                                              channel-content)
+                                         (add-class current-sidebar-item "w3-blue-gray")))))))))
 
 (defun on-new-pass (body)
   (init-site body)

@@ -19,6 +19,8 @@
            #:channel-name
            #:channel-users
            #:channel-memos
+           #:make-private-channel
+           #:private-channel-p
            #:memo
            #:memo-uuid
            #:memo-content
@@ -47,6 +49,13 @@
 (defmodel (channel)
   uuid
   name)
+
+(defun make-private-channel ()
+  (make-channel :uuid nil
+                :name "My private memos"))
+
+(defun private-channel-p (channel)
+  (null (channel-uuid channel)))
 
 (defmodel (memo (:inflate created-at #'datetime-to-timestamp))
   uuid

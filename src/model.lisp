@@ -83,7 +83,10 @@
 
 (defun-with-db-connection-and-current-user new-memo (channel content)
   (execute
-   (if channel
+   (if (private-channel-p channel)
+       (insert-into :memo
+         $(set= :creator_id user-id
+                content))
        (let ((channel-id (channel-uuid channel)))
          (when (retrieve-one
                 (select :*
@@ -93,10 +96,7 @@
            (insert-into :memo
              $(set= :creator_id user-id
                     content
-                    channel-id))))
-       (insert-into :memo
-         $(set= :creator_id user-id
-                content)))))
+                    channel-id)))))))
 
 (defun-with-db-connection-and-current-user new-channel (channel-name)
   (let ((channel-id (channel-uuid (retrieve-one
