@@ -21,6 +21,7 @@
                               :content (str:concat (user-username (memo-creator model-obj))
                                                    ":")))
                        (br ())
+                       ;; TODO: display multi line content but also handle xss risk
                        (span (:content (memo-content model-obj))))
                   (div (:class "w3-margin-bottom")
                        (button (:bind ack-btn :class "w3-btn w3-ripple w3-round-xlarge w3-green" :content "Ack"))
@@ -61,7 +62,8 @@
                     (dialog (:bind invite-to-channel-dialog :content "clicked!")))
              (center-children channel-members-div)
              (set-on-click invite-to-channel-btn
-                           (lambda (obj)
+                           (lambda (btn-obj)
+                             (declare (ignore btn-obj))
                              (setf (dialog-openp invite-to-channel-dialog) t)))))
          (loop for memo in (if (private-channel-p model-obj)
                                (user-private-memos current-user)
@@ -69,19 +71,19 @@
                do (render memo current-user env))
          (with-clog-create env
              (web-container ()
-                            (form (:bind new-memo-form)
-                                  (p ()
-                                     (label (:content "New Memo" :class "w3-large"))
-                                     (form-element (:bind memo-content-input
-                                                     :textarea
-                                                     :name "content"
-                                                     :class "w3-input")))
-                                  (form-element (:submit :value "Submit"
-                                                         :class (str:concat "w3-button " ackfock.theme:*color-class*)))))
+                            (p ()
+                               (label (:content "New Memo" :class "w3-large"))
+                               (text-area (:bind memo-content-input
+                                            :class "w3-input")))
+                            (button (:bind new-memo-btn
+                                      :content "Submit"
+                                      :class (str:concat "w3-button " ackfock.theme:*color-class*))))
            (setf (requiredp memo-content-input) t)
-           (set-on-submit new-memo-form
-                          (lambda (form-obj)
-                            (ackfock.model:new-memo current-user
-                                                    model-obj ; will check the null case inside the function
-                                                    (name-value form-obj "content"))
-                            (render model-obj current-user env)))))))
+           (set-on-click new-memo-btn
+                         (lambda (btn-obj)
+                           (declare (ignore btn-obj))
+                           ;; xss risk!
+                           (ackfock.model:new-memo current-user
+                                                   model-obj ; will check the null case inside the function
+                                                   (text-value memo-content-input))
+                           (render model-obj current-user env)))))))
