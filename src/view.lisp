@@ -86,4 +86,5 @@
                            (ackfock.model:new-memo current-user
                                                    model-obj ; will check the null case inside the function
                                                    (text-value memo-content-input))
-                           (render model-obj current-user env)))))))
+                           (render model-obj current-user env))
+                         :one-time t)))))
