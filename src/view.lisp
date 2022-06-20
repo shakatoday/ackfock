@@ -42,7 +42,7 @@
 
 (defmethod render ((model-obj channel) (current-user user) &optional env)
   (cond ((typep env 'clog-obj)
-         (setf (inner-html env) "")
+         (setf (inner-html env) "")     ; memory leak?
          (center-children (create-div env :class "w3-xlarge"
                                           :content (if (private-channel-p model-obj)
                                                        "My private memos"
