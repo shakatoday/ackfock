@@ -59,8 +59,24 @@
                     (span (:bind invite-to-channel-btn
                             :class (str:concat "w3-button fa fa-user-plus w3-margin-left " ackfock.theme:*color-class*))
                           (div (:content "Invite" :class "w3-small")))
-                    (dialog (:bind invite-to-channel-dialog :content "clicked!")))
+                    (dialog (:bind invite-to-channel-dialog)
+                            (form (:bind invite-to-channel-form)
+                                  (div (:content "Invite to this channel" :class "w3-xlarge"))
+                                  (p ()
+                                     (label (:content "Email" :class "w3-large"))
+                                     (form-element (:email
+                                                    :name "email"
+                                                    :class "w3-input")))
+                                  (span (:bind invite-to-channel-submit-span)
+                                        (form-element (:submit
+                                                       :value "Invite"
+                                                       :class (str:concat "w3-button " ackfock.theme:*color-class*)))
+                                        (form-element (:submit
+                                                       :value "Cancel"
+                                                       :class (str:concat "w3-button w3-black")))))))
              (center-children channel-members-div)
+             (setf (display invite-to-channel-submit-span) "flex")
+             (setf (justify-content invite-to-channel-submit-span) :space-between)
              (set-on-click invite-to-channel-btn
                            (lambda (btn-obj)
                              (declare (ignore btn-obj))
