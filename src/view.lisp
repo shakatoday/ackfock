@@ -51,7 +51,8 @@
          (unless (private-channel-p model-obj)
            (with-clog-create env
                (div (:bind channel-members-div)
-                    (span (:class "w3-large"
+                    (span (:bind channel-members-span
+                           :class "w3-large"
                            :content (format nil
                                             "~{~a~^, ~}"
                                             (mapcar #'user-username
@@ -60,11 +61,11 @@
                             :class (str:concat "w3-button fa fa-user-plus w3-margin-left " ackfock.theme:*color-class*))
                           (div (:content "Invite" :class "w3-small")))
                     (dialog (:bind invite-to-channel-dialog)
-                            (form (:bind invite-to-channel-form)
+                            (form (:bind invite-to-channel-form :method "dialog")
                                   (div (:content "Invite to this channel" :class "w3-xlarge"))
                                   (p ()
                                      (label (:content "Email" :class "w3-large"))
-                                     (form-element (:email
+                                     (form-element (:text
                                                     :name "email"
                                                     :class "w3-input")))
                                   (span (:bind invite-to-channel-submit-span)
@@ -80,7 +81,34 @@
              (set-on-click invite-to-channel-btn
                            (lambda (btn-obj)
                              (declare (ignore btn-obj))
-                             (setf (dialog-openp invite-to-channel-dialog) t)))))
+                             (setf (dialog-openp invite-to-channel-dialog) t)))
+             (set-on-event invite-to-channel-dialog
+                           "close"
+                           (lambda (dialog-obj)
+                             (when (string= (return-value dialog-obj) "Invite")
+                               (let* ((email (name-value invite-to-channel-form "email"))
+                                      (target-user (ackfock.model:user-by-email email)))
+                                 ;; race condition gap notice
+                                 (cond ((str:blankp email) (clog-web-alert env "Empty"
+                                                                           "The email field can't be blank."
+                                                                           :time-out 3
+                                                                           :place-top t))
+                                       ((null (clavier:validate ackfock.utils:*email-validator* email)) (clog-web-alert env "Email invalid"
+                                                                                                                        "Not a valid email address"
+                                                                                                                        :time-out 3
+                                                                                                                        :place-top t))
+                                       ((null target-user) (clog-web-alert env "Not Exists"
+                                                                           "There is no user associated with the given email."
+                                                                           :time-out 3
+                                                                           :place-top t))
+                                       ;; XSS DANGER!
+                                       (t (ackfock.model:invite-to-channel current-user
+                                                                           (user-email target-user)
+                                                                           (channel-uuid model-obj))
+                                          (setf (text channel-members-span) (format nil
+                                                                                    "~{~a~^, ~}"
+                                                                                    (mapcar #'user-username
+                                                                                            (channel-users model-obj))))))))))))
          (loop for memo in (if (private-channel-p model-obj)
                                (user-private-memos current-user)
                                (channel-memos model-obj))
@@ -98,7 +126,7 @@
            (set-on-click new-memo-btn
                          (lambda (btn-obj)
                            (declare (ignore btn-obj))
-                           ;; xss risk!
+                           ;; XSS DANGER!
                            (ackfock.model:new-memo current-user
                                                    model-obj ; will check the null case inside the function
                                                    (text-value memo-content-input))

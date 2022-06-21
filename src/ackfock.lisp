@@ -70,7 +70,7 @@
     ;; Initialzie the clog-web-site environment
   (let ((profile (current-user body)))
     (create-web-site body
-		     :settings '(:color-class  *color-class*
+		     :settings `(:color-class  ,*color-class*
 				 :border-class ""
 				 :signup-link  "/signup"
 				 :login-link   "/login")

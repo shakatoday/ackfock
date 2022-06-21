@@ -6,6 +6,7 @@
            #:invite-to-channel
            #:add-memo-to-channel
            #:memo-latest-ackfocks-per-user-by-ackfock
+           #:user-by-email
            #:ackfock-memo))
 (in-package :ackfock.model)
 
@@ -199,3 +200,12 @@
                         (returning :created_at)))
                      (list :user current-user
                            :ackfock ackfock))))))
+
+(defun-with-db-connection user-by-email (email)
+  (when (and (str:non-blank-string-p email)
+             (clavier:validate ackfock.utils:*email-validator* email))
+    (retrieve-one
+     (select :*
+       (from :users)
+       (where $(:= email)))
+     :as 'user)))
