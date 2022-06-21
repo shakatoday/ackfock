@@ -44,10 +44,19 @@
 (defmethod render ((model-obj channel) (current-user user) &optional env)
   (cond ((typep env 'clog-obj)
          (setf (inner-html env) "")     ; memory leak?
-         (center-children (create-div env :class "w3-xlarge"
-                                          :content (if (private-channel-p model-obj)
-                                                       "My private memos"
-                                                       "Channel members")))
+         (with-clog-create env
+             (div (:bind channel-head-div)
+                  (form (:bind channel-name-form)
+                        (form-element (:bind channel-name-input
+                                        :text
+                                        :name "channel-name"
+                                        :class "w3-xlarge"
+                                        :value (channel-name model-obj)))
+                        (span (:bind channel-name-edit-button
+                                :hidden (private-channel-p model-obj)
+                                :class (str:concat "fa fa-edit")))))
+           (setf (attribute channel-name-input "readonly") t)
+           (center-children channel-head-div))
          (unless (private-channel-p model-obj)
            (with-clog-create env
                (div (:bind channel-members-div)
