@@ -187,7 +187,18 @@
                                            (setf (width new-channel-form-input) (format nil
                                                                                         "~apx"
                                                                                         (floor (* 0.75 (width sidebar)))))
-                                           (center-children new-channel-form))))))))))
+                                           (center-children new-channel-form)
+                                           (set-on-submit new-channel-form
+                                                          (lambda (form-obj)
+                                                            (declare (ignore form-obj))
+                                                            (cond ((str:blankp (name-value new-channel-form "name")) (clog-web-alert main-div
+                                                                                                                                     "Blank"
+                                                                                                                                     "New channel name can't be blank"
+                                                                                                                                     :time-out 3
+                                                                                                                                     :place-top t))
+                                                                  (t (ackfock.model:new-channel (profile web-site)
+                                                                                                (name-value new-channel-form "name"))
+                                                                     (url-replace (location body) "/"))))))))))))))
 
 (defun on-new-pass (body)
   (init-site body)

@@ -107,16 +107,16 @@
                     channel-id)))))))
 
 (defun-with-db-connection-and-current-user new-channel (channel-name)
-  (let ((channel-id (channel-uuid (retrieve-one
-                                   (insert-into :channel
-                                     (set= :name channel-name)
-                                     (returning :*))
-                                   :as 'channel))))
+  (let ((channel (retrieve-one
+                  (insert-into :channel
+                    (set= :name channel-name)
+                    (returning :*))
+                  :as 'channel)))
     (execute
      (insert-into :user_channel_access
        $(set= user-id
-              channel-id)))
-    channel-id))
+              :channel_id (channel-uuid channel))))
+    channel))
 
 (defun-with-db-connection-and-current-user invite-to-channel (target-user-email channel)
   (declare (ignore user-id))
