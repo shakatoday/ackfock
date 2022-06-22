@@ -15,6 +15,7 @@
            #:user-channels
            #:user-private-memos
            #:channel
+           #:channel-p
            #:channel-uuid
            #:channel-name
            #:channel-users

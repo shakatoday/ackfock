@@ -3,8 +3,8 @@
   (:use :cl :ackfock.db :datafly :sxql :ackfock.model-definition)
   (:export #:new-memo
            #:new-channel
+           #:rename-channel
            #:invite-to-channel
-           #:add-memo-to-channel
            #:memo-latest-ackfocks-per-user-by-ackfock
            #:user-by-email
            #:ackfock-memo))
@@ -82,6 +82,17 @@
                  (print condition))
                nil)))))))
 
+(defmethod has-access-p ((user user) (model-obj channel))
+  (let ((channel-id (channel-uuid model-obj))
+        (user-id (user-uuid user)))
+    (when (and channel-id
+               user-id)
+      (retrieve-one
+       (select :*
+         (from :user_channel_access)
+         (where (:and $(:= user-id )
+                      $(:= channel-id))))))))
+
 (defun-with-db-connection-and-current-user new-memo (channel content)
   (execute
    (if (private-channel-p channel)
@@ -89,11 +100,7 @@
          $(set= :creator_id user-id
                 content))
        (let ((channel-id (channel-uuid channel)))
-         (when (retrieve-one
-                (select :*
-                  (from :user_channel_access)
-                  (where (:and $(:= user-id)
-                               $(:= channel-id)))))
+         (when (has-access-p current-user channel)
            (insert-into :memo
              $(set= :creator_id user-id
                     content
@@ -111,14 +118,9 @@
               channel-id)))
     channel-id))
 
-(defun-with-db-connection-and-current-user invite-to-channel (target-user-email channel-id)
-  ;; make sure current user got the access
-  (when (and channel-id
-             (retrieve-one
-              (select :*
-                (from :user_channel_access)
-                (where (:and $(:= user-id)
-                             $(:= channel-id))))))
+(defun-with-db-connection-and-current-user invite-to-channel (target-user-email channel)
+  (declare (ignore user-id))
+  (when (has-access-p current-user channel)
     (let ((target-user-id (user-uuid (retrieve-one
                                       (select :uuid
                                         (from :users)
@@ -126,22 +128,9 @@
                                       :as 'user))))
       (execute
        (insert-into :user_channel_access
-         $(set= :user_id target-user-id
-                channel-id)
+         (set= :user_id target-user-id
+               :channel-id (channel-uuid channel))
          (on-conflict-do-nothing))))))
-
-(defun-with-db-connection-and-current-user add-memo-to-channel (memo-id channel-id)
-  (when (and channel-id
-             (retrieve-one
-              (select :*
-                (from :memo)
-                (where (:and (:= :uuid memo-id)
-                             (:= :creator_id user-id)
-                             (:is-null :channel_id))))))
-    (execute
-     (update :memo
-       $(set= channel-id)
-       (where (:= :uuid memo-id))))))
 
 (defun-with-db-connection-and-current-user memo-latest-ackfocks-per-user-by-ackfock (memo)
   "Return an alist by \"ACK\" and \"FOCK\" associated with corresponding USER-ACKFOCK"
@@ -209,3 +198,12 @@
        (from :users)
        (where $(:= email)))
      :as 'user)))
+
+(defun-with-db-connection-and-current-user rename-channel (channel new-name)
+  (declare (ignore user-id))
+  (when (and (has-access-p current-user channel)
+             (str:non-blank-string-p new-name))
+    (execute
+     (update :channel
+       (set= :name new-name)
+       (where (:= :uuid (channel-uuid channel)))))))

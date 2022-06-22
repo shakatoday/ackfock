@@ -162,18 +162,20 @@
                                          (loop for channel-select across channel-selects
                                                do (let ((channel (getf channel-select :channel)))
                                                     (set-on-click (getf channel-select :sidebar-item)
-                                                                  (lambda (obj)
+                                                                  (lambda (sidebar-item)
                                                                     (remove-class current-sidebar-item "w3-blue-gray")
-                                                                    (setf current-sidebar-item obj)
-                                                                    (add-class obj "w3-blue-gray")
+                                                                    (setf current-sidebar-item sidebar-item)
+                                                                    (add-class sidebar-item "w3-blue-gray")
                                                                     (ackfock.view:render channel
                                                                                          (profile web-site)
-                                                                                         channel-content)))))
+                                                                                         (ackfock.view:make-web-content-and-sidebar-item-pair :sidebar-item sidebar-item
+                                                                                                                                              :web-content channel-content))))))
                                          (set-margin-side main-div
                                                           :left (format nil "~apx" (width sidebar)))
                                          (ackfock.view:render (getf (aref channel-selects 0) :channel)
                                                               (profile web-site)
-                                                              channel-content)
+                                                              (ackfock.view:make-web-content-and-sidebar-item-pair :sidebar-item (getf (aref channel-selects 0) :sidebar-item)
+                                                                                                                   :web-content channel-content))
                                          (add-class current-sidebar-item "w3-blue-gray")))))))))
 
 (defun on-new-pass (body)
