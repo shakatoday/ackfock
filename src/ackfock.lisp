@@ -176,7 +176,18 @@
                                                               (profile web-site)
                                                               (ackfock.view:make-web-content-and-sidebar-item-pair :sidebar-item (getf (aref channel-selects 0) :sidebar-item)
                                                                                                                    :web-content channel-content))
-                                         (add-class current-sidebar-item "w3-blue-gray")))))))))
+                                         (add-class current-sidebar-item "w3-blue-gray")
+                                         (with-clog-create sidebar
+                                             (div (:class "w3-border")
+                                                  (form (:bind new-channel-form :class "w3-section")
+                                                        (form-element (:bind new-channel-form-input
+                                                                        :text
+                                                                        :name "name"))
+                                                        (button (:class "fa fa-plus-circle w3-button"))))
+                                           (setf (width new-channel-form-input) (format nil
+                                                                                        "~apx"
+                                                                                        (floor (* 0.75 (width sidebar)))))
+                                           (center-children new-channel-form))))))))))
 
 (defun on-new-pass (body)
   (init-site body)
