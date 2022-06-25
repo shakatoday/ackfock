@@ -24,8 +24,9 @@
                   (div (:bind memo-content-panel :class "w3-light-gray w3-padding")
                        (div ()
                             (span (:class "w3-large"
-                                   :content (str:concat (user-username (memo-creator model-obj))
-                                                        ":")))
+                                   :content (format nil
+                                                    "<b>~a:</b>"
+                                                    (user-username (memo-creator model-obj)))))
                             (br ())
                             ;; TODO: handle xss risk
                             (div (:content (lf-to-br (memo-content model-obj)))))
