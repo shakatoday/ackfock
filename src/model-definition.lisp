@@ -23,6 +23,7 @@
            #:make-private-channel
            #:private-channel-p
            #:memo
+           #:memo-p
            #:memo-uuid
            #:memo-content
            #:memo-channel
@@ -61,6 +62,7 @@
 (defmodel (memo (:inflate created-at #'datetime-to-timestamp))
   uuid
   content
+  (as-an-update nil :type boolean)
   creator-id
   channel-id
   created-at)

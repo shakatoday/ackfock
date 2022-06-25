@@ -93,18 +93,43 @@
          (where (:and $(:= user-id )
                       $(:= channel-id))))))))
 
-(defun-with-db-connection-and-current-user new-memo (channel content)
-  (execute
-   (if (private-channel-p channel)
-       (insert-into :memo
-         $(set= :creator_id user-id
-                content))
-       (let ((channel-id (channel-uuid channel)))
-         (when (has-access-p current-user channel)
-           (insert-into :memo
-             $(set= :creator_id user-id
-                    content
-                    channel-id)))))))
+(defun-with-db-connection-and-current-user new-memo (channel content &key parent-memo)
+  (let ((parent_memo_id (and (memo-p parent-memo)
+                             (memo-uuid parent-memo))))
+    (execute
+     (if (private-channel-p channel)
+         (insert-into :memo
+           $(set= :creator_id user-id
+                  parent_memo_id
+                  content))
+         (let ((channel-id (channel-uuid channel)))
+           (when (has-access-p current-user channel)
+             (insert-into :memo
+               $(set= :creator_id user-id
+                      parent_memo_id
+                      content
+                      channel-id))))))))
+
+(defun-with-db-connection-and-current-user update-memo (channel memo new-content)
+  (when (and (memo-p memo)
+             (string= (memo-creator-id memo) user-id))
+    (retrieve-one
+     (if (private-channel-p channel)
+         (insert-into :memo
+           $(set= :creator_id user-id
+                  :parent_memo_id (memo-uuid memo)
+                  :as_an_update t
+                  :content new-content)
+           (returning :*))
+         (let ((channel-id (channel-uuid channel)))
+           (when (has-access-p current-user channel)
+             (insert-into :memo
+               $(set= :creator_id user-id
+                      :as_an_update t
+                      :content new-content
+                      channel-id)
+               (returning :*)))))
+     :as 'memo)))
 
 (defun-with-db-connection-and-current-user new-channel (channel-name)
   (let ((channel (retrieve-one
