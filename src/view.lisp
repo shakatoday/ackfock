@@ -27,7 +27,7 @@
                                                    ":")))
                        (br ())
                        ;; TODO: display multi line content but also handle xss risk
-                       (span (:content (memo-content model-obj))))
+                       (div (:content (lf-to-br (memo-content model-obj)))))
                   (div (:class "w3-margin-bottom")
                        (button (:bind ack-btn :class "w3-btn w3-ripple w3-round-xlarge w3-green" :content "Ack"))
                        (span (:bind ack-usernames-span :content (latest-ackfock-users current-user model-obj "ACK"))))
