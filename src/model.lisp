@@ -93,6 +93,18 @@
          (where (:and $(:= user-id )
                       $(:= channel-id))))))))
 
+(defmethod has-access-p ((user user) (model-obj memo))
+  (when (and (user-uuid user)
+             (memo-uuid model-obj))
+    (or (string= (memo-creator-id model-obj) (user-uuid user))
+        (retrieve-one
+         (select :*
+           (from :user_channel_access)
+           (inner-join :memo
+                       :on (:= :user_channel_access.channel_id :memo.channel_id))
+           (where (:and (:= :memo.uuid (memo-uuid model-obj)) ; TODO: handling type error
+                        (:= :user_id (user-uuid user))))))))) ; TODO: handling type error
+
 (defun-with-db-connection-and-current-user new-memo (channel content &key parent-memo)
   (let ((parent_memo_id (and (memo-p parent-memo)
                              (memo-uuid parent-memo))))
@@ -196,14 +208,7 @@
 (defun-with-db-connection-and-current-user ackfock-memo (memo ackfock)
   "Return an ACKFOCK.MODEL-DEFINITION::USER-ACKFOCK if success. Nil otherwise."
   (let ((memo-id (memo-uuid memo)))
-    (when (or (string= (memo-creator-id memo) (user-uuid current-user))
-              (retrieve-one
-               (select :*
-                 (from :user_channel_access)
-                 (inner-join :memo
-                             :on (:= :user_channel_access.channel_id :memo.channel_id))
-                 (where (:and (:= :memo.uuid memo-id)
-                              $(:= user-id))))))
+    (when (has-access-p current-user memo)
       ;; race condition gap notice!
       (apply #'make-user-ackfock
              (append (retrieve-one
