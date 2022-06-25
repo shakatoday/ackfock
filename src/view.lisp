@@ -31,7 +31,8 @@
                             ;; TODO: handle xss risk
                             (div (:content (lf-to-br (memo-content model-obj)))))
                        (div ()
-                            (button (:class "fa fa-pencil-square w3-button" :content " Update"))
+                            (button (:class "fa fa-pencil-square w3-button" :content " Update" :hidden (not (string= (memo-creator-id model-obj)
+                                                                                                                     (user-uuid current-user)))))
                             (button (:class "fa fa-reply w3-button" :content " Reply"))
                             (button (:class "fa fa-history w3-button" :content " History"))))
                   (div (:class "w3-section")
