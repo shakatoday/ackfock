@@ -2,6 +2,7 @@
 (defpackage ackfock.model
   (:use :cl :ackfock.db :datafly :sxql :ackfock.model-definition)
   (:export #:new-memo
+           #:reply-memo
            #:new-channel
            #:rename-channel
            #:invite-to-channel
@@ -105,43 +106,44 @@
            (where (:and (:= :memo.uuid (memo-uuid model-obj)) ; TODO: handling type error
                         (:= :user_id (user-uuid user))))))))) ; TODO: handling type error
 
-(defun-with-db-connection-and-current-user new-memo (channel content &key parent-memo)
-  (let ((parent_memo_id (and (memo-p parent-memo)
-                             (memo-uuid parent-memo))))
-    (execute
-     (if (private-channel-p channel)
-         (insert-into :memo
-           $(set= :creator_id user-id
-                  parent_memo_id
-                  content))
-         (let ((channel-id (channel-uuid channel)))
-           (when (has-access-p current-user channel)
-             (insert-into :memo
-               $(set= :creator_id user-id
-                      parent_memo_id
-                      content
-                      channel-id))))))))
+(defun-with-db-connection-and-current-user new-memo (channel content)
+  (execute
+   (if (private-channel-p channel)
+       (insert-into :memo
+         $(set= :creator_id user-id
+                content))
+       (let ((channel-id (channel-uuid channel)))
+         (when (has-access-p current-user channel)
+           (insert-into :memo
+             $(set= :creator_id user-id
+                    content
+                    channel-id)))))))
 
-(defun-with-db-connection-and-current-user update-memo (channel memo new-content)
-  (when (and (memo-p memo)
-             (string= (memo-creator-id memo) user-id))
-    (retrieve-one
-     (if (private-channel-p channel)
-         (insert-into :memo
-           $(set= :creator_id user-id
-                  :parent_memo_id (memo-uuid memo)
-                  :as_an_update t
-                  :content new-content)
-           (returning :*))
-         (let ((channel-id (channel-uuid channel)))
-           (when (has-access-p current-user channel)
-             (insert-into :memo
-               $(set= :creator_id user-id
-                      :as_an_update t
-                      :content new-content
-                      channel-id)
-               (returning :*)))))
-     :as 'memo)))
+(defun-with-db-connection-and-current-user reply-memo (memo new-content &key as-an-update-p)
+  (retrieve-one
+   (if (memo-channel-id memo)
+       ;; TODO: should check channel access
+       ;; TODO: resolve code duplication
+       (insert-into :memo
+         (set= :creator_id user-id
+               :parent_memo_id (memo-uuid memo)
+               :as_an_update (if (and as-an-update-p
+                                      (string= (memo-creator-id memo) user-id))
+                                 :true
+                                 :false)
+               :content new-content
+               :channel_id (memo-channel-id memo))
+         (returning :*))
+       (insert-into :memo
+         (set= :creator_id user-id
+               :parent_memo_id (memo-uuid memo)
+               :as_an_update (if (and as-an-update-p
+                                      (string= (memo-creator-id memo) user-id))
+                                 :true
+                                 :false)
+               :content new-content)
+         (returning :*)))
+   :as 'memo))
 
 (defun-with-db-connection-and-current-user new-channel (channel-name)
   (let ((channel (retrieve-one

@@ -32,7 +32,7 @@
                             (div (:content (lf-to-br (memo-content model-obj)))))
                        (div ()
                             (button (:bind memo-update-btn :class "fa fa-pencil-square w3-button" :content " Update" :hidden (not (string= (memo-creator-id model-obj)
-                                                                                                                     (user-uuid current-user)))))
+                                                                                                                                           (user-uuid current-user)))))
                             (button (:bind memo-reply-btn :class "fa fa-reply w3-button" :content " Reply"))
                             (button (:class "fa fa-history w3-button" :content " History"))))
                   (div (:bind memo-update-reply-div))
@@ -82,7 +82,23 @@
                       (set-on-click memo-update-reply-cancel-btn
                                     (lambda (btn)
                                       (declare (ignore btn))
-                                      (setf (inner-html memo-update-reply-div) "")))))) ; memory leak?
+                                      (setf (inner-html memo-update-reply-div) ""))) ; memory leak?
+                      (set-on-click memo-update-reply-submit-btn
+                                    (lambda (btn)
+                                      (declare (ignore btn))
+                                      (if (str:blankp (text-value memo-content-input))
+                                          (clog-web-alert memo-update-reply-div
+                                                          "Blank"
+                                                          "New memo can't be blank"
+                                                          :time-out 3
+                                                          :place-top t)
+                                          ;; XSS danger!
+                                          (ackfock.model:reply-memo current-user
+                                                                    model-obj
+                                                                    (text-value memo-content-input)
+                                                                    :as-an-update-p (str:containsp "Update"
+                                                                                                   (text memo-update-reply-btn)))))
+                                    :one-time t))))
              (set-on-click memo-update-btn #'memo-update-reply-handler)
              (set-on-click memo-reply-btn #'memo-update-reply-handler))
            memo-div))))
