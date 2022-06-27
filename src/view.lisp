@@ -20,7 +20,7 @@
 (defmethod render ((model-obj memo) (current-user user) &optional env)
   (cond ((typep env 'clog-obj)
          (with-clog-create env
-             (div (:class "w3-border-bottom w3-padding")
+             (div (:bind memo-div :class "w3-border-bottom w3-padding")
                   (div (:bind memo-content-panel :class "w3-light-gray w3-padding")
                        (div ()
                             (span (:class "w3-large"
@@ -59,7 +59,7 @@
                         (setf (inner-html ack-usernames-span) (latest-ackfock-users current-user model-obj "ACK"))
                         (setf (inner-html fock-usernames-span) (latest-ackfock-users current-user model-obj "FOCK"))))))
              (set-on-click ack-btn (ackfock-memo-and-rerender-handler "ACK"))
-             (set-on-click fock-btn (ackfock-memo-and-rerender-handler "FOCK")))))))
+           memo-div))))
 
 (defmethod render ((model-obj channel) (current-user user) &optional env)
   (cond ((typep env 'web-content-and-sidebar-item-pair)
