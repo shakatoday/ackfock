@@ -30,10 +30,12 @@
            #:memo-channel-id
            #:memo-creator
            #:memo-creator-id
+           #:memo-parent-memo-id
            #:authentication-code-code
            #:authentication-code-email
            #:authentication-code-valid-until
-           #:authentication-code))
+           #:authentication-code
+           #:memo-parent-memo))
 (in-package :ackfock.model-definition)
 
 (deftype ackfock () '(member :ACK :FOCK)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
@@ -64,6 +66,7 @@
   content
   (as-an-update nil :type boolean)
   creator-id
+  parent-memo-id
   channel-id
   created-at)
 
@@ -129,3 +132,11 @@
      (from :users)
      (where (:= :users.uuid (memo-creator-id memo))))
    :as 'user))
+
+(defun-with-db-connection memo-parent-memo (memo)
+  (when (memo-parent-memo-id memo)
+    (retrieve-one
+     (select :*
+       (from :memo)
+       (where (:= :memo.uuid (memo-parent-memo-id memo))))
+     :as 'memo)))

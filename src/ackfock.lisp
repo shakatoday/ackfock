@@ -144,7 +144,9 @@
                                          (web-sidebar (:bind sidebar)
                                                       (div (:content "<b>Channels</b>" :class "w3-margin-top")))
                                        (add-card-look sidebar)
-                                       (let* ((channel-content (create-div body))
+                                       (let* ((ackfock.view:*body-location* (location body))
+                                              (ackfock.view:*window* (window body))
+                                              (channel-content (create-div body))
                                               (channels (cons (make-private-channel) ; for user-private-memos
                                                               (user-channels (profile web-site))))
                                               (channel-selects
@@ -165,10 +167,12 @@
                                                                     (remove-class current-sidebar-item "w3-blue-gray")
                                                                     (setf current-sidebar-item sidebar-item)
                                                                     (add-class sidebar-item "w3-blue-gray")
-                                                                    (ackfock.view:render channel
-                                                                                         (profile web-site)
-                                                                                         (ackfock.view:make-web-content-and-sidebar-item-pair :sidebar-item sidebar-item
-                                                                                                                                              :web-content channel-content))
+                                                                    (let ((ackfock.view:*body-location* (location body))
+                                                                          (ackfock.view:*window* (window body)))
+                                                                      (ackfock.view:render channel
+                                                                                           (profile web-site)
+                                                                                           (ackfock.view:make-web-content-and-sidebar-item-pair :sidebar-item sidebar-item
+                                                                                                                                                :web-content channel-content)))
                                                                     (setf (hash (location body)) "")
                                                                     (setf (hash (location body)) ackfock.view:*bottom-new-memo-container-html-id*)))))
                                          (set-margin-side channel-content

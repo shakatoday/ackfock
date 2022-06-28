@@ -4,13 +4,24 @@
   (:export #:render
            #:web-content-and-sidebar-item-pair
            #:make-web-content-and-sidebar-item-pair
-           #:*bottom-new-memo-container-html-id*))
+           #:*bottom-new-memo-container-html-id*
+           #:*body-location*
+           #:*window*))
 (in-package :ackfock.view)
+
+(defvar *body-location*)
+
+(defvar *window*)
 
 (defparameter *bottom-new-memo-container-html-id* "bottom-new-memo-container")
 
+(defparameter *memo-reply-link-class* "w3-leftbar w3-light-gray w3-text-gray w3-margin-left w3-padding-small")
+
 (defstruct (web-content-and-sidebar-item-pair (:conc-name nil))
   sidebar-item web-content)
+
+(defun make-memo-div-html-id (memo)
+  (str:concat "memo-div-" (memo-uuid memo)))
 
 (defun latest-ackfock-users (current-user memo ack-or-fock)
   (format nil " ~{~a~^, ~}" (mapcar #'user-username
@@ -23,12 +34,8 @@
 (defmethod render ((model-obj memo) (current-user user) &optional env)
   (cond ((typep env 'clog-obj)
          (with-clog-create env
-             (div (:bind memo-div :class "w3-border-bottom w3-padding")
-                  (div (:class "w3-leftbar w3-light-gray w3-text-gray w3-margin-left w3-padding-small")
-                       (span (:content (format nil
-                                            "<b>~a</b>: ~a"
-                                            "someone"
-                                            "something"))))
+             (div (:bind memo-div :class "w3-border-bottom w3-padding" :html-id (make-memo-div-html-id model-obj))
+                  (div (:bind memo-reply-snippet-div))
                             ;; TODO: handle xss risk
                   (div (:bind memo-content-div :class "w3-light-gray w3-padding w3-card")
                        (div ()
@@ -57,6 +64,22 @@
                        (span ())))
            (setf (display memo-content-div) "flex")
            (setf (justify-content memo-content-div) :space-between)
+           (rutils:when-it (memo-parent-memo model-obj)
+             (add-class memo-reply-snippet-div *memo-reply-link-class*)
+             (let ((body-location *body-location*)
+                   (browser-window *window*))
+               (set-on-click memo-reply-snippet-div
+                             (lambda (snippet-div)
+                               (declare (ignore snippet-div))
+                               (setf (hash body-location) (make-memo-div-html-id rutils:it))
+                               (scroll-by browser-window
+                                          0
+                                          (- (floor (/ (screen-height browser-window)
+                                                       2))))))
+               (setf (inner-html memo-reply-snippet-div) (format nil
+                                                                 "<b>~a</b>: ~a..."
+                                                                 (user-username (memo-creator rutils:it))
+                                                                 (str:substring 0 100 (memo-content rutils:it))))))
            (flet ((ackfock-memo-and-rerender-handler (ackfock)
                     (lambda (obj)
                       (declare (ignore obj))
