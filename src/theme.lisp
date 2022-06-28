@@ -38,27 +38,14 @@ Page properties:
       (add-style sb :element "a.clog-theme" '(("text-decoration" "none"))))
     ;;
     ;; Page layout
-    ;;
-    ;; SECTION: Above of menu bar
-    (let* ((row   (create-web-auto-row body))
-	   (left  (create-web-auto-column row))
-	   (right (create-web-auto-column row :vertical-align :middle)))
-      (when (logo website)
-	(set-geometry (create-img (create-a left
-					    :link (url website))
-				  :url-src (logo website))
-		      :height 75))
-      (create-span (create-a right
-			     :class "clog-theme"
-			     :link (url website))
-		   :content (title website)
-		   :class "w3-xlarge w3-sans-serif"))
     ;; SECTION: Menu bar
-    (let ((menu (create-web-menu-bar body :class "w3-card-4 w3-margin-top")))
+    (let* ((top-div (create-div body :class "w3-top"))
+           (menu (create-web-menu-bar top-div :class "w3-card-4")))
       (add-class menu color-class)
       (with-clog-create menu
           (div (:bind menu-inner-div)
                (div ()
+                    (a (:link (url website) :content (title website) :class "w3-xlarge w3-sans-serif w3-margin"))
 	            (form-element (:search :class "w3-margin-left"))
                     (button (:content "search")))
                (div (:bind menu-right-div)))
