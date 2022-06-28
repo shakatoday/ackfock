@@ -144,8 +144,7 @@
                                          (web-sidebar (:bind sidebar)
                                                       (div (:content "<b>Channels</b>" :class "w3-margin-top")))
                                        (add-card-look sidebar)
-                                       (let* ((main-div (create-div body))
-                                              (channel-content (create-web-content main-div))
+                                       (let* ((channel-content (create-div body))
                                               (channels (cons (make-private-channel) ; for user-private-memos
                                                               (user-channels (profile web-site))))
                                               (channel-selects
@@ -170,7 +169,7 @@
                                                                                          (profile web-site)
                                                                                          (ackfock.view:make-web-content-and-sidebar-item-pair :sidebar-item sidebar-item
                                                                                                                                               :web-content channel-content))))))
-                                         (set-margin-side main-div
+                                         (set-margin-side channel-content
                                                           :left (format nil "~apx" (width sidebar)))
                                          (ackfock.view:render (getf (aref channel-selects 0) :channel)
                                                               (profile web-site)
@@ -191,7 +190,7 @@
                                            (set-on-submit new-channel-form
                                                           (lambda (form-obj)
                                                             (declare (ignore form-obj))
-                                                            (cond ((str:blankp (name-value new-channel-form "name")) (clog-web-alert main-div
+                                                            (cond ((str:blankp (name-value new-channel-form "name")) (clog-web-alert channel-content
                                                                                                                                      "Blank"
                                                                                                                                      "New channel name can't be blank"
                                                                                                                                      :time-out 3
