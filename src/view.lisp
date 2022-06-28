@@ -106,7 +106,7 @@
            (setf (inner-html web-content) "") ; memory leak?
            (with-clog-create web-content
                (div (:bind channel-head-div :class "w3-card w3-white w3-block")
-                    (div (:bind channel-name-div)
+                    (div (:bind channel-name-div :class "w3-margin-left")
                          (form (:bind channel-name-form)
                                (form-element (:bind channel-name-input
                                                :text
@@ -147,10 +147,9 @@
                               (setf (value input-obj) (channel-name model-obj))
                               (setf (disabledp input-obj) t)
                               (toggle-class channel-name-edit-button "fa-edit"))))
-             (center-children channel-name-div)
              (unless (private-channel-p model-obj)
                (with-clog-create channel-head-div
-                   (div (:bind channel-members-div)
+                   (div (:bind channel-members-div :class "w3-margin-left")
                         (span (:bind channel-members-span
                                 :class "w3-large"
                                 :content (format nil
@@ -175,7 +174,6 @@
                                             (form-element (:submit
                                                            :value "Cancel"
                                                            :class (str:concat "w3-button w3-black")))))))
-                 (center-children channel-members-div)
                  (setf (display invite-to-channel-submit-span) "flex")
                  (setf (justify-content invite-to-channel-submit-span) :space-between)
                  (set-on-click invite-to-channel-btn
@@ -208,7 +206,10 @@
                                               (setf (text channel-members-span) (format nil
                                                                                         "~{~a~^, ~}"
                                                                                         (mapcar #'user-username
-                                                                                                (channel-users model-obj)))))))))))))
+                                                                                                (channel-users model-obj))))))))))))
+             (setf (positioning channel-head-div) "fixed")
+             ;; then, create an empty div so the beginning of the following content won't be blocked by channel-head
+             (setf (height (create-div web-content)) (height channel-head-div)))
            (loop for memo in (if (private-channel-p model-obj)
                                  (user-private-memos current-user)
                                  (channel-memos model-obj))
