@@ -24,7 +24,7 @@
   (cond ((typep env 'clog-obj)
          (with-clog-create env
              (div (:bind memo-div :class "w3-border-bottom w3-padding")
-                  (div (:bind memo-content-panel :class "w3-light-gray w3-padding")
+                  (div (:bind memo-content-div :class "w3-light-gray w3-padding")
                        (div ()
                             (span (:class "w3-large"
                                    :content (format nil
@@ -49,8 +49,8 @@
                   (div ()
                        (button (:class "fa fa-trash w3-ripple w3-round-xlarge w3-button w3-text-red w3-small" :content " Vote to delete"))
                        (span ())))
-           (setf (display memo-content-panel) "flex")
-           (setf (justify-content memo-content-panel) :space-between)
+           (setf (display memo-content-div) "flex")
+           (setf (justify-content memo-content-div) :space-between)
            (flet ((ackfock-memo-and-rerender-handler (ackfock)
                     (lambda (obj)
                       (declare (ignore obj))
