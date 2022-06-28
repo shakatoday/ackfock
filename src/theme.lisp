@@ -40,12 +40,12 @@ Page properties:
     ;; Page layout
     ;; SECTION: Menu bar
     (let* ((top-div (create-div body :class "w3-top"))
-           (menu (create-web-menu-bar top-div :class "w3-card-4")))
-      (add-class menu color-class)
+           (menu (create-web-menu-bar top-div))
+           (menu-margin-div (create-div body)))
       (with-clog-create menu
           (div (:bind menu-inner-div)
                (div ()
-                    (a (:link (url website) :content (title website) :class "w3-xlarge w3-sans-serif w3-margin"))
+                    (a (:link (url website) :content (title website) :class "w3-xlarge w3-sans-serif w3-margin clog-theme"))
 	            (form-element (:search :class "w3-margin-left"))
                     (button (:content "search")))
                (div (:bind menu-right-div)))
@@ -62,9 +62,10 @@ Page properties:
                                                    :link "/logout"))
 	    (when login-link
 	      (create-web-menu-item menu-right-div :content "login"
-					           :link login-link)))))
+					           :link login-link))))
+      (add-class menu color-class)
+      (setf (height menu-margin-div) (height menu)))
     ;; SECTION: Content area
-    (create-br body)
     (when content
       (typecase content
 	(string
