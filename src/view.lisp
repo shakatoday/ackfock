@@ -3,8 +3,11 @@
   (:use :cl :ackfock.model-definition :clog :clog-web)
   (:export #:render
            #:web-content-and-sidebar-item-pair
-           #:make-web-content-and-sidebar-item-pair))
+           #:make-web-content-and-sidebar-item-pair
+           #:*bottom-new-memo-container-html-id*))
 (in-package :ackfock.view)
+
+(defparameter *bottom-new-memo-container-html-id* "bottom-new-memo-container")
 
 (defstruct (web-content-and-sidebar-item-pair (:conc-name nil))
   sidebar-item web-content)
@@ -215,7 +218,7 @@
                                  (channel-memos model-obj))
                  do (render memo current-user web-content))
            (with-clog-create web-content
-               (web-container ()
+               (web-container (:html-id *bottom-new-memo-container-html-id*)
                               (p ()
                                  (label (:content "New Memo" :class "w3-large"))
                                  (text-area (:bind memo-content-input

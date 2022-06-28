@@ -168,7 +168,9 @@
                                                                     (ackfock.view:render channel
                                                                                          (profile web-site)
                                                                                          (ackfock.view:make-web-content-and-sidebar-item-pair :sidebar-item sidebar-item
-                                                                                                                                              :web-content channel-content))))))
+                                                                                                                                              :web-content channel-content))
+                                                                    (setf (hash (location body)) "")
+                                                                    (setf (hash (location body)) ackfock.view:*bottom-new-memo-container-html-id*)))))
                                          (set-margin-side channel-content
                                                           :left (format nil "~apx" (width sidebar)))
                                          (ackfock.view:render (getf (aref channel-selects 0) :channel)
@@ -197,7 +199,9 @@
                                                                                                                                      :place-top t))
                                                                   (t (ackfock.model:new-channel (profile web-site)
                                                                                                 (name-value new-channel-form "name"))
-                                                                     (url-replace (location body) "/"))))))))))))))
+                                                                     (url-replace (location body) "/"))))))
+                                         (setf (hash (location body)) "")
+                                         (setf (hash (location body)) ackfock.view:*bottom-new-memo-container-html-id*)))))))))
 
 (defun on-new-pass (body)
   (init-site body)
