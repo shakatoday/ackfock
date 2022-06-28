@@ -31,8 +31,6 @@
                             ;; TODO: handle xss risk
                             (div (:content (lf-to-br (memo-content model-obj)))))
                        (div ()
-                            (button (:bind memo-update-btn :class "fa fa-pencil-square w3-button" :content " Update" :hidden (not (string= (memo-creator-id model-obj)
-                                                                                                                                           (user-uuid current-user)))))
                             (button (:bind memo-reply-btn :class "fa fa-reply w3-button" :content " Reply"))
                             (button (:class "fa fa-history w3-button" :content " History"))))
                   (div (:bind memo-update-reply-div))
@@ -99,7 +97,6 @@
                                                                     :as-an-update-p (str:containsp "Update"
                                                                                                    (text memo-update-reply-btn)))))
                                     :one-time t))))
-             (set-on-click memo-update-btn #'memo-update-reply-handler)
              (set-on-click memo-reply-btn #'memo-update-reply-handler))
            memo-div))))
 
