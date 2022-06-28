@@ -24,7 +24,13 @@
   (cond ((typep env 'clog-obj)
          (with-clog-create env
              (div (:bind memo-div :class "w3-border-bottom w3-padding")
-                  (div (:bind memo-content-div :class "w3-light-gray w3-padding")
+                  (div (:class "w3-leftbar w3-light-gray w3-text-gray w3-margin-left w3-padding-small")
+                       (span (:content (format nil
+                                            "<b>~a</b>: ~a"
+                                            "someone"
+                                            "something"))))
+                            ;; TODO: handle xss risk
+                  (div (:bind memo-content-div :class "w3-light-gray w3-padding w3-card")
                        (div ()
                             (span (:class "w3-large"
                                    :content (format nil
