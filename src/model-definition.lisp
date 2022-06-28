@@ -91,7 +91,8 @@
    (select :*
      (from :memo)
      (where (:and (:= :memo.creator_id (user-uuid user))
-                  (:is-null :memo.channel_id))))
+                  (:is-null :memo.channel_id)))
+     (order-by (:asc :created_at)))
    :as 'memo))
 
 (defun-with-db-connection channel-users (channel)
@@ -110,7 +111,8 @@
   (retrieve-all
    (select :*
      (from :memo)
-     (where (:= :memo.channel_id (channel-uuid channel))))
+     (where (:= :memo.channel_id (channel-uuid channel)))
+     (order-by (:asc :created_at)))
    :as 'memo))
 
 (defun-with-db-connection memo-channel (memo)
