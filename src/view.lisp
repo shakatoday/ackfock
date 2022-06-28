@@ -105,17 +105,18 @@
          (let ((web-content (web-content env)))
            (setf (inner-html web-content) "") ; memory leak?
            (with-clog-create web-content
-               (div (:bind channel-head-div)
-                    (form (:bind channel-name-form)
-                          (form-element (:bind channel-name-input
-                                          :text
-                                          :name "channel-name"
-                                          :class "w3-xlarge"
-                                          :value (channel-name model-obj)))
-                          (span ()
-                                (button (:bind channel-name-edit-button
-                                          :hidden (private-channel-p model-obj)
-                                          :class "fa fa-edit w3-button w3-large")))))
+               (div (:bind channel-head-div :class "w3-card w3-white w3-block")
+                    (div (:bind channel-name-div)
+                         (form (:bind channel-name-form)
+                               (form-element (:bind channel-name-input
+                                               :text
+                                               :name "channel-name"
+                                               :class "w3-xlarge"
+                                               :value (channel-name model-obj)))
+                               (span ()
+                                     (button (:bind channel-name-edit-button
+                                               :hidden (private-channel-p model-obj)
+                                               :class "fa fa-edit w3-button w3-large"))))))
              (setf (disabledp channel-name-input) t)
              (setf (requiredp channel-name-input) t)
              (set-on-click channel-name-edit-button
@@ -146,68 +147,68 @@
                               (setf (value input-obj) (channel-name model-obj))
                               (setf (disabledp input-obj) t)
                               (toggle-class channel-name-edit-button "fa-edit"))))
-             (center-children channel-head-div))
-           (unless (private-channel-p model-obj)
-             (with-clog-create web-content
-                 (div (:bind channel-members-div)
-                      (span (:bind channel-members-span
-                              :class "w3-large"
-                              :content (format nil
-                                               "~{~a~^, ~}"
-                                               (mapcar #'user-username
-                                                       (channel-users model-obj)))))
-                      (span (:bind invite-to-channel-btn
-                              :class (str:concat "w3-button fa fa-user-plus w3-margin-left " ackfock.theme:*color-class*))
-                            (div (:content "Invite" :class "w3-small")))
-                      (dialog (:bind invite-to-channel-dialog)
-                              (form (:bind invite-to-channel-form :method "dialog")
-                                    (div (:content "Invite to this channel" :class "w3-xlarge"))
-                                    (p ()
-                                       (label (:content "Email" :class "w3-large"))
-                                       (form-element (:text
-                                                      :name "email"
-                                                      :class "w3-input")))
-                                    (span (:bind invite-to-channel-submit-span)
-                                          (form-element (:submit
-                                                         :value "Invite"
-                                                         :class (str:concat "w3-button " ackfock.theme:*color-class*)))
-                                          (form-element (:submit
-                                                         :value "Cancel"
-                                                         :class (str:concat "w3-button w3-black")))))))
-               (center-children channel-members-div)
-               (setf (display invite-to-channel-submit-span) "flex")
-               (setf (justify-content invite-to-channel-submit-span) :space-between)
-               (set-on-click invite-to-channel-btn
-                             (lambda (btn-obj)
-                               (declare (ignore btn-obj))
-                               (setf (dialog-openp invite-to-channel-dialog) t)))
-               (set-on-event invite-to-channel-dialog
-                             "close"
-                             (lambda (dialog-obj)
-                               (when (string= (return-value dialog-obj) "Invite")
-                                 (let* ((email (name-value invite-to-channel-form "email"))
-                                        (target-user (ackfock.model:user-by-email email)))
-                                   ;; race condition gap notice
-                                   (cond ((str:blankp email) (clog-web-alert web-content "Blank"
-                                                                             "The email field can't be blank."
-                                                                             :time-out 3
-                                                                             :place-top t))
-                                         ((null (clavier:validate ackfock.utils:*email-validator* email)) (clog-web-alert web-content "Email invalid"
-                                                                                                                          "Not a valid email address"
-                                                                                                                          :time-out 3
-                                                                                                                          :place-top t))
-                                         ((null target-user) (clog-web-alert web-content "Not Exists"
-                                                                             "There is no user associated with the given email."
-                                                                             :time-out 3
-                                                                             :place-top t))
-                                         ;; XSS DANGER!
-                                         (t (ackfock.model:invite-to-channel current-user
-                                                                             (user-email target-user)
-                                                                             model-obj)
-                                            (setf (text channel-members-span) (format nil
-                                                                                      "~{~a~^, ~}"
-                                                                                      (mapcar #'user-username
-                                                                                              (channel-users model-obj))))))))))))
+             (center-children channel-name-div)
+             (unless (private-channel-p model-obj)
+               (with-clog-create channel-head-div
+                   (div (:bind channel-members-div)
+                        (span (:bind channel-members-span
+                                :class "w3-large"
+                                :content (format nil
+                                                 "~{~a~^, ~}"
+                                                 (mapcar #'user-username
+                                                         (channel-users model-obj)))))
+                        (span (:bind invite-to-channel-btn
+                                :class (str:concat "w3-button fa fa-user-plus w3-margin-left " ackfock.theme:*color-class*))
+                              (div (:content "Invite" :class "w3-small")))
+                        (dialog (:bind invite-to-channel-dialog)
+                                (form (:bind invite-to-channel-form :method "dialog")
+                                      (div (:content "Invite to this channel" :class "w3-xlarge"))
+                                      (p ()
+                                         (label (:content "Email" :class "w3-large"))
+                                         (form-element (:text
+                                                        :name "email"
+                                                        :class "w3-input")))
+                                      (span (:bind invite-to-channel-submit-span)
+                                            (form-element (:submit
+                                                           :value "Invite"
+                                                           :class (str:concat "w3-button " ackfock.theme:*color-class*)))
+                                            (form-element (:submit
+                                                           :value "Cancel"
+                                                           :class (str:concat "w3-button w3-black")))))))
+                 (center-children channel-members-div)
+                 (setf (display invite-to-channel-submit-span) "flex")
+                 (setf (justify-content invite-to-channel-submit-span) :space-between)
+                 (set-on-click invite-to-channel-btn
+                               (lambda (btn-obj)
+                                 (declare (ignore btn-obj))
+                                 (setf (dialog-openp invite-to-channel-dialog) t)))
+                 (set-on-event invite-to-channel-dialog
+                               "close"
+                               (lambda (dialog-obj)
+                                 (when (string= (return-value dialog-obj) "Invite")
+                                   (let* ((email (name-value invite-to-channel-form "email"))
+                                          (target-user (ackfock.model:user-by-email email)))
+                                     ;; race condition gap notice
+                                     (cond ((str:blankp email) (clog-web-alert web-content "Blank"
+                                                                               "The email field can't be blank."
+                                                                               :time-out 3
+                                                                               :place-top t))
+                                           ((null (clavier:validate ackfock.utils:*email-validator* email)) (clog-web-alert web-content "Email invalid"
+                                                                                                                            "Not a valid email address"
+                                                                                                                            :time-out 3
+                                                                                                                            :place-top t))
+                                           ((null target-user) (clog-web-alert web-content "Not Exists"
+                                                                               "There is no user associated with the given email."
+                                                                               :time-out 3
+                                                                               :place-top t))
+                                           ;; XSS DANGER!
+                                           (t (ackfock.model:invite-to-channel current-user
+                                                                               (user-email target-user)
+                                                                               model-obj)
+                                              (setf (text channel-members-span) (format nil
+                                                                                        "~{~a~^, ~}"
+                                                                                        (mapcar #'user-username
+                                                                                                (channel-users model-obj)))))))))))))
            (loop for memo in (if (private-channel-p model-obj)
                                  (user-private-memos current-user)
                                  (channel-memos model-obj))
