@@ -129,8 +129,8 @@
                :parent_memo_id (memo-uuid memo)
                :as_an_update (if (and as-an-update-p
                                       (string= (memo-creator-id memo) user-id))
-                                 :true
-                                 :false)
+                                 "true"
+                                 "false")
                :content new-content
                :channel_id (memo-channel-id memo))
          (returning :*))
@@ -139,8 +139,8 @@
                :parent_memo_id (memo-uuid memo)
                :as_an_update (if (and as-an-update-p
                                       (string= (memo-creator-id memo) user-id))
-                                 :true
-                                 :false)
+                                 "true"
+                                 "false")
                :content new-content)
          (returning :*)))
    :as 'memo))
