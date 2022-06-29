@@ -20,6 +20,9 @@
 (defstruct (web-content-and-sidebar-item-pair (:conc-name nil))
   sidebar-item web-content)
 
+(defstruct channel-content
+  re-renderer web-content)
+
 (defun make-memo-div-html-id (memo)
   (str:concat "memo-div-" (memo-uuid memo)))
 
@@ -32,105 +35,106 @@
                                                         :test #'string=))))))
 
 (defmethod render ((model-obj memo) (current-user user) &optional env)
-  (cond ((typep env 'clog-obj)
-         (with-clog-create env
-             (div (:bind memo-div :class "w3-border-bottom w3-padding" :html-id (make-memo-div-html-id model-obj))
-                  (div (:bind memo-reply-snippet-div))
-                            ;; TODO: handle xss risk
-                  (div (:bind memo-content-div :class "w3-light-gray w3-padding w3-card")
-                       (div ()
-                            (span (:class "w3-large"
-                                   :content (format nil
-                                                    "<b>~a:</b>"
-                                                    (user-username (memo-creator model-obj)))))
-                            (br ())
-                            ;; TODO: handle xss risk
-                            (div (:content (lf-to-br (memo-content model-obj)))))
-                       (div ()
-                            (button (:bind memo-reply-btn :class "fa fa-reply w3-button" :content " Reply"))
-                            (button (:class "fa fa-history w3-button" :content " History"))))
-                  (div (:bind memo-update-reply-div))
-                  (div (:class "w3-section")
-                       (button (:bind ack-btn :class "w3-btn w3-ripple w3-round-xlarge w3-green" :content "Ack"))
-                       (span (:bind ack-usernames-span :content (latest-ackfock-users current-user model-obj "ACK"))))
-                  (div (:class "w3-margin-bottom")
-                       (button (:bind fock-btn :class "w3-btn w3-ripple w3-round-xlarge w3-purple" :content "Fock"))
-                       (span (:bind fock-usernames-span :content (latest-ackfock-users current-user model-obj "FOCK"))))
-                  (div (:class "w3-margin-bottom")
-                       (button (:class "fa fa-history w3-button w3-small" :content " History of Ack/Fock"))
-                       (span ()))
-                  (div ()
-                       (button (:class "fa fa-trash w3-ripple w3-round-xlarge w3-button w3-text-red w3-small" :content " Vote to delete"))
-                       (span ())))
-           (setf (display memo-content-div) "flex")
-           (setf (justify-content memo-content-div) :space-between)
-           (rutils:when-it (memo-parent-memo model-obj)
-             (add-class memo-reply-snippet-div *memo-reply-link-class*)
-             (let ((body-location *body-location*)
-                   (browser-window *window*))
-               (set-on-click memo-reply-snippet-div
-                             (lambda (snippet-div)
-                               (declare (ignore snippet-div))
-                               (setf (hash body-location) (make-memo-div-html-id rutils:it))
-                               (scroll-by browser-window
-                                          0
-                                          (- (floor (/ (screen-height browser-window)
-                                                       2))))))
+  (cond ((channel-content-p env)
+         (let ((web-content (channel-content-web-content env)))
+           (with-clog-create web-content
+               (div (:bind memo-div :class "w3-border-bottom w3-padding" :html-id (make-memo-div-html-id model-obj))
+                    (div (:bind memo-reply-snippet-div))
+                    ;; TODO: handle xss risk
+                    (div (:bind memo-content-div :class "w3-light-gray w3-padding w3-card")
+                         (div ()
+                              (span (:class "w3-large"
+                                     :content (format nil
+                                                      "<b>~a:</b>"
+                                                      (user-username (memo-creator model-obj)))))
+                              (br ())
+                              ;; TODO: handle xss risk
+                              (div (:content (lf-to-br (memo-content model-obj)))))
+                         (div ()
+                              (button (:bind memo-reply-btn :class "fa fa-reply w3-button" :content " Reply"))
+                              (button (:class "fa fa-history w3-button" :content " History"))))
+                    (div (:bind memo-update-reply-div))
+                    (div (:class "w3-section")
+                         (button (:bind ack-btn :class "w3-btn w3-ripple w3-round-xlarge w3-green" :content "Ack"))
+                         (span (:bind ack-usernames-span :content (latest-ackfock-users current-user model-obj "ACK"))))
+                    (div (:class "w3-margin-bottom")
+                         (button (:bind fock-btn :class "w3-btn w3-ripple w3-round-xlarge w3-purple" :content "Fock"))
+                         (span (:bind fock-usernames-span :content (latest-ackfock-users current-user model-obj "FOCK"))))
+                    (div (:class "w3-margin-bottom")
+                         (button (:class "fa fa-history w3-button w3-small" :content " History of Ack/Fock"))
+                         (span ()))
+                    (div ()
+                         (button (:class "fa fa-trash w3-ripple w3-round-xlarge w3-button w3-text-red w3-small" :content " Vote to delete"))
+                         (span ())))
+             (setf (display memo-content-div) "flex")
+             (setf (justify-content memo-content-div) :space-between)
+             (rutils:when-it (memo-parent-memo model-obj)
+               (add-class memo-reply-snippet-div *memo-reply-link-class*)
+               (let ((body-location *body-location*)
+                     (browser-window *window*))
+                 (set-on-click memo-reply-snippet-div
+                               (lambda (snippet-div)
+                                 (declare (ignore snippet-div))
+                                 (setf (hash body-location) (make-memo-div-html-id rutils:it))
+                                 (scroll-by browser-window
+                                            0
+                                            (- (floor (/ (screen-height browser-window)
+                                                         2)))))))
                (setf (inner-html memo-reply-snippet-div) (format nil
                                                                  "<b>~a</b>: ~a..."
                                                                  (user-username (memo-creator rutils:it))
-                                                                 (str:substring 0 100 (memo-content rutils:it))))))
-           (flet ((ackfock-memo-and-rerender-handler (ackfock)
-                    (lambda (obj)
-                      (declare (ignore obj))
-                      (when (ackfock.model:ackfock-memo current-user
-                                                        model-obj
-                                                        ackfock)
-                        ;; rerender. memory leak?
-                        (setf (inner-html ack-usernames-span) (latest-ackfock-users current-user model-obj "ACK"))
-                        (setf (inner-html fock-usernames-span) (latest-ackfock-users current-user model-obj "FOCK"))))))
-             (set-on-click ack-btn (ackfock-memo-and-rerender-handler "ACK"))
-             (set-on-click fock-btn (ackfock-memo-and-rerender-handler "FOCK")))
-           (flet ((memo-update-reply-handler (memo-update-reply-btn)
-                    (setf (inner-html memo-update-reply-div) "") ; memory leak?
-                    (with-clog-create memo-update-reply-div
-                        (web-container ()
-                                       (p ()
-                                          (label (:content (text memo-update-reply-btn) :class "w3-large"))
-                                          (text-area (:bind memo-content-input
-                                                       :value (if (str:containsp "Update"
-                                                                                 (text memo-update-reply-btn))
-                                                                  (memo-content model-obj)
-                                                                  "")
-                                                       :class "w3-input")))
-                                       (button (:bind memo-update-reply-submit-btn
-                                                 :content "Submit"
-                                                 :class (str:concat "w3-button " ackfock.theme:*color-class*)))
-                                       (button (:bind memo-update-reply-cancel-btn
-                                                 :content "Cancel"
-                                                 :class (str:concat "w3-button w3-black w3-margin-left"))))
-                      (set-on-click memo-update-reply-cancel-btn
-                                    (lambda (btn)
-                                      (declare (ignore btn))
-                                      (setf (inner-html memo-update-reply-div) ""))) ; memory leak?
-                      (set-on-click memo-update-reply-submit-btn
-                                    (lambda (btn)
-                                      (declare (ignore btn))
-                                      (if (str:blankp (text-value memo-content-input))
-                                          (clog-web-alert memo-update-reply-div
-                                                          "Blank"
-                                                          "New memo can't be blank"
-                                                          :time-out 3
-                                                          :place-top t)
-                                          ;; XSS danger!
-                                          (ackfock.model:reply-memo current-user
-                                                                    model-obj
-                                                                    (text-value memo-content-input)
-                                                                    :as-an-update-p (str:containsp "Update"
-                                                                                                   (text memo-update-reply-btn)))))
-                                    :one-time t))))
-             (set-on-click memo-reply-btn #'memo-update-reply-handler))
-           memo-div))))
+                                                                 (str:substring 0 100 (memo-content rutils:it)))))
+             (flet ((ackfock-memo-and-rerender-handler (ackfock)
+                      (lambda (obj)
+                        (declare (ignore obj))
+                        (when (ackfock.model:ackfock-memo current-user
+                                                          model-obj
+                                                          ackfock)
+                          ;; rerender. memory leak?
+                          (setf (inner-html ack-usernames-span) (latest-ackfock-users current-user model-obj "ACK"))
+                          (setf (inner-html fock-usernames-span) (latest-ackfock-users current-user model-obj "FOCK"))))))
+               (set-on-click ack-btn (ackfock-memo-and-rerender-handler "ACK"))
+               (set-on-click fock-btn (ackfock-memo-and-rerender-handler "FOCK")))
+             (flet ((memo-update-reply-handler (memo-update-reply-btn)
+                      (setf (inner-html memo-update-reply-div) "") ; memory leak?
+                      (with-clog-create memo-update-reply-div
+                          (web-container ()
+                                         (p ()
+                                            (label (:content (text memo-update-reply-btn) :class "w3-large"))
+                                            (text-area (:bind memo-content-input
+                                                         :value (if (str:containsp "Update"
+                                                                                   (text memo-update-reply-btn))
+                                                                    (memo-content model-obj)
+                                                                    "")
+                                                         :class "w3-input")))
+                                         (button (:bind memo-update-reply-submit-btn
+                                                   :content "Submit"
+                                                   :class (str:concat "w3-button " ackfock.theme:*color-class*)))
+                                         (button (:bind memo-update-reply-cancel-btn
+                                                   :content "Cancel"
+                                                   :class (str:concat "w3-button w3-black w3-margin-left"))))
+                        (set-on-click memo-update-reply-cancel-btn
+                                      (lambda (btn)
+                                        (declare (ignore btn))
+                                        (setf (inner-html memo-update-reply-div) ""))) ; memory leak?
+                        (set-on-click memo-update-reply-submit-btn
+                                      (lambda (btn)
+                                        (declare (ignore btn))
+                                        (cond ((str:blankp (text-value memo-content-input)) (clog-web-alert memo-update-reply-div
+                                                                                                            "Blank"
+                                                                                                            "New memo can't be blank"
+                                                                                                            :time-out 3
+                                                                                                            :place-top t))
+                                              ;; XSS danger!
+                                              (t (ackfock.model:reply-memo current-user
+                                                                           model-obj
+                                                                           (text-value memo-content-input)
+                                                                           :as-an-update-p (str:containsp "Update"
+                                                                                                          (text memo-update-reply-btn)))
+                                                 (funcall (channel-content-re-renderer env)))))
+                                      :one-time t))))
+               (set-on-click memo-reply-btn #'memo-update-reply-handler))
+             memo-div)))))
 
 (defmethod render ((model-obj channel) (current-user user) &optional env)
   (cond ((typep env 'web-content-and-sidebar-item-pair)
@@ -242,26 +246,38 @@
              (setf (positioning channel-head-div) "fixed")
              ;; then, create an empty div so the beginning of the following content won't be blocked by channel-head
              (setf (height (create-div web-content)) (height channel-head-div)))
-           (loop for memo in (if (private-channel-p model-obj)
-                                 (user-private-memos current-user)
-                                 (channel-memos model-obj))
-                 do (render memo current-user web-content))
-           (with-clog-create web-content
-               (web-container (:html-id *bottom-new-memo-container-html-id*)
-                              (p ()
-                                 (label (:content "New Memo" :class "w3-large"))
-                                 (text-area (:bind memo-content-input
-                                              :class "w3-input")))
-                              (button (:bind new-memo-btn
-                                        :content "Submit"
-                                        :class (str:concat "w3-button " ackfock.theme:*color-class*))))
-             (setf (requiredp memo-content-input) t)
-             (set-on-click new-memo-btn
-                           (lambda (btn-obj)
-                             (declare (ignore btn-obj))
-                             ;; XSS DANGER!
-                             (ackfock.model:new-memo current-user
-                                                     model-obj ; will check the null case inside the function
-                                                     (text-value memo-content-input))
-                             (render model-obj current-user env))
-                           :one-time t))))))
+           (let* ((body-location *body-location*)
+                  (window *window*)
+                  (re-renderer (lambda ()
+                                 (let ((*body-location* body-location)
+                                       (*window* window))
+                                   (render model-obj current-user env))))
+                  (memo-env (make-channel-content :web-content web-content
+                                                  :re-renderer re-renderer)))
+             (loop for memo in (if (private-channel-p model-obj)
+                                   (user-private-memos current-user)
+                                   (channel-memos model-obj))
+                   do (render memo
+                              current-user
+                              memo-env))
+             (with-clog-create web-content
+                 (web-container (:html-id *bottom-new-memo-container-html-id*)
+                                (p ()
+                                   (label (:content "New Memo" :class "w3-large"))
+                                   (text-area (:bind memo-content-input
+                                                :class "w3-input")))
+                                (button (:bind new-memo-btn
+                                          :content "Submit"
+                                          :class (str:concat "w3-button " ackfock.theme:*color-class*))))
+               (setf (requiredp memo-content-input) t)
+               (set-on-click new-memo-btn
+                             (lambda (btn-obj)
+                               (declare (ignore btn-obj))
+                               ;; XSS DANGER!
+                               (ackfock.model:new-memo current-user
+                                                       model-obj ; will check the null case inside the function
+                                                       (text-value memo-content-input))
+                               (funcall re-renderer)
+                               :one-time t))
+               (setf (hash *body-location*) "")
+               (setf (hash *body-location*) *bottom-new-memo-container-html-id*)))))))
