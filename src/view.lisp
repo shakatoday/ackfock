@@ -134,7 +134,7 @@
              memo-div)))))
 
 (defmethod render ((model-obj channel) (current-user user) &optional env)
-  (cond ((typep env 'web-content-and-sidebar-item-pair)
+  (cond ((web-content-and-sidebar-item-pair-p env)
          (let ((web-content (web-content env)))
            (setf (inner-html web-content) "") ; memory leak?
            (with-clog-create web-content
@@ -220,15 +220,15 @@
                                    (let* ((email (name-value invite-to-channel-form "email"))
                                           (target-user (ackfock.model:user-by-email email)))
                                      ;; race condition gap notice
-                                     (cond ((str:blankp email) (clog-web-alert web-content "Blank"
+                                     (cond ((str:blankp email) (clog-web-alert channel-head-div "Blank"
                                                                                "The email field can't be blank."
                                                                                :time-out 3
                                                                                :place-top t))
-                                           ((null (clavier:validate ackfock.utils:*email-validator* email)) (clog-web-alert web-content "Email invalid"
+                                           ((null (clavier:validate ackfock.utils:*email-validator* email)) (clog-web-alert channel-head-div "Email invalid"
                                                                                                                             "Not a valid email address"
                                                                                                                             :time-out 3
                                                                                                                             :place-top t))
-                                           ((null target-user) (clog-web-alert web-content "Not Exists"
+                                           ((null target-user) (clog-web-alert channel-head-div "Not Exists"
                                                                                "There is no user associated with the given email."
                                                                                :time-out 3
                                                                                :place-top t))
@@ -242,7 +242,7 @@
                                                                                                 (channel-users model-obj))))))))))))
              (setf (positioning channel-head-div) "fixed")
              ;; then, create an empty div so the beginning of the following content won't be blocked by channel-head
-             (setf (height (create-div web-content)) (height channel-head-div)))
+             (setf (height (create-div web-content)) (height channel-head-div))
            (let* ((body-location *body-location*)
                   (window *window*)
                   (re-renderer (lambda ()
@@ -271,10 +271,16 @@
                              (lambda (btn-obj)
                                (declare (ignore btn-obj))
                                ;; XSS DANGER!
-                               (ackfock.model:new-memo current-user
-                                                       model-obj ; will check the null case inside the function
-                                                       (text-value memo-content-input))
-                               (funcall re-renderer)
-                               :one-time t))
+                               (cond ((str:blankp (text-value memo-content-input)) (clog-web-alert channel-head-div
+                                                                                                   "Blank"
+                                                                                                   "New memo can't be blank"
+                                                                                                   :time-out 3
+                                                                                                   :place-top t))
+                                     (t (ackfock.model:new-memo current-user
+                                                                model-obj ; will check the null case inside the function
+                                                                (text-value memo-content-input))
+                               
+                                        (funcall re-renderer))))
+                             :one-time t)
                (setf (hash *body-location*) "")
-               (setf (hash *body-location*) *bottom-new-memo-container-html-id*)))))))
+               (setf (hash *body-location*) *bottom-new-memo-container-html-id*))))))))

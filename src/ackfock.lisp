@@ -194,7 +194,7 @@
                                            (set-on-submit new-channel-form
                                                           (lambda (form-obj)
                                                             (declare (ignore form-obj))
-                                                            (cond ((str:blankp (name-value new-channel-form "name")) (clog-web-alert channel-content
+                                                            (cond ((str:blankp (name-value new-channel-form "name")) (clog-web-alert sidebar
                                                                                                                                      "Blank"
                                                                                                                                      "New channel name can't be blank"
                                                                                                                                      :time-out 3
