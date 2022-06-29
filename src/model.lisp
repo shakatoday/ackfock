@@ -121,28 +121,18 @@
 
 (defun-with-db-connection-and-current-user reply-memo (memo new-content &key as-an-update-p)
   (retrieve-one
-   (if (memo-channel-id memo)
-       ;; TODO: should check channel access
-       ;; TODO: resolve code duplication
-       (insert-into :memo
-         (set= :creator_id user-id
-               :parent_memo_id (memo-uuid memo)
-               :as_an_update (if (and as-an-update-p
-                                      (string= (memo-creator-id memo) user-id))
-                                 "true"
-                                 "false")
-               :content new-content
-               :channel_id (memo-channel-id memo))
-         (returning :*))
-       (insert-into :memo
-         (set= :creator_id user-id
-               :parent_memo_id (memo-uuid memo)
-               :as_an_update (if (and as-an-update-p
-                                      (string= (memo-creator-id memo) user-id))
-                                 "true"
-                                 "false")
-               :content new-content)
-         (returning :*)))
+   ;; TODO: should check channel access
+   (insert-into :memo
+     (set= :creator_id user-id
+           :parent_memo_id (memo-uuid memo)
+           :as_an_update (if (and as-an-update-p
+                                  (string= (memo-creator-id memo) user-id))
+                             "true"
+                             "false")
+           :content new-content
+           :channel_id (or (memo-channel-id memo)
+                           :null))
+     (returning :*))
    :as 'memo))
 
 (defun-with-db-connection-and-current-user new-channel (channel-name)
