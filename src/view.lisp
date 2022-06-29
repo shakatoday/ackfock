@@ -75,6 +75,7 @@
                  (set-on-click memo-reply-snippet-div
                                (lambda (snippet-div)
                                  (declare (ignore snippet-div))
+                                 (setf (hash body-location) "")
                                  (setf (hash body-location) (make-memo-div-html-id rutils:it))
                                  (scroll-by browser-window
                                             0
