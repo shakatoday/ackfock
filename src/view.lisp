@@ -84,7 +84,17 @@
                                     (add-class ackfock-history-btn "fa-long-arrow-left")
                                     (add-class ackfock-history-btn "w3-black")
                                     (setf (text ackfock-history-btn) " Hide History")
-                                    (setf (text ackfock-history-div) "TEST")
+                                    (loop for user-ackfock in (ackfock.model:memo-user-ackfocks current-user model-obj)
+                                          do (with-clog-create ackfock-history-div
+                                                 (web-auto-row (:class "w3-margin w3-border-bottom")
+                                                               (web-auto-column (:content (user-username (user-ackfock-user user-ackfock))))
+                                                               (web-auto-column (:bind history-ack-column :content "Ack" :class "w3-text-green"))
+                                                               (web-auto-column (:bind history-fock-column :content "Fock" :class "w3-text-purple"))
+                                                               (web-auto-column (:content (local-time:format-timestring nil
+                                                                                                                        (user-ackfock-created-at user-ackfock)
+                                                                                                                        :format local-time:+rfc-1123-format+))))
+                                               (setf (visiblep history-ack-column) (string= (user-ackfock-ackfock user-ackfock) "ACK"))
+                                               (setf (visiblep history-fock-column) (string= (user-ackfock-ackfock user-ackfock) "FOCK"))))
                                     (add-class ackfock-history-div "w3-animate-right")))))
              (rutils:when-it (memo-parent-memo model-obj)
                (add-class memo-reply-snippet-div *memo-reply-link-class*)
@@ -262,6 +272,7 @@
                                                                                         (mapcar #'user-username
                                                                                                 (channel-users model-obj))))))))))))
              (setf (positioning channel-head-div) "fixed")
+             (setf (z-index channel-head-div) 1)
              ;; then, create an empty div so the beginning of the following content won't be blocked by channel-head
              (setf (height (create-div web-content)) (height channel-head-div))
            (let* ((body-location *body-location*)

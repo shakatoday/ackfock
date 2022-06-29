@@ -5,6 +5,7 @@
            #:user-ackfock
            #:user-ackfock-user
            #:user-ackfock-ackfock
+           #:user-ackfock-created-at
            #:make-user-ackfock
            #:user
            #:user-uuid

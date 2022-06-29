@@ -144,6 +144,7 @@
                                          (web-sidebar (:bind sidebar)
                                                       (div (:content "<b>Channels</b>" :class "w3-margin-top")))
                                        (add-card-look sidebar)
+                                       (setf (z-index sidebar) 2)
                                        (let* ((ackfock.view:*body-location* (location body))
                                               (ackfock.view:*window* (window body))
                                               (channel-content (create-div body))

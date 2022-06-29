@@ -8,7 +8,8 @@
            #:invite-to-channel
            #:memo-latest-ackfocks-per-user-by-ackfock
            #:user-by-email
-           #:ackfock-memo))
+           #:ackfock-memo
+           #:memo-user-ackfocks))
 (in-package :ackfock.model)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -38,9 +39,10 @@
                                      (reduce #'append
                                              (mapcar (lambda (keyword-arg)
                                                        `(,keyword-arg (getf copy-plist ,keyword-arg))) ; use the later created-at so we need a copy and remf
+                                                     ; TODO: created-at needs an inflation-function
                                                      '(:uuid :email :username :created-at))))
                        :ackfock (getf plist :ackfock)
-                       :created-at (getf plist :created-at))))
+                       :created-at (datetime-to-timestamp (getf plist :created-at)))))
 
 (defun user-ackfock-list-to-alist-by-ackfock (user-ackfock-list)
   (list (cons "ACK"
@@ -229,3 +231,15 @@
      (update :channel
        (set= :name new-name)
        (where (:= :uuid (channel-uuid channel)))))))
+
+(defun-with-db-connection-and-current-user memo-user-ackfocks (memo)
+  (declare (ignore user-id))
+  (when (has-access-p current-user memo)
+    (mapcar #'plist-to-user-ackfock
+            (retrieve-all
+             (select :*
+               (from :user_ackfock)
+               (inner-join :users
+                           :on (:= :users.uuid :user_ackfock.user_id))
+               (where (:= :memo_id (memo-uuid memo)))
+               (order-by (:asc :user_ackfock.created_at)))))))
