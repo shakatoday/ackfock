@@ -51,8 +51,7 @@
                               ;; TODO: handle xss risk
                               (div (:content (lf-to-br (memo-content model-obj)))))
                          (div ()
-                              (button (:bind memo-reply-btn :class "fa fa-reply w3-button" :content " Reply"))
-                              (button (:class "fa fa-history w3-button" :content " History"))))
+                              (button (:bind memo-reply-btn :class "fa fa-reply w3-button" :content " Reply"))))
                     (div (:bind memo-update-reply-div))
                     (div (:class "w3-section")
                          (button (:bind ack-btn :class "w3-btn w3-ripple w3-round-xlarge w3-green" :content "Ack"))
@@ -61,7 +60,7 @@
                          (button (:bind fock-btn :class "w3-btn w3-ripple w3-round-xlarge w3-purple" :content "Fock"))
                          (span (:bind fock-usernames-span :content (latest-ackfock-users current-user model-obj "FOCK"))))
                     (div (:class "w3-margin-bottom")
-                         (button (:class "fa fa-history w3-button w3-small" :content " History of Ack/Fock"))
+                         (button (:class "fa fa-history w3-button w3-small" :content " History"))
                          (span ()))
                     (div ()
                          (button (:class "fa fa-trash w3-ripple w3-round-xlarge w3-button w3-text-red w3-small" :content " Vote to delete"))
