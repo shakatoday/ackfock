@@ -128,8 +128,7 @@
                                                                            (text-value memo-content-input)
                                                                            :as-an-update-p (str:containsp "Update"
                                                                                                           (text memo-update-reply-btn)))
-                                                 (funcall (channel-content-re-renderer env)))))
-                                      :one-time t))))
+                                                 (funcall (channel-content-re-renderer env)))))))))
                (set-on-click memo-reply-btn #'memo-update-reply-handler))
              memo-div)))))
 
@@ -280,7 +279,6 @@
                                                                 model-obj ; will check the null case inside the function
                                                                 (text-value memo-content-input))
                                
-                                        (funcall re-renderer))))
-                             :one-time t)
+                                        (funcall re-renderer)))))
                (setf (hash *body-location*) "")
                (setf (hash *body-location*) *bottom-new-memo-container-html-id*))))))))
