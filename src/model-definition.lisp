@@ -25,6 +25,7 @@
            #:private-channel-p
            #:memo
            #:memo-p
+           #:make-memo
            #:memo-uuid
            #:memo-content
            #:memo-channel

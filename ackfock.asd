@@ -10,6 +10,7 @@
                "uuid"
                "local-time"
                "spinneret"
+               "cl-ppcre"
 
                ;; for DB
                "datafly"
@@ -38,7 +39,7 @@
                  (:file "theme" :depends-on ("auth" "model-definition"))
                  (:file "auth" :depends-on ("authenticate-user-email" "utils" "model-definition" "db"))
                  (:file "authenticate-user-email" :depends-on ("model-definition" "utils" "db"))
-                 (:file "model" :depends-on ("model-definition" "utils" "db"))
+                 (:file "model" :depends-on ("model-definition" "utils" "db" "config"))
                  (:file "utils")
                  (:file "model-definition" :depends-on ("db"))
                  (:file "db" :depends-on ("config"))

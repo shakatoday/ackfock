@@ -9,7 +9,8 @@
            #:memo-latest-ackfocks-per-user-by-ackfock
            #:user-by-email
            #:ackfock-memo
-           #:memo-user-ackfocks))
+           #:memo-user-ackfocks
+           #:search-memo))
 (in-package :ackfock.model)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -249,3 +250,36 @@
                            :on (:= :users.uuid :user_ackfock.user_id))
                (where (:= :memo_id (memo-uuid memo)))
                (order-by (:asc :user_ackfock.created_at)))))))
+
+(defun-with-db-connection-and-current-user search-memo (query)
+  "Return a current-user accessible list of ACKFOCK.MODEL-DEFINITION:MEMO order by search rank."
+  (declare (ignore user-id))
+  (when (stringp query)
+    (let* ((query (ppcre:regex-replace-all
+                   "\\s+"
+                   (ppcre:regex-replace-all
+                    "\\s+$"
+                    (ppcre:regex-replace-all
+                     "^\\s+"
+                     (ppcre:regex-replace-all "[\||&]"
+                                              query
+                                              " "
+                                              :preserve-case t)
+                     ""
+                     :preserve-case t)
+                    ""
+                    :preserve-case t)
+                   " | " ; ts_query of postresql doesn't accept whitespace between tokens. What between them has to be a logical operator.
+                   :preserve-case t))
+           (data-plist-list (mapcar #'datafly.db::convert-row
+                                    (dbi:fetch-all
+                                     (dbi:execute
+                                      (dbi:prepare *connection*
+                                                   *search-query-sql-string*)
+                                      (list query query))))))
+      (remove-if-not (lambda (memo)
+                       (has-access-p current-user memo))
+                     (loop for data-plist in data-plist-list
+                           collect (progn
+                                     (remf data-plist :search-rank)
+                                     (apply #'make-memo data-plist)))))))
