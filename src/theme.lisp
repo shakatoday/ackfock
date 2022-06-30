@@ -46,7 +46,7 @@ Page properties:
           (div (:bind menu-inner-div)
                (form (:action "/search" :method :POST)
                      (a (:link (url website) :content (title website) :class "w3-xlarge w3-sans-serif w3-margin clog-theme"))
-	             (form-element (:search :class "w3-margin-left" :hidden (not (profile website))))
+	             (form-element (:search :name "search" :class "w3-margin-left" :hidden (not (profile website))))
                      (button (:content "search" :hidden (not (profile website)))))
                (div (:bind menu-right-div)))
         (center-children menu-inner-div

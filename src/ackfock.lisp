@@ -49,6 +49,7 @@
 			      "Ackfock is a platform of mini agreements and mini memos of understanding."))
   (clog-web-routes-from-menu *routes*)
   (set-on-new-window 'on-activate :path "/activate")
+  (set-on-new-window 'on-search :path "/search")
 
   (when open-browser-p
     (open-browser)))
@@ -105,6 +106,16 @@
                                   3))
           (t
            (url-replace (location body) "/")))))
+
+(defun on-search (body)
+  (init-site body)
+  (create-web-page
+   body
+   :search
+   `(:content ,(lambda (body)
+                 (create-div body :content (format nil "search input = ~a"
+                                                   (form-data-item (form-post-data body)
+                                                                   "search")))))))
 
 (defun on-login (body)
   (init-site body)
