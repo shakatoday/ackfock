@@ -34,6 +34,7 @@
   (add-authorization '(:guest :member) '(:content-show-comments))
   (add-authorization '(:guest)         '(:login :signup))
   (add-authorization '(:member)        '(:logout
+                                         :search
 					 :change-password
 				         :content-comment))
   (add-authorization '(:editor)        '(:content-edit))
@@ -115,7 +116,8 @@
    `(:content ,(lambda (body)
                  (create-div body :content (format nil "search input = ~a"
                                                    (form-data-item (form-post-data body)
-                                                                   "search")))))))
+                                                                   "search")))))
+   :authorize t))
 
 (defun on-login (body)
   (init-site body)
