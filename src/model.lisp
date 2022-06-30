@@ -21,6 +21,12 @@
 
 (defconstant +dummy-uuid+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
 
+(defparameter *search-query-sql-string*
+  (with-open-file (stream (merge-pathnames #P"db/search_query.sql" ackfock.config:*application-root*))
+    (let ((contents (make-string (file-length stream))))
+      (read-sequence contents stream)
+      contents)))
+
 (defun dummy-uuid ()
   (string +dummy-uuid+))
 
