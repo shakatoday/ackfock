@@ -44,9 +44,9 @@ Page properties:
            (menu-margin-div (create-div body)))
       (with-clog-create menu
           (div (:bind menu-inner-div)
-               (form (:action "/search" :method :POST)
+               (form (:action "/search" :method :GET)
                      (a (:link (url website) :content (title website) :class "w3-xlarge w3-sans-serif w3-margin clog-theme"))
-	             (form-element (:bind search-input :search :name "search" :class "w3-margin-left" :hidden (not (profile website))))
+	             (form-element (:bind search-input :search :name "q" :class "w3-margin-left" :hidden (not (profile website))))
                      (button (:content "search" :hidden (not (profile website)))))
                (div (:bind menu-right-div)))
         (center-children menu-inner-div
@@ -101,8 +101,8 @@ Page properties:
 	         (when signup-link
 	           (create-a form :class "w3-right" :content "sign up" :link signup-link))))
               ((eq page :search)
-               (rutils:when-it (form-data-item (form-post-data body)
-                                               "search")
+               (rutils:when-it (form-data-item (form-get-data body)
+                                               "q")
                  (setf (text-value search-input) rutils:it)))))
 
       ;; SECTION: Footer

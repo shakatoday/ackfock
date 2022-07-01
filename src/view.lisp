@@ -2,11 +2,11 @@
 (defpackage ackfock.view
   (:use :cl :ackfock.model-definition :clog :clog-web)
   (:export #:render
-           #:web-content-and-sidebar-item-pair
-           #:make-web-content-and-sidebar-item-pair
+           #:make-main-page-env
            #:*bottom-new-memo-container-html-id*
            #:*body-location*
-           #:*window*))
+           #:*window*
+           #:*hash-scroll-work-around-px*))
 (in-package :ackfock.view)
 
 (defvar *body-location*)
@@ -17,8 +17,10 @@
 
 (defparameter *memo-reply-link-class* "w3-leftbar w3-light-gray w3-text-gray w3-margin-left w3-padding-small")
 
-(defstruct (web-content-and-sidebar-item-pair (:conc-name nil))
-  sidebar-item web-content)
+(defparameter *hash-scroll-work-around-px* 124)
+
+(defstruct (main-page-env (:conc-name nil))
+  sidebar-item web-content post-render-hash)
 
 (defstruct channel-content
   re-renderer web-content)
@@ -107,8 +109,7 @@
                                  (setf (hash body-location) (make-memo-div-html-id rutils:it))
                                  (scroll-by browser-window
                                             0
-                                            (- (floor (/ (screen-height browser-window)
-                                                         2)))))))
+                                            (- *hash-scroll-work-around-px*)))))
                (setf (inner-html memo-reply-snippet-div) (format nil
                                                                  "<b>~a</b>: ~a..."
                                                                  (user-username (memo-creator rutils:it))
@@ -162,10 +163,36 @@
                                                                                                           (text memo-update-reply-btn)))
                                                  (funcall (channel-content-re-renderer env)))))))))
                (set-on-click memo-reply-btn #'memo-update-reply-handler))
-             memo-div)))))
+             memo-div)))
+        ((typep env 'clog-obj)
+         (with-clog-create env
+             (div (:bind memo-div :class "w3-border-bottom w3-padding" :html-id (make-memo-div-html-id model-obj))
+                  ;; TODO: handle xss risk
+                  (p ()
+                     (span (:content "<b>In Channel</b>: "))
+                     (span (:bind channel-name)))
+                  (form (:method :POST :action "/")
+                        (button (:class "w3-padding w3-light-grey w3-card w3-btn w3-ripple")
+                                (span (:class "w3-large"
+                                       :content (format nil
+                                                        "<b>~a:</b>"
+                                                        (user-username (memo-creator model-obj)))))
+                                (br ())
+                                ;; TODO: handle xss risk
+                                (div (:content (lf-to-br (memo-content model-obj)))))
+                        (form-element (:bind memo-div-html-id-input :text :hidden t :name "memo-div-html-id"))
+                        (form-element (:bind channel-id-input :text :hidden t :name "channel-id"))))
+           (let ((memo-channel (memo-channel model-obj)))
+             (setf (text channel-name) (or (rutils:when-it memo-channel
+                                             (channel-name rutils:it))
+                                           "My private memos"))
+             (setf (text-value memo-div-html-id-input) (make-memo-div-html-id model-obj))
+             (setf (text-value channel-id-input) (or (memo-channel-id model-obj)
+                                                     "")))
+           memo-div))))
 
 (defmethod render ((model-obj channel) (current-user user) &optional env)
-  (cond ((web-content-and-sidebar-item-pair-p env)
+  (cond ((main-page-env-p env)
          (let ((web-content (web-content env)))
            (setf (inner-html web-content) "") ; memory leak? clog has destroy [generic-function] DESTROY CLOG-ELEMENT
            (with-clog-create web-content
@@ -271,6 +298,25 @@
                                                                                         "~{~a~^, ~}"
                                                                                         (mapcar #'user-username
                                                                                                 (channel-users model-obj))))))))))))
+             (with-clog-create channel-head-div
+                 (dialog (:bind go-to-memo-div-dialog :content "Scroll to searched memo?")
+                         (form (:method "dialog")
+                               (form-element (:submit :value "Yes" :class (str:concat "w3-button " ackfock.theme:*color-class*)))
+                               (form-element (:submit :value "No" :class (str:concat "w3-button w3-black")))))
+               (unless (string= (post-render-hash env) *bottom-new-memo-container-html-id*)
+                 (setf (dialog-openp go-to-memo-div-dialog) t)
+                 (let ((body-location *body-location*)
+                       (browser-window *window*))
+                   (set-on-event go-to-memo-div-dialog
+                                 "close"
+                                 (lambda (dialog-obj)
+                                   (declare (ignore dialog-obj))
+                                   (when (string= (return-value go-to-memo-div-dialog) "Yes")
+                                     (setf (hash body-location) "")
+                                     (setf (hash body-location) (post-render-hash env))
+                                     (scroll-by browser-window
+                                                0
+                                                (- *hash-scroll-work-around-px*))))))))
              (setf (positioning channel-head-div) "fixed")
              (setf (z-index channel-head-div) 1)
              ;; then, create an empty div so the beginning of the following content won't be blocked by channel-head

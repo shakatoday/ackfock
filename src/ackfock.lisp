@@ -109,15 +109,21 @@
            (url-replace (location body) "/")))))
 
 (defun on-search (body)
-  (init-site body)
-  (create-web-page
-   body
-   :search
-   `(:content ,(lambda (body)
-                 (create-div body :content (format nil "search input = ~a"
-                                                   (form-data-item (form-post-data body)
-                                                                   "search")))))
-   :authorize t))
+  (let ((web-site (init-site body)))
+    (create-web-page
+     body
+     :search
+     `(:content ,(lambda (body)
+                   (let ((search-input (form-data-item (form-get-data body)
+                                                       "q")))
+                     (if (str:blankp search-input)
+                         (create-div body :content "Empty search input")
+                         (loop for memo in (ackfock.model:search-memo (profile web-site)
+                                                                      search-input)
+                               do (ackfock.view:render memo
+                                                       (profile web-site)
+                                                       body))))))
+     :authorize t)))
 
 (defun on-login (body)
   (init-site body)
@@ -173,7 +179,7 @@
                                                                                    ,(create-web-sidebar-item sidebar
                                                                                                              :content (channel-name channel))))
                                                                                channels)))
-                                              (current-sidebar-item (getf (aref channel-selects 0) :sidebar-item)))
+                                              (current-sidebar-item))
                                          (loop for channel-select across channel-selects
                                                do (let ((channel (getf channel-select :channel)))
                                                     (set-on-click (getf channel-select :sidebar-item)
@@ -185,15 +191,9 @@
                                                                           (ackfock.view:*window* (window body)))
                                                                       (ackfock.view:render channel
                                                                                            (profile web-site)
-                                                                                           (ackfock.view:make-web-content-and-sidebar-item-pair :sidebar-item sidebar-item
-                                                                                                                                                :web-content channel-content)))))))
-                                         (set-margin-side channel-content
-                                                          :left (format nil "~apx" (width sidebar)))
-                                         (ackfock.view:render (getf (aref channel-selects 0) :channel)
-                                                              (profile web-site)
-                                                              (ackfock.view:make-web-content-and-sidebar-item-pair :sidebar-item (getf (aref channel-selects 0) :sidebar-item)
-                                                                                                                   :web-content channel-content))
-                                         (add-class current-sidebar-item "w3-blue-gray")
+                                                                                           (ackfock.view:make-main-page-env :sidebar-item sidebar-item
+                                                                                                                            :web-content channel-content
+                                                                                                                            :post-render-hash ackfock.view:*bottom-new-memo-container-html-id*)))))))
                                          (with-clog-create sidebar
                                              (div (:class "w3-border")
                                                   (form (:bind new-channel-form :class "w3-section")
@@ -215,7 +215,25 @@
                                                                                                                                      :place-top t))
                                                                   (t (ackfock.model:new-channel (profile web-site)
                                                                                                 (name-value new-channel-form "name"))
-                                                                     (url-replace (location body) "/"))))))))))))))
+                                                                     (url-replace (location body) "/"))))))
+                                         (set-margin-side channel-content
+                                                          :left (format nil "~apx" (width sidebar)))
+                                         (let* ((channel-id (form-data-item (form-post-data body) "channel-id"))
+                                                (channel-id (unless (str:blankp channel-id)
+                                                              channel-id))
+                                                (memo-div-html-id (form-data-item (form-post-data body) "memo-div-html-id"))
+                                                (channel-select (find channel-id
+                                                                      channel-selects
+                                                                      :key (lambda (element) (channel-uuid (getf element :channel)))
+                                                                      :test #'string=)))
+                                           (setf current-sidebar-item (getf channel-select :sidebar-item))
+                                           (ackfock.view:render (getf channel-select :channel)
+                                                                      (profile web-site)
+                                                                      (ackfock.view:make-main-page-env :sidebar-item current-sidebar-item
+                                                                                                       :web-content channel-content
+                                                                                                       :post-render-hash (or memo-div-html-id
+                                                                                                                             ackfock.view:*bottom-new-memo-container-html-id*))))
+                                         (add-class current-sidebar-item "w3-blue-gray")))))))))
 
 (defun on-new-pass (body)
   (init-site body)
