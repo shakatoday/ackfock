@@ -41,7 +41,7 @@
                  (:file "authenticate-user-email" :depends-on ("model-definition" "utils" "db"))
                  (:file "invitation" :depends-on ("model" "model-definition" "utils" "db"))
                  (:file "model" :depends-on ("model-definition" "utils" "db" "config"))
-                 (:file "utils")
+                 (:file "utils" :depends-on ("config"))
                  (:file "model-definition" :depends-on ("db"))
                  (:file "db" :depends-on ("config"))
                  (:file "config"))))

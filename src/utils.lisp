@@ -23,16 +23,18 @@
       (:p "Happy Ack & Fock!")
       (:p "The Ackfock Team"))))
 
-(defun send-invitation-email (email subject-name  channel-name)
+(defun send-invitation-email (email from-name channel-name)
   (let ((mailgun:*domain* (uiop:getenv "MAILGUN_DOMAIN"))
         (mailgun:*api-key* (uiop:getenv "MAILGUN_API_KEY")))
     (mailgun:send ((concatenate 'string "noreply@" mailgun:*domain*)
                    email
                    (format nil "Hi, ~a invite you to a channel ~a on Ackfock."
-                           subject-name
+                           from-name
                            channel-name))
       (:h1 "Invitation")
       (:p "Howdy,")
+      (:p ("~a invite you to a channel," from-name))
+      (:a :href ackfock.config:*application-url* ("~a, on Ackfock.com" channel-name))
       (:p "Happy Ack & Fock!")
       (:p "The Ackfock Team"))))
 
