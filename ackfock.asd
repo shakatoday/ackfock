@@ -35,7 +35,7 @@
   :components ((:module "src"
                 :components
                 ((:file "ackfock" :depends-on ("main-page" "view" "theme" "auth" "db"))
-                 (:file "main-page" :depends-on ("view" "model" "model-definition"))
+                 (:file "main-page" :depends-on ("view" "theme" "model" "model-definition"))
                  (:file "view" :depends-on ("theme" "invitation" "model" "model-definition"))
                  (:file "theme" :depends-on ("auth" "model-definition"))
                  (:file "auth" :depends-on ("authenticate-user-email" "model-definition" "utils" "db"))
