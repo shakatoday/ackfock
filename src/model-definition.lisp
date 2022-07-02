@@ -37,7 +37,11 @@
            #:authentication-code-email
            #:authentication-code-valid-until
            #:authentication-code
-           #:memo-parent-memo))
+           #:memo-parent-memo
+           #:invitation-code
+           #:invitation-code-valid-until
+           #:invitation-code-used-by-user-id
+           #:invitation-code-channel-id))
 (in-package :ackfock.model-definition)
 
 (deftype ackfock () '(member :ACK :FOCK)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
@@ -76,6 +80,16 @@
                                (:inflate valid-until #'datetime-to-timestamp))
   email
   code
+  created-at
+  valid-until)
+
+(defmodel (invitation-code (:inflate created-at #'datetime-to-timestamp)
+                           (:inflate valid-until #'datetime-to-timestamp)
+                           (:has-a channel (where (:= :uuid channel-id))))
+  code
+  source-user-id
+  used-by-user-id
+  channel-id
   created-at
   valid-until)
 
