@@ -40,7 +40,7 @@
                  (:file "auth" :depends-on ("authenticate-user-email" "utils" "model-definition" "db"))
                  (:file "authenticate-user-email" :depends-on ("model-definition" "utils" "db"))
                  (:file "model" :depends-on ("model-definition" "utils" "db" "config"))
-                 (:file "utils" :depends-on ("config"))
+                 (:file "utils")
                  (:file "model-definition" :depends-on ("db"))
                  (:file "db" :depends-on ("config"))
                  (:file "config"))))
