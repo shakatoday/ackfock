@@ -39,7 +39,6 @@
                  (:file "theme" :depends-on ("auth" "model-definition"))
                  (:file "auth" :depends-on ("authenticate-user-email" "utils" "model-definition" "db"))
                  (:file "authenticate-user-email" :depends-on ("model-definition" "utils" "db"))
-                 (:file "invitation" :depends-on ("model" "model-definition" "utils" "db"))
                  (:file "model" :depends-on ("model-definition" "utils" "db" "config"))
                  (:file "utils" :depends-on ("config"))
                  (:file "model-definition" :depends-on ("db"))

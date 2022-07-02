@@ -10,8 +10,7 @@
            #:user-by-email
            #:ackfock-memo
            #:memo-user-ackfocks
-           #:search-memo
-           #:has-access-p))
+           #:search-memo))
 (in-package :ackfock.model)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)

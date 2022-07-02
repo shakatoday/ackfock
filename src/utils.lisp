@@ -3,8 +3,7 @@
   (:use :cl)
   (:export #:*email-validator*
            #:send-authentication-email
-           #:ensure-plist
-           #:send-invitation-email))
+           #:ensure-plist))
 (in-package :ackfock.utils)
 
 (defvar *email-validator* (make-instance 'clavier:email-validator))
@@ -20,21 +19,6 @@
       (:p "Welcome to Ackfock!. Please confirm your email address by clicking the link below")
       (:a :href link link)
       (:p "If you did not sign up for an Ackfock account, you can simply disregard this email.")
-      (:p "Happy Ack & Fock!")
-      (:p "The Ackfock Team"))))
-
-(defun send-invitation-email (email from-name channel-name)
-  (let ((mailgun:*domain* (uiop:getenv "MAILGUN_DOMAIN"))
-        (mailgun:*api-key* (uiop:getenv "MAILGUN_API_KEY")))
-    (mailgun:send ((concatenate 'string "noreply@" mailgun:*domain*)
-                   email
-                   (format nil "Hi, ~a invite you to a channel ~a on Ackfock."
-                           from-name
-                           channel-name))
-      (:h1 "Invitation")
-      (:p "Howdy,")
-      (:p ("~a invite you to a channel," from-name))
-      (:a :href ackfock.config:*application-url* ("~a, on Ackfock.com" channel-name))
       (:p "Happy Ack & Fock!")
       (:p "The Ackfock Team"))))
 
