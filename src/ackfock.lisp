@@ -179,8 +179,9 @@
   (let ((ackfock.main-page:*current-user* (profile (init-site body))))
     (create-web-page body
                      :index
-                     `(:content ,(when ackfock.main-page:*current-user*
-                                   #'ackfock.main-page:main)))))
+                     `(:content ,(if ackfock.main-page:*current-user*
+                                     #'ackfock.main-page:main
+                                     #'ackfock.main-page:landing)))))
 
 (defun on-new-pass (body)
   (init-site body)

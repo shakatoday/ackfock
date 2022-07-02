@@ -2,12 +2,32 @@
 (defpackage ackfock.main-page
   (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.model-definition)
   (:export #:*current-user*
-           #:main))
+           #:main
+           #:landing))
 (in-package :ackfock.main-page)
 
 (defvar *current-user*)
 
-(defun landing (body))
+(defun landing (body)
+  (with-clog-create body
+      (div (:bind hero-div :class "w3-display-container w3-dark-gray")
+           (div (:class "w3-padding w3-display-middle")
+                (div (:class "w3-xxxlarge" :content "Evolve mini agreements"))
+                (div (:class "w3-large" :content "Accumulating memos to reach consensus with casual or business friends. "))
+                (div (:class "w3-large w3-margin-top" :content "Ack a memo when agree."))
+                (div (:class "w3-large w3-margin-bottom" :content "Fock a memo when disagree."))
+                (div (:bind sign-up-login-in-buttons-div)
+                     (span ()
+                           (a (:link "/signup"
+                               :content "Sign Up"
+                               :class (str:concat "w3-button w3-margin-right w3-border w3-border-khaki " ackfock.theme:*color-class*))))
+                     (span ()
+                           (a (:link "/login"
+                               :content "Login"
+                               :class "w3-button w3-margin-left w3-border w3-border-white"))))))
+    (setf (display sign-up-login-in-buttons-div) "flex"
+          (justify-content sign-up-login-in-buttons-div) :center)
+    (setf (minimum-height hero-div) "400px")))
 
 (defun main (body)
   (with-clog-create body
