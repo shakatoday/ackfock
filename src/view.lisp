@@ -249,12 +249,15 @@
                                                          (channel-users model-obj)))))
                         (span (:bind invite-to-channel-btn
                                 :class (str:concat "w3-button fa fa-user-plus w3-margin-left " ackfock.theme:*color-class*))
-                              (div (:content "Invite" :class "w3-small")))
+                              (div (:content "Invite account" :class "w3-small")))
+                        (span (:bind link-invitation-btn
+                                :class (str:concat "w3-button fa fa-link w3-margin-left " ackfock.theme:*color-class*))
+                              (div (:content "Link invitation" :class "w3-small")))
                         (dialog (:bind invite-to-channel-dialog)
                                 (form (:bind invite-to-channel-form :method "dialog")
                                       (div (:content "Invite to this channel" :class "w3-xlarge"))
                                       (p ()
-                                         (label (:content "Email" :class "w3-large"))
+                                         (label (:content "Email (won't send email)" :class "w3-large"))
                                          (form-element (:text
                                                         :name "email"
                                                         :class "w3-input")))
@@ -264,13 +267,44 @@
                                                            :class (str:concat "w3-button " ackfock.theme:*color-class*)))
                                             (form-element (:submit
                                                            :value "Cancel"
-                                                           :class (str:concat "w3-button w3-black")))))))
-                 (setf (display invite-to-channel-submit-span) "flex")
-                 (setf (justify-content invite-to-channel-submit-span) :space-between)
+                                                           :class "w3-button w3-black")))))
+                        (dialog (:bind link-invitation-dialog)
+                                (p (:content "One-time invitation link. Expired in 3 days."))
+                                (web-auto-row ()
+                                              (web-auto-column ()
+                                                               (form-element (:bind invitation-link-text-input
+                                                                               :text
+                                                                               :value "test link"
+                                                                               :class "w3-input")))
+                                              (web-auto-column ()
+                                                               (button (:bind invitation-link-to-clipboard-btn
+                                                                         :content "Copy"
+                                                                         :class "fa fa-copy"))))
+                                (p (:content "Generate more to invite more people."))
+                                (span (:bind link-invitation-submit-span)
+                                      (form-element (:submit
+                                                     :value "Generate"
+                                                     :class (str:concat "w3-button " ackfock.theme:*color-class*)))
+                                      (form (:method "dialog")
+                                            (form-element (:submit
+                                                           :value "Close"
+                                                           :class "w3-button w3-black"))))))
+                 (setf (display invite-to-channel-submit-span) "flex"
+                       (display link-invitation-submit-span) "flex"
+                       (justify-content invite-to-channel-submit-span) :space-between
+                       (justify-content link-invitation-submit-span) :space-between
+                       (disabledp invitation-link-text-input) t)
+                 ;; (set-on-click invitation-link-to-clipboard-btn
+                 ;;               (lambda (btn-obj)
+                 ;;                 (declare (ignore btn-obj))))
                  (set-on-click invite-to-channel-btn
                                (lambda (btn-obj)
                                  (declare (ignore btn-obj))
                                  (setf (dialog-openp invite-to-channel-dialog) t)))
+                 (set-on-click link-invitation-btn
+                               (lambda (btn-obj)
+                                 (declare (ignore btn-obj))
+                                 (setf (dialog-openp link-invitation-dialog) t)))
                  (set-on-event invite-to-channel-dialog
                                "close"
                                (lambda (dialog-obj)
