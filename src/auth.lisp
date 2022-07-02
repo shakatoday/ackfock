@@ -38,7 +38,7 @@ if one is present and login fails."
       (store-authentication-token body (getf (car contents) :|token|)))))
 
 (defun sign-up (body sql-connection &key (title "Sign Up")
-				      (next-step "/login"))
+				      (next-step "/"))
   "Setup a sign-up form and process a new sign-up"
   (check-type body clog-body)
   (let ((form-top-div (create-div body)))
@@ -97,18 +97,20 @@ if one is present and login fails."
 				             :time-out 3
 				             :place-top t)))
 		        (t
-		         (dbi:do-sql
-		           sql-connection
-		           (sql-insert*
-			    "users"
-			    `(:email ,email
-                              :username ,username
-			      :password ,(cl-pass:hash password)
-			      :token    ,(make-token))))
-                         (ackfock.utils:send-authentication-email email
-                                                                  username
-                                                                  (format nil
-                                                                          "~a/activate/~a"
-                                                                          ackfock.config:*application-url*
-                                                                          (ackfock.model-definition:authentication-code-code (create-authentication-code email))))
-		         (url-replace (location body) next-step)))))))))))
+                         (let ((token (make-token)))
+		           (dbi:do-sql
+		             sql-connection
+		             (sql-insert*
+			      "users"
+			      `(:email ,email
+                                :username ,username
+			        :password ,(cl-pass:hash password)
+			        :token    ,token)))
+                           (ackfock.utils:send-authentication-email email
+                                                                    username
+                                                                    (format nil
+                                                                            "~a/activate/~a"
+                                                                            ackfock.config:*application-url*
+                                                                            (ackfock.model-definition:authentication-code-code (create-authentication-code email))))
+                           (store-authentication-token body token)
+		           (url-replace (location body) next-step))))))))))))
