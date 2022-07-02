@@ -1,0 +1,88 @@
+(in-package :cl-user)
+(defpackage ackfock.main-page
+  (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.model-definition)
+  (:export #:*current-user*
+           #:main))
+(in-package :ackfock.main-page)
+
+(defvar *current-user*)
+
+(defun landing (body))
+
+(defun main (body)
+  (with-clog-create body
+      (web-sidebar (:bind sidebar)
+                   (div (:content "<b>Channels</b>" :class "w3-margin-top")))
+    (add-card-look sidebar)
+    (setf (z-index sidebar) 2)
+    (let* ((ackfock.view:*body-location* (location body))
+           (ackfock.view:*window* (window body))
+           (channel-content (create-div body))
+           (channels (cons (make-private-channel) ; for user-private-memos
+                           (user-channels *current-user*)))
+           (current-user *current-user*)
+           (channel-selects
+             (make-array (length channels)
+                         :initial-contents (mapcar
+                                            (lambda (channel)
+                                              `(:channel
+                                                ,channel
+                                                :sidebar-item
+                                                ,(create-web-sidebar-item sidebar
+                                                                          :content (channel-name channel))))
+                                            channels)))
+           (current-sidebar-item))
+      (loop for channel-select across channel-selects
+            do (let ((channel (getf channel-select :channel)))
+                 (set-on-click (getf channel-select :sidebar-item)
+                               (lambda (sidebar-item)
+                                 (remove-class current-sidebar-item "w3-blue-gray")
+                                 (setf current-sidebar-item sidebar-item)
+                                 (add-class sidebar-item "w3-blue-gray")
+                                 (let ((ackfock.view:*body-location* (location body))
+                                       (ackfock.view:*window* (window body)))
+                                   (ackfock.view:render channel
+                                                        current-user
+                                                        (ackfock.view:make-main-page-env :sidebar-item sidebar-item
+                                                                                         :web-content channel-content
+                                                                                         :post-render-hash ackfock.view:*bottom-new-memo-container-html-id*)))))))
+      (with-clog-create sidebar
+          (div (:class "w3-border")
+               (form (:bind new-channel-form :class "w3-section")
+                     (form-element (:bind new-channel-form-input
+                                     :text
+                                     :name "name"))
+                     (button (:class "fa fa-plus-circle w3-button"))))
+        (setf (width new-channel-form-input) (format nil
+                                                     "~apx"
+                                                     (floor (* 0.75 (width sidebar)))))
+        (center-children new-channel-form)
+        (set-on-submit new-channel-form
+                       (lambda (form-obj)
+                         (declare (ignore form-obj))
+                         (cond ((str:blankp (name-value new-channel-form "name")) (clog-web-alert sidebar
+                                                                                                  "Blank"
+                                                                                                  "New channel name can't be blank"
+                                                                                                  :time-out 3
+                                                                                                  :place-top t))
+                               (t (ackfock.model:new-channel current-user
+                                                             (name-value new-channel-form "name"))
+                                  (url-replace (location body) "/"))))))
+      (set-margin-side channel-content
+                       :left (format nil "~apx" (width sidebar)))
+      (let* ((channel-id (form-data-item (form-post-data body) "channel-id"))
+             (channel-id (unless (str:blankp channel-id)
+                           channel-id))
+             (memo-div-html-id (form-data-item (form-post-data body) "memo-div-html-id"))
+             (channel-select (find channel-id
+                                   channel-selects
+                                   :key (lambda (element) (channel-uuid (getf element :channel)))
+                                   :test #'string=)))
+        (setf current-sidebar-item (getf channel-select :sidebar-item))
+        (ackfock.view:render (getf channel-select :channel)
+                             *current-user*
+                             (ackfock.view:make-main-page-env :sidebar-item current-sidebar-item
+                                                              :web-content channel-content
+                                                              :post-render-hash (or memo-div-html-id
+                                                                                    ackfock.view:*bottom-new-memo-container-html-id*))))
+      (add-class current-sidebar-item "w3-blue-gray"))))
