@@ -27,9 +27,9 @@
          (set= :code code
                :valid_until valid-until
                :source_user_id (user-uuid current-user)
-               :channel_id (channel-uuid channel)
-               (returning :*))
-         :as 'invitation-code)))))
+               :channel_id (channel-uuid channel))
+         (returning :*))
+       :as 'invitation-code))))
 
 (define-condition invitation-code-consumption-error (error)
   ((text :initarg :text :reader text)))

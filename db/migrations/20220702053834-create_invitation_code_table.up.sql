@@ -7,6 +7,6 @@ CREATE TABLE invitation_code (
   used_by_user_id UUID REFERENCES users (UUID),
   channel_id UUID NOT NULL REFERENCES channel (UUID),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  valide_until TIMESTAMPTZ NOT NULL
+  valid_until TIMESTAMPTZ NOT NULL
 );
 

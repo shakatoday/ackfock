@@ -272,7 +272,6 @@
                                 (p (:content "One-time invitation link. Expired in 3 days."))
                                 (form-element (:bind invitation-link-text-input
                                                 :text
-                                                :value "test link"
                                                 :class "w3-input"))
                                 (button (:bind invitation-link-to-clipboard-btn
                                           :content "Copy"
@@ -280,9 +279,9 @@
                                 (p (:content "Copy button currently doesn't support Safari" :class "w3-tiny"))
                                 (p (:content "Generate more to invite more people."))
                                 (span (:bind link-invitation-submit-span)
-                                      (form-element (:submit
-                                                     :value "Generate"
-                                                     :class (str:concat "w3-button " ackfock.theme:*color-class*)))
+                                      (button (:bind invitation-link-generate-btn
+                                               :content "Generate"
+                                               :class (str:concat "w3-button " ackfock.theme:*color-class*)))
                                       (form (:method "dialog")
                                             (form-element (:submit
                                                            :value "Close"
@@ -301,10 +300,21 @@
                                (lambda (btn-obj)
                                  (declare (ignore btn-obj))
                                  (setf (dialog-openp invite-to-channel-dialog) t)))
-                 (set-on-click link-invitation-btn
+                 (flet ((generate-invitation-link ()
+                          (setf (text-value invitation-link-text-input)
+                                (str:concat ackfock.config:*application-url* "/invitation/"
+                                      (invitation-code-code
+                                       (ackfock.invitation:create-invitation-code current-user
+                                                                                  model-obj))))))
+                   (set-on-click link-invitation-btn
                                (lambda (btn-obj)
                                  (declare (ignore btn-obj))
-                                 (setf (dialog-openp link-invitation-dialog) t)))
+                                 (setf (dialog-openp link-invitation-dialog) t)
+                                 (generate-invitation-link)))
+                   (set-on-click invitation-link-generate-btn
+                                 (lambda (btn-obj)
+                                   (declare (ignore btn-obj))
+                                   (generate-invitation-link))))
                  (set-on-event invite-to-channel-dialog
                                "close"
                                (lambda (dialog-obj)

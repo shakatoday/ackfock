@@ -39,6 +39,7 @@
            #:authentication-code
            #:memo-parent-memo
            #:invitation-code
+           #:invitation-code-code
            #:invitation-code-valid-until
            #:invitation-code-used-by-user-id
            #:invitation-code-channel-id))
