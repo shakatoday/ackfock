@@ -41,72 +41,74 @@ if one is present and login fails."
 				      (next-step "/login"))
   "Setup a sign-up form and process a new sign-up"
   (check-type body clog-body)
-  (clog-web-form
-   body title
-   `(("Email" "email" :email)
-     ("Username" "username")
-     ("Password" "password" :password)
-     ("Retype Password" "repass" :password))
-   (lambda (result)
-     (let #.(mapcar (lambda (variable)
-                      `(,variable (form-result result ,(str:downcase (symbol-name variable)))))
-                    '(email username password))
-       (cond ((not
-	       (equal password
-		      (form-result result "repass")))
-	      (clog-web-alert body "Mismatch"
-			      "The passwords do match."
-			      :time-out 3
-			      :place-top t))
-	     ((< (length password) 4)
-	      (clog-web-alert body "Missize"
-			      "The passwords must at least 4 characters."
-			      :time-out 3
-			      :place-top t))
-	     ((< (length username) 4)
-	      (clog-web-alert body "Missize"
-			      "The username must be at least 4 characters."
-			      :time-out 3
-			      :place-top t))
-             ((null (clavier:validate ackfock.utils:*email-validator*
-                                      email))
-              (clog-web-alert body "Email invalid"
-			      "Not a valid email address"
-			      :time-out 3
-			      :place-top t))
-	     (t
-	      (let ((contents (dbi:fetch-all
-			       (dbi:execute
-			        (dbi:prepare
-			         sql-connection
-			         "select email from users where email=? or username=?")
-			        (list email username)))))
-                ;; Race condition between check email availability and sql-insert*
-	        (cond (contents
-                       (if (find email contents
-                                 :key (lambda (row) (getf row :|email|))
-                                 :test #'string=)
-		           (clog-web-alert body "Exists"
-				           "The email is not available."
-				           :time-out 3
-				           :place-top t)
-		           (clog-web-alert body "Exists"
-				           "The username is not available."
-				           :time-out 3
-				           :place-top t)))
-		      (t
-		       (dbi:do-sql
-		         sql-connection
-		         (sql-insert*
-			  "users"
-			  `(:email ,email
-                            :username ,username
-			    :password ,(cl-pass:hash password)
-			    :token    ,(make-token))))
-                       (ackfock.utils:send-authentication-email email
-                                                                username
-                                                                (format nil
-                                                                        "~a/activate/~a"
-                                                                        ackfock.config:*application-url*
-                                                                        (ackfock.model-definition:authentication-code-code (create-authentication-code email))))
-		       (url-replace (location body) next-step))))))))))
+  (let ((form-top-div (create-div body)))
+    (clog-web-form
+     form-top-div
+     title
+     `(("Email" "email" :email)
+       ("Username" "username")
+       ("Password" "password" :password)
+       ("Retype Password" "repass" :password))
+     (lambda (result)
+       (let #.(mapcar (lambda (variable)
+                        `(,variable (form-result result ,(str:downcase (symbol-name variable)))))
+                      '(email username password))
+         (cond ((not
+	         (equal password
+		        (form-result result "repass")))
+	        (clog-web-alert form-top-div "Mismatch"
+			        "The passwords do match."
+			        :time-out 3
+			        :place-top t))
+	       ((< (length password) 4)
+	        (clog-web-alert form-top-div "Missize"
+			        "The passwords must at least 4 characters."
+			        :time-out 3
+			        :place-top t))
+	       ((< (length username) 4)
+	        (clog-web-alert form-top-div "Missize"
+			        "The username must be at least 4 characters."
+			        :time-out 3
+			        :place-top t))
+               ((null (clavier:validate ackfock.utils:*email-validator*
+                                        email))
+                (clog-web-alert form-top-div "Email invalid"
+			        "Not a valid email address"
+			        :time-out 3
+			        :place-top t))
+	       (t
+	        (let ((contents (dbi:fetch-all
+			         (dbi:execute
+			          (dbi:prepare
+			           sql-connection
+			           "select email from users where email=? or username=?")
+			          (list email username)))))
+                  ;; Race condition between check email availability and sql-insert*
+	          (cond (contents
+                         (if (find email contents
+                                   :key (lambda (row) (getf row :|email|))
+                                   :test #'string=)
+		             (clog-web-alert form-top-div "Exists"
+				             "The email is not available."
+				             :time-out 3
+				             :place-top t)
+		             (clog-web-alert form-top-div "Exists"
+				             "The username is not available."
+				             :time-out 3
+				             :place-top t)))
+		        (t
+		         (dbi:do-sql
+		           sql-connection
+		           (sql-insert*
+			    "users"
+			    `(:email ,email
+                              :username ,username
+			      :password ,(cl-pass:hash password)
+			      :token    ,(make-token))))
+                         (ackfock.utils:send-authentication-email email
+                                                                  username
+                                                                  (format nil
+                                                                          "~a/activate/~a"
+                                                                          ackfock.config:*application-url*
+                                                                          (ackfock.model-definition:authentication-code-code (create-authentication-code email))))
+		         (url-replace (location body) next-step)))))))))))
