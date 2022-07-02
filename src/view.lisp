@@ -270,16 +270,14 @@
                                                            :class "w3-button w3-black")))))
                         (dialog (:bind link-invitation-dialog)
                                 (p (:content "One-time invitation link. Expired in 3 days."))
-                                (web-auto-row ()
-                                              (web-auto-column ()
-                                                               (form-element (:bind invitation-link-text-input
-                                                                               :text
-                                                                               :value "test link"
-                                                                               :class "w3-input")))
-                                              (web-auto-column ()
-                                                               (button (:bind invitation-link-to-clipboard-btn
-                                                                         :content "Copy"
-                                                                         :class "fa fa-copy"))))
+                                (form-element (:bind invitation-link-text-input
+                                                :text
+                                                :value "test link"
+                                                :class "w3-input"))
+                                (button (:bind invitation-link-to-clipboard-btn
+                                          :content "Copy"
+                                          :class "fa fa-copy"))
+                                (p (:content "Copy button currently doesn't support Safari" :class "w3-tiny"))
                                 (p (:content "Generate more to invite more people."))
                                 (span (:bind link-invitation-submit-span)
                                       (form-element (:submit
@@ -294,9 +292,11 @@
                        (justify-content invite-to-channel-submit-span) :space-between
                        (justify-content link-invitation-submit-span) :space-between
                        (disabledp invitation-link-text-input) t)
-                 ;; (set-on-click invitation-link-to-clipboard-btn
-                 ;;               (lambda (btn-obj)
-                 ;;                 (declare (ignore btn-obj))))
+                 (set-on-click invitation-link-to-clipboard-btn
+                               (lambda (btn-obj)
+                                 (declare (ignore btn-obj))
+                                 (system-clipboard-write invitation-link-text-input
+                                                         (text-value invitation-link-text-input))))
                  (set-on-click invite-to-channel-btn
                                (lambda (btn-obj)
                                  (declare (ignore btn-obj))
