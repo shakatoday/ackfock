@@ -97,15 +97,21 @@
                                                            code)
                (url-replace (location body) "/")))
       (ackfock.invitation:no-such-code ()
-        (clog-web-alert body
-                        "Not Exists"
-                        "No such invitation link"
-                        :color-class "w3-red"))
+        (create-web-page body
+                         :index
+                         `(:content ,(lambda (body)
+                                       (clog-web-alert body
+                                                       "Not Exists"
+                                                       "No such invitation link"
+                                                       :color-class "w3-red")))))
       (ackfock.invitation:invalid-code (invalid-code-condition)
-        (clog-web-alert body
-                        "Invalid"
-                        (ackfock.invitation:text invalid-code-condition)
-                        :color-class "w3-red")))))
+        (create-web-page body
+                         :index
+                         `(:content ,(lambda (body)
+                                       (clog-web-alert body
+                                                       "Invalid"
+                                                       (ackfock.invitation:text invalid-code-condition)
+                                                       :color-class "w3-red"))))))))
 
 (defun on-activate (body)
   (let* ((path-name (path-name (location body)))
