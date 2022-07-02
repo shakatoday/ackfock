@@ -8,12 +8,15 @@
   (:export #:*invitation-code-expiration-message*
            #:*invitation-code-had-been-consumed-message*
            #:consume-invitation-code
-           #:create-invitation-code))
+           #:create-invitation-code
+           #:no-such-code
+           #:invalid-code
+           #:text))
 (in-package :ackfock.invitation)
 
-(defparameter *invitation-code-expiration-message* "Invitation code has already expired.")
+(defparameter *invitation-code-expiration-message* "Invitation link has already expired.")
 
-(defparameter *invitation-code-had-been-consumed-message* "Invitation code had been used.")
+(defparameter *invitation-code-had-been-consumed-message* "One-time invitation link had been consumed. (Visiting without login won't consume the link")
 
 (defun-with-db-connection create-invitation-code (current-user channel &key (ttl-in-hour (* 24 3)))
   (when (has-access-p current-user channel)
@@ -46,7 +49,7 @@
    (select :*
      (from :invitation_code)
      (where #.(ackfock.utils:ensure-plist '(:= code))))
-   :as 'inviation-code))
+   :as 'invitation-code))
 
 (defun-with-db-connection consume-invitation-code (current-user code)
   (when (and (user-p current-user)
@@ -64,4 +67,8 @@
        (insert-into :user_channel_access
          (set= :user_id (user-uuid current-user)
                :channel_id (invitation-code-channel-id invitation-code))
-         (on-conflict-do-nothing))))))
+         (on-conflict-do-nothing)))
+      (execute
+       (update :invitation_code
+         (set= :used_by_user_id (user-uuid current-user))
+         (where (:= :code code)))))))

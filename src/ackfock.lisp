@@ -51,6 +51,7 @@
   (clog-web-routes-from-menu *routes*)
   (set-on-new-window 'on-activate :path "/activate")
   (set-on-new-window 'on-search :path "/search")
+  (set-on-new-window 'on-invitation :path "/invitation")
 
   (when open-browser-p
     (open-browser)))
@@ -90,6 +91,37 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun on-invitation (body)
+  (let* ((web-site (init-site body))
+         (path-name (path-name (location body)))
+         (code (when (> (length path-name) (length "/invitation/")) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
+                 (subseq path-name (length "/invitation/")))))
+    (handler-case
+        (cond ((str:blankp code)
+               (url-replace (location body) "/"))
+              ((find :guest (roles web-site))
+               (clog-web-alert body
+                               "Login Required"
+                               "You have to login first and re-visit the link to accept invitation"
+                               :color-class "w3-red")
+               (sb-ext:schedule-timer (sb-ext:make-timer (lambda ()
+                                                           (url-replace (location body) "/login")))
+                                      3))
+              (t
+               (ackfock.invitation:consume-invitation-code (profile web-site)
+                                                           code)
+               (url-replace (location body) "/")))
+      (ackfock.invitation:no-such-code ()
+        (clog-web-alert body
+                        "Not Exists"
+                        "No such invitation link"
+                        :color-class "w3-red"))
+      (ackfock.invitation:invalid-code (invalid-code-condition)
+        (clog-web-alert body
+                        "Invalid"
+                        (ackfock.invitation:text invalid-code-condition)
+                        :color-class "w3-red")))))
+
 (defun on-activate (body)
   (let* ((path-name (path-name (location body)))
          (user-token (when (> (length path-name) (length "/activate/"))
@@ -101,7 +133,6 @@
                            "Email verification success"
                            :color-class "w3-green")
            (store-authentication-token body user-token)
-           (print "success")
            (sb-ext:schedule-timer (sb-ext:make-timer (lambda ()
                                                        (url-replace (location body) "/")))
                                   3))
