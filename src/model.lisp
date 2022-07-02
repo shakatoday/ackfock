@@ -168,7 +168,7 @@
       (execute
        (insert-into :user_channel_access
          (set= :user_id target-user-id
-               :channel-id (channel-uuid channel))
+               :channel_id (channel-uuid channel))
          (on-conflict-do-nothing))))))
 
 (defun-with-db-connection-and-current-user memo-latest-ackfocks-per-user-by-ackfock (memo)
