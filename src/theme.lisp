@@ -29,7 +29,7 @@ Page properties:
 	 (text-class     (get-setting website :text-class ""))
 	 (login-link     (get-setting website :login-link "/login"))
 	 (signup-link    (get-setting website :signup-link "/signup"))
-	 (username-link  (get-setting website :username-link "/logout"))
+	 (username-link  (get-setting website :username-link "/"))
 	 (menu-property  (get-property properties :menu "w3-black"))
 	 (content        (get-property properties :content "")))
     ;;
@@ -55,7 +55,8 @@ Page properties:
         (setf (justify-content menu-inner-div) :space-between)
 	(if (profile website)
 	    (progn
-              (create-web-menu-item menu-right-div :content (user-username (profile website)))
+              (create-web-menu-item menu-right-div :content (user-username (profile website))
+                                                   :link username-link)
               (create-web-menu-item menu-right-div :content "change password"
                                                    :link "/pass")
               (create-web-menu-item menu-right-div :content "logout"
