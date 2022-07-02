@@ -36,7 +36,7 @@
   (clog-web-routes-from-menu *routes*)
   (set-on-new-window 'on-activate :path "/activate")
   (set-on-new-window 'on-search :path "/search")
-  (set-on-new-window 'on-invitation :path "/invitation")
+  (set-on-new-window 'on-invitation :path "/i")
 
   (when open-browser-p
     (open-browser)))
@@ -79,8 +79,8 @@
 (defun on-invitation (body)
   (let* ((web-site (init-site body))
          (path-name (path-name (location body)))
-         (code (when (> (length path-name) (length "/invitation/")) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
-                 (subseq path-name (length "/invitation/")))))
+         (code (when (> (length path-name) (length "/i/")) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
+                 (subseq path-name (length "/i/")))))
     (handler-case
         (cond ((str:blankp code)
                (url-replace (location body) "/"))

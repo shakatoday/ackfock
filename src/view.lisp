@@ -302,7 +302,7 @@
                                  (setf (dialog-openp invite-to-channel-dialog) t)))
                  (flet ((generate-invitation-link ()
                           (setf (text-value invitation-link-text-input)
-                                (str:concat ackfock.config:*application-url* "/invitation/"
+                                (str:concat ackfock.config:*application-url* "/i/"
                                       (invitation-code-code
                                        (ackfock.invitation:create-invitation-code current-user
                                                                                   model-obj))))))
