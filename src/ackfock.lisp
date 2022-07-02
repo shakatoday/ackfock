@@ -6,21 +6,6 @@
   (:export start-app))
 (in-package :ackfock)
 
-;;
-;; Setup website structure, database and CLOG
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; /content is our root content URL, if you are authorized as an
-;; editor or admin you are able to add additional pages by going to
-;; the url /content/whatever and then click to add page. If you want
-;; it in the menu you would just need to add the url to the
-;; menu. There is no need to add handlers for pages under /content as
-;; when we initalized CLOG we used the option :extended-routing so
-;; that a URL start with /content/ will be sent to the same handler as
-;; /content in this case on-main. So our about page has no handler set
-;; but functions as we added to out database.
-
 (defparameter *routes* `(("Account" (("Login"           "/login"   on-login    :login)
 				     ("Signup"          "/signup"  on-signup   :signup)
 				     ("Change Password" "/pass"    on-new-pass :change-password)
