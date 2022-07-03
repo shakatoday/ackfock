@@ -53,7 +53,13 @@
                          (br ())
                          (div (:class "w3-xlarge" :content "Private memos for self commitments"))
                          (img (:url-src "/img/self_commitment_feature.jpg" :class " w3-padding")))
-                    (div (:class "w3-col l6"))))))
+                    (div (:class "w3-col l6")
+                         (br ())
+                         (div (:class "w3-padding")
+                              (p (:content "Start to accumulate mini agreements" :class "w3-xlarge"))
+                              (a (:link "/signup"
+                                  :content "Sign Up"
+                                  :class (str:concat "w3-button w3-margin-right w3-border " ackfock.theme:*color-class*)))))))))
 
 (defun main (body)
   (with-clog-create body
