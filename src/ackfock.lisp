@@ -27,7 +27,6 @@
   ;; Setup clog
   (initialize 'on-main
               :port port
-	      :long-poll-first t
 	      :extended-routing t
               :static-root (merge-pathnames "./www/"
 	                                    (asdf:system-source-directory :ackfock))
