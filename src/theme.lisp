@@ -45,14 +45,16 @@ Page properties:
       (setf (z-index menu) 3)
       (add-class menu color-class)
       (if (profile website)
-          (let ((search-form (create-form menu
-                                          :action "/search"
-                                          :method :GET
-                                          :class "w3-bar-item"))
-                (login-menu-right-menu (create-div menu
-                                                   :class "w3-bar-item fa fa-bars w3-hide-medium w3-hide-large w3-right"))
-                (login-menu-right-class "w3-bar-item clog-theme w3-right w3-mobile w3-hide-small")
-                (login-menu-right-items nil))
+          (let* ((search-form (create-form menu
+                                           :action "/search"
+                                           :method :GET
+                                           :class "w3-bar-item w3-hide-small w3-mobile"))
+                 (login-menu-right-menu (create-div menu
+                                                    :class "w3-bar-item fa fa-user w3-hide-medium w3-hide-large w3-right"))
+                 (search-icon-for-mobile (create-div menu
+                                                     :class "w3-bar-item fa fa-search w3-hide-medium w3-hide-large w3-right"))
+                 (login-menu-right-class "w3-bar-item clog-theme w3-right w3-mobile w3-hide-small")
+                 (login-menu-right-items nil))
             (create-form-element search-form
                                  :search
                                  :name "q"
@@ -62,7 +64,6 @@ Page properties:
                                  :hidden (not (profile website)))
             (create-button search-form
                            :content "search"
-                           :class "w3-hide-small"
                            :hidden (not (profile website)))
             (push (create-a menu
                             :class login-menu-right-class
@@ -81,9 +82,22 @@ Page properties:
             (set-on-click login-menu-right-menu
                           (lambda (obj)
                             (declare (ignore obj))
+                            (toggle-class login-menu-right-menu
+                                          "w3-black fa-angle-double-up")
+                            (toggle-class search-icon-for-mobile
+                                          "w3-hide-small")
                             (dolist (login-menu-right-item login-menu-right-items)
                               (toggle-class login-menu-right-item
-                                            "w3-hide-small")))))
+                                            "w3-hide-small"))))
+            (set-on-click search-icon-for-mobile
+                          (lambda (obj)
+                            (declare (ignore obj))
+                            (toggle-class search-icon-for-mobile
+                                          "w3-black w3-right fa-angle-double-up w3-mobile")
+                            (toggle-class login-menu-right-menu
+                                          "w3-hide-small")
+                            (toggle-class search-form
+                                          "w3-hide-small"))))
 	  (when login-link
             (create-a menu
                       :class "w3-bar-item clog-theme w3-right"
