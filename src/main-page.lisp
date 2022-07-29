@@ -63,7 +63,7 @@
 
 (defun main (body)
   (with-clog-create body
-      (web-sidebar (:bind sidebar)
+      (web-sidebar (:bind sidebar :class "w3-mobile w3-hide-small")
                    (div (:content "<b>Channels</b>" :class "w3-margin-top")))
     (add-card-look sidebar)
     (setf (z-index sidebar) 2)
