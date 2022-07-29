@@ -23,14 +23,10 @@ Page properties:
   (let* ((website        (get-web-site body))
 	 (color-class    (get-setting website :color-class "w3-black"))
 	 (border-class   (get-setting website :border-class ""))
-	 (button-class   (get-setting website :button-class
-				      "w3-button w3-round-xlarge
-                                       w3-tiny w3-border w3-padding-small"))
 	 (text-class     (get-setting website :text-class ""))
 	 (login-link     (get-setting website :login-link "/login"))
 	 (signup-link    (get-setting website :signup-link "/signup"))
 	 (username-link  (get-setting website :username-link "/"))
-	 (menu-property  (get-property properties :menu "w3-black"))
 	 (content        (get-property properties :content "")))
     ;;
     ;; Setup CSS style changes
@@ -39,33 +35,62 @@ Page properties:
     ;;
     ;; Page layout
     ;; SECTION: Menu bar
-    (let* ((top-div (create-div body :class "w3-top"))
-           (menu (create-web-menu-bar top-div))
-           (menu-margin-div (create-div body)))
-      (with-clog-create menu
-          (div (:bind menu-inner-div)
-               (form (:action "/search" :method :GET)
-                     (a (:link (url website) :content (title website) :class "w3-xlarge w3-sans-serif w3-margin clog-theme"))
-	             (form-element (:bind search-input :search :name "q" :class "w3-margin-left" :hidden (not (profile website))))
-                     (button (:content "search" :hidden (not (profile website)))))
-               (div (:bind menu-right-div)))
-        (center-children menu-inner-div
-                         :vertical t
-                         :horizontal nil)
-        (setf (justify-content menu-inner-div) :space-between)
-	(if (profile website)
-	    (progn
-              (create-web-menu-item menu-right-div :content (user-username (profile website))
-                                                   :link username-link)
-              (create-web-menu-item menu-right-div :content "change password"
-                                                   :link "/pass")
-              (create-web-menu-item menu-right-div :content "logout"
-                                                   :link "/logout"))
-	    (when login-link
-	      (create-web-menu-item menu-right-div :content "login"
-					           :link login-link)))
-        (add-class menu color-class)
-        (setf (height menu-margin-div) (height menu))
+    (let* ((menu (create-div body
+                             :class "w3-top w3-bar"))
+           (logo-a (create-a menu
+                             :link (url website)
+                             :content (title website)
+                             :class "w3-bar-item w3-xlarge w3-sans-serif clog-theme")))
+      (declare (ignore logo-a))
+      (setf (z-index menu) 3)
+      (add-class menu color-class)
+      (if (profile website)
+          (let ((search-form (create-form menu
+                                          :action "/search"
+                                          :method :GET
+                                          :class "w3-bar-item"))
+                (login-menu-right-menu (create-div menu
+                                                   :class "w3-bar-item fa fa-bars w3-hide-medium w3-hide-large w3-right"))
+                (login-menu-right-class "w3-bar-item clog-theme w3-right w3-mobile w3-hide-small")
+                (login-menu-right-items nil))
+            (create-form-element search-form
+                                 :search
+                                 :name "q"
+                                 :value (when (eq page :search)
+                                          (form-data-item (form-get-data body)
+                                                          "q"))
+                                 :hidden (not (profile website)))
+            (create-button search-form
+                           :content "search"
+                           :class "w3-hide-small"
+                           :hidden (not (profile website)))
+            (push (create-a menu
+                            :class login-menu-right-class
+                            :content "logout"
+                            :link "/logout")
+                  login-menu-right-items)
+            (push (create-a menu
+                            :class login-menu-right-class
+                            :content "change password"
+                            :link "/pass")
+                  login-menu-right-items)
+            (push (create-div menu
+                              :class login-menu-right-class
+                              :content (user-username (profile website)))
+                  login-menu-right-items)
+            (set-on-click login-menu-right-menu
+                          (lambda (obj)
+                            (declare (ignore obj))
+                            (dolist (login-menu-right-item login-menu-right-items)
+                              (toggle-class login-menu-right-item
+                                            "w3-hide-small")))))
+	  (when login-link
+            (create-a menu
+                      :class "w3-bar-item clog-theme w3-right"
+                      :content "login"
+		      :link login-link)))
+      (let ((menu-margin-div (create-div body)))
+        (setf (height menu-margin-div) (height menu)))
         ;; SECTION: Content area
         (when content
           (typecase content
@@ -100,12 +125,7 @@ Page properties:
 					           :class (format nil "~A ~A" "w3-button" color-class))
 	         (set-on-submit form (getf properties :on-submit))
 	         (when signup-link
-	           (create-a form :class "w3-right" :content "sign up" :link signup-link))))
-              ((eq page :search)
-               (rutils:when-it (form-data-item (form-get-data body)
-                                               "q")
-                 (setf (text-value search-input) rutils:it)))))
-
+	           (create-a form :class "w3-right" :content "sign up" :link signup-link)))))
       ;; SECTION: Footer
       (create-br body)
       (create-br body)
