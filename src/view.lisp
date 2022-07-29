@@ -249,10 +249,10 @@
                                                          (channel-users model-obj)))))
                         (span (:bind invite-to-channel-btn
                                 :class (str:concat "w3-button fa fa-user-plus w3-margin-left " ackfock.theme:*color-class*))
-                              (div (:content "Invite account" :class "w3-small")))
+                              (div (:class "w3-small")))
                         (span (:bind link-invitation-btn
                                 :class (str:concat "w3-button fa fa-link w3-margin-left " ackfock.theme:*color-class*))
-                              (div (:content "Link invitation" :class "w3-small")))
+                              (div (:class "w3-small")))
                         (dialog (:bind invite-to-channel-dialog)
                                 (form (:bind invite-to-channel-form :method "dialog")
                                       (div (:content "Invite to this channel" :class "w3-xlarge"))
