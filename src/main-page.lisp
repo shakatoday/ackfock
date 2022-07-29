@@ -69,6 +69,7 @@
     (setf (z-index sidebar) 2)
     (let* ((ackfock.view:*body-location* (location body))
            (ackfock.view:*window* (window body))
+           (sidebar-menu-button-for-mobile (connection-data-item body :sidebar-menu-button-for-mobile))
            (channel-content (create-div body))
            (channels (cons (make-private-channel) ; for user-private-memos
                            (user-channels *current-user*)))
@@ -84,10 +85,16 @@
                                                                           :content (channel-name channel))))
                                             channels)))
            (current-sidebar-item))
+      (set-on-click sidebar-menu-button-for-mobile
+                    (lambda (obj)
+                      (declare (ignore obj))
+                      (add-class sidebar "w3-animate-left")
+                      (toggle-class sidebar "w3-hide-small")))
       (loop for channel-select across channel-selects
             do (let ((channel (getf channel-select :channel)))
                  (set-on-click (getf channel-select :sidebar-item)
                                (lambda (sidebar-item)
+                                 (add-class sidebar "w3-hide-small")
                                  (remove-class current-sidebar-item "w3-blue-gray")
                                  (setf current-sidebar-item sidebar-item)
                                  (add-class sidebar-item "w3-blue-gray")
@@ -100,14 +107,12 @@
                                                                                          :post-render-hash ackfock.view:*bottom-new-memo-container-html-id*)))))))
       (with-clog-create sidebar
           (div (:class "w3-border")
-               (form (:bind new-channel-form :class "w3-section")
+               (form (:bind new-channel-form :class "w3-section w3-row")
                      (form-element (:bind new-channel-form-input
                                      :text
+                                     :class "w3-col s9"
                                      :name "name"))
-                     (button (:class "fa fa-plus-circle w3-button"))))
-        (setf (width new-channel-form-input) (format nil
-                                                     "~apx"
-                                                     (floor (* 0.75 (width sidebar)))))
+                     (button (:class "fa fa-plus-circle w3-button w3-col s3"))))
         (center-children new-channel-form)
         (set-on-submit new-channel-form
                        (lambda (form-obj)

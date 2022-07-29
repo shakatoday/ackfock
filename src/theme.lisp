@@ -41,63 +41,69 @@ Page properties:
                              :link (url website)
                              :content (title website)
                              :class "w3-bar-item w3-xlarge w3-sans-serif clog-theme")))
-      (declare (ignore logo-a))
       (setf (z-index menu) 3)
       (add-class menu color-class)
       (if (profile website)
-          (let* ((search-form (create-form menu
-                                           :action "/search"
-                                           :method :GET
-                                           :class "w3-bar-item w3-hide-small w3-mobile"))
-                 (login-menu-right-menu (create-div menu
-                                                    :class "w3-bar-item fa fa-user w3-hide-medium w3-hide-large w3-right"))
-                 (search-icon-for-mobile (create-div menu
-                                                     :class "w3-bar-item fa fa-search w3-hide-medium w3-hide-large w3-right"))
-                 (login-menu-right-class "w3-bar-item clog-theme w3-right w3-mobile w3-hide-small")
-                 (login-menu-right-items nil))
-            (create-form-element search-form
-                                 :search
-                                 :name "q"
-                                 :value (when (eq page :search)
-                                          (form-data-item (form-get-data body)
-                                                          "q"))
-                                 :hidden (not (profile website)))
-            (create-button search-form
-                           :content "search"
-                           :hidden (not (profile website)))
-            (push (create-a menu
-                            :class login-menu-right-class
-                            :content "logout"
-                            :link "/logout")
-                  login-menu-right-items)
-            (push (create-a menu
-                            :class login-menu-right-class
-                            :content "change password"
-                            :link "/pass")
-                  login-menu-right-items)
-            (push (create-div menu
+          (progn
+            (when (eq page :index)
+              (setf (connection-data-item body
+                                          :sidebar-menu-button-for-mobile)
+                    (create-div menu
+                                :class "w3-bar-item fa fa-bars w3-hide-medium w3-hide-large"))
+              (add-class logo-a "w3-hide-small"))
+            (let* ((search-form (create-form menu
+                                             :action "/search"
+                                             :method :GET
+                                             :class "w3-bar-item w3-hide-small w3-mobile"))
+                   (login-menu-right-menu (create-div menu
+                                                      :class "w3-bar-item fa fa-user w3-hide-medium w3-hide-large w3-right"))
+                   (search-icon-for-mobile (create-div menu
+                                                       :class "w3-bar-item fa fa-search w3-hide-medium w3-hide-large w3-right"))
+                   (login-menu-right-class "w3-bar-item clog-theme w3-right w3-mobile w3-hide-small")
+                   (login-menu-right-items nil))
+              (create-form-element search-form
+                                   :search
+                                   :name "q"
+                                   :value (when (eq page :search)
+                                            (form-data-item (form-get-data body)
+                                                            "q"))
+                                   :hidden (not (profile website)))
+              (create-button search-form
+                             :content "search"
+                             :hidden (not (profile website)))
+              (push (create-a menu
                               :class login-menu-right-class
-                              :content (user-username (profile website)))
-                  login-menu-right-items)
-            (set-on-click login-menu-right-menu
-                          (lambda (obj)
-                            (declare (ignore obj))
-                            (toggle-class login-menu-right-menu
-                                          "w3-black fa-angle-double-up")
-                            (toggle-class search-icon-for-mobile
-                                          "w3-hide-small")
-                            (dolist (login-menu-right-item login-menu-right-items)
-                              (toggle-class login-menu-right-item
-                                            "w3-hide-small"))))
-            (set-on-click search-icon-for-mobile
-                          (lambda (obj)
-                            (declare (ignore obj))
-                            (toggle-class search-icon-for-mobile
-                                          "w3-black w3-right fa-angle-double-up w3-mobile")
-                            (toggle-class login-menu-right-menu
-                                          "w3-hide-small")
-                            (toggle-class search-form
-                                          "w3-hide-small"))))
+                              :content "logout"
+                              :link "/logout")
+                    login-menu-right-items)
+              (push (create-a menu
+                              :class login-menu-right-class
+                              :content "change password"
+                              :link "/pass")
+                    login-menu-right-items)
+              (push (create-div menu
+                                :class login-menu-right-class
+                                :content (user-username (profile website)))
+                    login-menu-right-items)
+              (set-on-click login-menu-right-menu
+                            (lambda (obj)
+                              (declare (ignore obj))
+                              (toggle-class login-menu-right-menu
+                                            "w3-black fa-angle-double-up")
+                              (toggle-class search-icon-for-mobile
+                                            "w3-hide-small")
+                              (dolist (login-menu-right-item login-menu-right-items)
+                                (toggle-class login-menu-right-item
+                                              "w3-hide-small"))))
+              (set-on-click search-icon-for-mobile
+                            (lambda (obj)
+                              (declare (ignore obj))
+                              (toggle-class search-icon-for-mobile
+                                            "w3-black w3-right fa-angle-double-up w3-mobile")
+                              (toggle-class login-menu-right-menu
+                                            "w3-hide-small")
+                              (toggle-class search-form
+                                            "w3-hide-small")))))
 	  (when login-link
             (create-a menu
                       :class "w3-bar-item clog-theme w3-right"
