@@ -187,5 +187,5 @@
   (create-web-page body
 		   :change-password `(:menu    ,'(())
 				      :content ,(lambda (body)
-						  (change-password body (ackfock.db:db))))
+						  (ackfock.auth:change-password body (ackfock.db:db))))
 		   :authorize t))

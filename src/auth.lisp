@@ -5,7 +5,8 @@
                 #:defun-with-db-connection)
   (:export #:login
            #:sign-up
-           #:current-user))
+           #:current-user
+           #:change-password))
 (in-package :ackfock.auth)
 
 ;; think about how to redefine below functions in a meta way on clog-web-dbi
@@ -36,6 +37,52 @@ if one is present and login fails."
     (when (and contents
                (cl-pass:check-password password (getf (car contents) :|password|)))
       (store-authentication-token body (getf (car contents) :|token|)))))
+
+(defun change-password (body sql-connection &key (title "Change Password")
+                                              (next-step "/"))
+  "Setup a change password form and handle change of password"
+  (check-type body clog-body)
+  (clog-web-form
+   body title
+   `(("Old Password" "oldpass" :password)
+     ("New Password" "password" :password)
+     ("Retype Password" "repass" :password))
+   (lambda (result)
+     (cond ((not
+             (equal (form-result result "password")
+                    (form-result result "repass")))
+            (clog-web-alert body "Password Mismatch"
+                            "The new passwords do match."
+                            :time-out 3
+                            :place-top t))
+           ((< (length (form-result result "password")) 4)
+            (clog-web-alert body "Password Missize"
+                            "The new passwords must at least 4 characters."
+                            :time-out 3
+                            :place-top t))
+           (t
+            (let ((contents (dbi:fetch-all
+                             (dbi:execute
+                              (dbi:prepare
+                               sql-connection
+                               "select uuid, password from users where uuid=?")
+                              (list (ackfock.model-definition:user-uuid (profile (get-web-site body))))))))
+              (cond ((and contents
+                          (cl-pass:check-password (form-result result "oldpass")
+                                                  (getf (car contents) :|password|)))
+                     (dbi:do-sql
+                       sql-connection
+                       (sql-update
+                        "users"
+                        `(:password ,(cl-pass:hash (form-result result "password")))
+                        "uuid=?")
+                       (list (ackfock.model-definition:user-uuid (profile (get-web-site body)))))
+                     (url-replace (location body) next-step))
+                    (t
+                     (clog-web-alert body "Old Password"
+                                     "Old password is incorrect."
+                                     :time-out 3
+                                     :place-top t)))))))))
 
 (defun sign-up (body sql-connection &key (title "Sign Up")
 				      (next-step "/"))
