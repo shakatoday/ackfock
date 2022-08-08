@@ -24,6 +24,9 @@
                ;; GUI framework
                "clog"
 
+               ;; lack middlewares
+               "lack-middleware-session"
+
                ;; password hashing and verification library
                "cl-pass"
 
@@ -34,7 +37,8 @@
                "mailgun")
   :components ((:module "src"
                 :components
-                ((:file "ackfock" :depends-on ("main-page" "view" "theme" "auth" "db"))
+                ((:file "ackfock" :depends-on ("route"))
+                 (:file "route" :depends-on ("main-page" "view" "theme" "auth" "db"))
                  (:file "main-page" :depends-on ("view" "theme" "model" "model-definition"))
                  (:file "view" :depends-on ("theme" "invitation" "model" "model-definition"))
                  (:file "theme" :depends-on ("auth" "model-definition"))
