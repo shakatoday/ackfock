@@ -27,6 +27,11 @@
   ;; Setup clog
   (initialize 'on-main
               :port port
+              :lack-middleware-list `(,lack.middleware.session:*lack-middleware-session*
+                                      ,(lambda (app)
+                                         (lambda (env)
+                                           (print env)
+                                           (funcall app env))))
 	      :extended-routing t
               :static-root (merge-pathnames "./www/"
 	                                    (asdf:system-source-directory :ackfock))

@@ -24,6 +24,9 @@
                ;; GUI framework
                "clog"
 
+               ;; lack middlewares
+               "lack-middleware-session"
+
                ;; password hashing and verification library
                "cl-pass"
 
