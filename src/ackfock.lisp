@@ -27,7 +27,11 @@
   ;; Setup clog
   (initialize 'on-main
               :port port
-              :lack-middleware-list `(,lack.middleware.session:*lack-middleware-session*)
+              :lack-middleware-list `(,lack.middleware.session:*lack-middleware-session*
+                                      ,(lambda (app)
+                                         (lambda (env)
+                                           (ackfock.auth:sync-current-session(env))
+                                           (funcall app env))))
 	      :extended-routing t
               :static-root (merge-pathnames "./www/"
 	                                    (asdf:system-source-directory :ackfock))
@@ -55,7 +59,7 @@
 				       (url-replace (location body) "/")))
   (load-css (html-document body)
             "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
-    ;; Initialzie the clog-web-site environment
+  ;; Initialzie the clog-web-site environment
   (let ((profile (current-user body)))
     (create-web-site body
 		     :settings `(:color-class  ,*color-class*

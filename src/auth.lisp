@@ -6,10 +6,33 @@
   (:export #:login
            #:sign-up
            #:current-user
-           #:change-password))
+           #:change-password
+           #:*lack-sessions*
+           #:sync-current-session))
 (in-package :ackfock.auth)
 
+(defvar *lack-sessions* (make-hash-table :test 'equal :synchronized t))
 ;; think about how to redefine below functions in a meta way on clog-web-dbi
+
+(defun sync-current-session (env)
+  (let ((current-lack-session-id (getf (getf env
+                                             :lack.session.options)
+                                       :id)))
+    (setf (gethash current-lack-session-id *lack-sessions*) (getf env :lack-session))))
+
+(defun lack-session-id-from-browser-cookie (clog-obj)
+  (let* ((cookie (js-query clog-obj "document.cookie"))
+         (key-value-pair-strings (ppcre:split ";" cookie))
+         (key-value-pair-alist (mapcar (lambda (string)
+                                         (let ((pairs (ppcre:split "="
+                                                                   string
+                                                                   :limit 2)))
+                                           (cons (first pairs)
+                                                 (second pairs))))
+                                       key-value-pair-strings)))
+    (cdr (assoc "lack.session"
+                key-value-pair-alist
+                :test #'string=))))
 
 (defun make-token ()
   "Create a unique token used to associate a browser with a user"
