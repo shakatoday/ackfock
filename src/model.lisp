@@ -40,15 +40,18 @@
                :test #'string=)
        (alexandria:make-keyword string)))
 
+(defmacro user-from-plist (plist)
+  (cons 'make-user
+        (reduce #'append
+                (mapcar (lambda (keyword-arg)
+                          `(,keyword-arg (getf ,plist ,keyword-arg))) ; use the later created-at so we need a copy and remf
+                                        ; TODO: created-at needs an inflation-function
+                        '(:uuid :email :username :created-at)))))
+
 (defun plist-to-user-ackfock (plist)
   (let ((copy-plist (copy-list plist)))
     (remf copy-plist :created-at)
-    (make-user-ackfock :user #.(cons 'make-user
-                                     (reduce #'append
-                                             (mapcar (lambda (keyword-arg)
-                                                       `(,keyword-arg (getf copy-plist ,keyword-arg))) ; use the later created-at so we need a copy and remf
-                                                     ; TODO: created-at needs an inflation-function
-                                                     '(:uuid :email :username :created-at))))
+    (make-user-ackfock :user (user-from-plist copy-plist)
                        :ackfock (getf plist :ackfock)
                        :created-at (datetime-to-timestamp (getf plist :created-at)))))
 

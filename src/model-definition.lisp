@@ -42,7 +42,8 @@
            #:invitation-code-code
            #:invitation-code-valid-until
            #:invitation-code-used-by-user-id
-           #:invitation-code-channel-id))
+           #:invitation-code-channel-id
+           #:user-from-plist))
 (in-package :ackfock.model-definition)
 
 (deftype ackfock () '(member :ACK :FOCK)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
@@ -93,6 +94,14 @@
   channel-id
   created-at
   valid-until)
+
+(defmacro user-from-plist (plist)
+  (cons 'make-user
+        (reduce #'append
+                (mapcar (lambda (keyword-arg)
+                          `(,keyword-arg (getf ,plist ,keyword-arg))) ; use the later created-at so we need a copy and remf
+                                        ; TODO: created-at needs an inflation-function
+                        '(:uuid :email :username :created-at)))))
 
 (defun-with-db-connection user-channels (user)
   (retrieve-all
