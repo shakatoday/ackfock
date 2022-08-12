@@ -30,7 +30,7 @@
               :lack-middleware-list `(,lack.middleware.session:*lack-middleware-session*
                                       ,(lambda (app)
                                          (lambda (env)
-                                           (ackfock.auth:sync-current-session(env))
+                                           (ackfock.auth:current-session-from-lack-session env)
                                            (funcall app env))))
 	      :extended-routing t
               :static-root (merge-pathnames "./www/"
@@ -168,7 +168,7 @@
    :authorize t))
 
 (defun on-logout (body)
-  (logout body)
+  (ackfock.auth:logout body)
   (url-replace (location body) "/"))
 
 (defun on-signup (body)

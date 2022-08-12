@@ -1,24 +1,26 @@
 (in-package :cl-user)
 (defpackage ackfock.auth
   (:use :cl :clog :clog-web :clog-auth :ackfock.authenticate-user-email)
-  (:import-from :ackfock.db
-                #:defun-with-db-connection)
   (:export #:login
            #:sign-up
            #:current-user
            #:change-password
            #:*lack-sessions*
-           #:sync-current-session))
+           #:current-session-from-lack-session
+           #:logout))
 (in-package :ackfock.auth)
 
 (defvar *lack-sessions* (make-hash-table :test 'equal :synchronized t))
 ;; think about how to redefine below functions in a meta way on clog-web-dbi
 
-(defun sync-current-session (env)
+(defun current-session-from-lack-session (env)
   (let ((current-lack-session-id (getf (getf env
                                              :lack.session.options)
                                        :id)))
-    (setf (gethash current-lack-session-id *lack-sessions*) (getf env :lack-session))))
+    (setf (gethash current-lack-session-id
+                   *lack-sessions*)
+          (getf env
+                :lack.session))))
 
 (defun lack-session-id-from-browser-cookie (clog-obj)
   (let* ((cookie (js-query clog-obj "document.cookie"))
@@ -34,18 +36,17 @@
                 key-value-pair-alist
                 :test #'string=))))
 
+(defun current-session (clog-obj)
+  (gethash (lack-session-id-from-browser-cookie clog-obj)
+           *lack-sessions*))
+
 (defun make-token ()
   "Create a unique token used to associate a browser with a user"
   (str:downcase (uuid:print-bytes nil (uuid:make-v4-uuid))))
 
-(defun-with-db-connection current-user (clog-body)
-  (rutils:when-it (get-authentication-token clog-body)
-    ;; servere symbol conflicts between datafly, sxql, and clog
-    (datafly:retrieve-one
-     (sxql:select :*
-       (sxql:from :users)
-       (sxql:where (:= :token rutils:it)))
-     :as 'ackfock.model-definition:user)))
+(defun current-user (clog-obj)
+  (gethash :current-user
+           (current-session clog-obj)))
 
 (defun login (body sql-connection email password)
   "Login and set current authentication token, it does not remove token
@@ -59,7 +60,14 @@ if one is present and login fails."
 		    (list email)))))
     (when (and contents
                (cl-pass:check-password password (getf (car contents) :|password|)))
-      (store-authentication-token body (getf (car contents) :|token|)))))
+      (setf (gethash :current-user
+                     (current-session body))
+            (ackfock.db:with-connection sql-connection
+              (ackfock.model-definition:user-from-plist (datafly.db::convert-row (car contents))))))))
+
+(defun logout (body)
+  (remhash :current-user
+           (current-session body)))
 
 (defun change-password (body sql-connection &key (title "Change Password")
                                               (next-step "/"))
