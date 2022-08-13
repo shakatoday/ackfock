@@ -3,63 +3,16 @@
   (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.model-definition)
   (:export #:*current-user*
            #:main
-           #:landing))
+           #:*landing-page*))
 (in-package :ackfock.main-page)
 
 (defvar *current-user*)
 
-(defun landing (body)
-  (with-clog-create body
-      (div (:bind hero-div :class "w3-display-container w3-dark-gray")
-           (div (:class "w3-padding w3-display-middle")
-                (div (:class "w3-xxxlarge" :content "Evolve mini agreements"))
-                (div (:class "w3-large" :content "Accumulating memos to reach consensus with casual or business friends. "))
-                (div (:class "w3-large w3-margin-top" :content "Ack a memo when agree."))
-                (div (:class "w3-large w3-margin-bottom" :content "Fock a memo when disagree."))
-                (div (:bind sign-up-login-in-buttons-div)
-                     (span ()
-                           (a (:link "/signup"
-                               :content "Sign Up"
-                               :class (str:concat "w3-button w3-margin-right w3-border w3-border-khaki " ackfock.theme:*color-class*))))
-                     (span ()
-                           (a (:link "/login"
-                               :content "Login"
-                               :class "w3-button w3-margin-left w3-border w3-border-white"))))))
-    (setf (display sign-up-login-in-buttons-div) "flex"
-          (justify-content sign-up-login-in-buttons-div) :center)
-    (setf (minimum-height hero-div) "400px"))
-  (with-clog-create body
-      (div (:class "w3-black w3-padding")
-           (web-row (:padding t)
-                    (div (:class "w3-col l6 w3-center")
-                         (br ())
-                         (div (:class "w3-xlarge" :content "Memos from daily consensus to business agreements"))
-                         (img (:url-src "/img/use_case_examples.jpg" :class " w3-padding")))
-                    (div (:class "w3-col l6 w3-center")
-                         (br ())
-                         (div (:class "w3-xlarge" :content "All Ack (agree) and Fock (disagree) histories recorded"))
-                         (img (:url-src "/img/ackfock_history_feature.jpg" :class " w3-padding"))))
-           (web-row (:padding t)
-                    (div (:class "w3-col l6 w3-center")
-                         (br ())
-                         (div (:class "w3-xlarge" :content "Channel-based access control"))
-                         (img (:url-src "/img/channel_feature.jpg" :class " w3-padding")))
-                    (div (:class "w3-col l6 w3-center")
-                         (br ())
-                         (div (:class "w3-xlarge" :content "Search memos and agreements"))
-                         (img (:url-src "/img/search_feature.jpg" :class " w3-padding"))))
-           (web-row (:padding t)
-                    (div (:class "w3-col l6 w3-center")
-                         (br ())
-                         (div (:class "w3-xlarge" :content "Private memos for self commitments"))
-                         (img (:url-src "/img/self_commitment_feature.jpg" :class " w3-padding")))
-                    (div (:class "w3-col l6 w3-center")
-                         (br ())
-                         (div (:class "w3-padding")
-                              (p (:content "Start to accumulate mini agreements" :class "w3-xlarge"))
-                              (a (:link "/signup"
-                                  :content "Sign Up"
-                                  :class (str:concat "w3-button w3-margin-right w3-border " ackfock.theme:*color-class*)))))))))
+(defparameter *landing-page*
+  (with-open-file (stream (merge-pathnames #P"www/index.html" (asdf:system-source-directory :ackfock)))
+    (let ((content (make-string (file-length stream))))
+      (read-sequence content stream)
+      content)))
 
 (defun main (body)
   (with-clog-create body

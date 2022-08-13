@@ -30,8 +30,17 @@
               :lack-middleware-list `(,lack.middleware.session:*lack-middleware-session*
                                       ,(lambda (app)
                                          (lambda (env)
-                                           (ackfock.auth:current-session-from-lack-session env)
-                                           (funcall app env))))
+                                           (cond ((and (string= (getf env
+                                                                      :path-info)
+                                                                "/")
+                                                       (null (gethash :current-user
+                                                                      (getf env
+                                                                            :lack.session))))
+                                                  `(200 (:content-type "text/html")
+                                                        (,ackfock.main-page:*landing-page*)))
+                                                 (t
+                                                  (ackfock.auth:current-session-from-lack-session env)
+                                                  (funcall app env))))))
 	      :extended-routing t
               :static-root (merge-pathnames "./www/"
 	                                    (asdf:system-source-directory :ackfock))
@@ -180,9 +189,7 @@
   (let ((ackfock.main-page:*current-user* (profile (init-site body))))
     (create-web-page body
                      :index
-                     `(:content ,(if ackfock.main-page:*current-user*
-                                     #'ackfock.main-page:main
-                                     #'ackfock.main-page:landing)))))
+                     `(:content ,#'ackfock.main-page:main))))
 
 (defun on-new-pass (body)
   (init-site body)

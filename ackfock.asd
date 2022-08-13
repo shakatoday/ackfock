@@ -35,7 +35,11 @@
 
                ;; email delivery
                "mailgun")
-  :components ((:module "src"
+  :components ((:module "www"
+                :components
+                ((:static-file "index.html")))
+               (:module "src"
+                :depends-on ("www")
                 :components
                 ((:file "ackfock" :depends-on ("main-page" "view" "theme" "auth" "db"))
                  (:file "main-page" :depends-on ("view" "theme" "model" "model-definition"))
