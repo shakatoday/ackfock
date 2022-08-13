@@ -14,16 +14,6 @@
   "Setup website routes")
 
 (defun start-app (&key (port 8080) (open-browser-p nil))
-  ;; Here we add authorizations for content and editting content, not just
-  ;; access to pages.
-  (add-authorization '(:guest :member) '(:content-show-comments))
-  (add-authorization '(:guest)         '(:login :signup))
-  (add-authorization '(:member)        '(:logout
-                                         :search
-					 :change-password
-				         :content-comment))
-  (add-authorization '(:editor)        '(:content-edit))
-  (add-authorization '(:admin)         '(:users :content-admin))
   ;; Setup clog
   (initialize 'on-main
               :port port
@@ -142,48 +132,49 @@
 
 (defun on-search (body)
   (let ((web-site (init-site body)))
-    (create-web-page
-     body
-     :search
-     `(:content ,(lambda (body)
-                   (let ((search-input (form-data-item (form-get-data body)
-                                                       "q")))
-                     (if (str:blankp search-input)
-                         (create-div body :content "Empty search input")
-                         (loop for memo in (ackfock.model:search-memo (profile web-site)
-                                                                      search-input)
-                               do (ackfock.view:render memo
-                                                       (profile web-site)
-                                                       body))))))
-     :authorize t)))
+    (if (profile web-site)
+        (create-web-page
+         body
+         :search
+         `(:content ,(lambda (body)
+                       (let ((search-input (form-data-item (form-get-data body)
+                                                           "q")))
+                         (if (str:blankp search-input)
+                             (create-div body :content "Empty search input")
+                             (loop for memo in (ackfock.model:search-memo (profile web-site)
+                                                                          search-input)
+                                   do (ackfock.view:render memo
+                                                           (profile web-site)
+                                                           body)))))))
+        (url-replace (location body) "/"))))
 
 (defun on-login (body)
-  (init-site body)
-  (create-web-page
-   body
-   :login `(:menu      ,'(())
-	    :on-submit ,(lambda (obj)
-			  (if (ackfock.auth:login body
-                                                  (ackfock.db:db)
-				                  (name-value obj "email")
-				                  (name-value obj "password"))
-			      (url-replace (location body) "/")
-			      (clog-web-alert obj "Invalid" "The email and password are invalid."
-					      :time-out 3
-					      :place-top t))))
-   :authorize t))
+  (if (profile (init-site body))
+      (url-replace (location body) "/")
+      (create-web-page
+       body
+       :login `(:menu      ,'(())
+	        :on-submit ,(lambda (obj)
+			      (if (ackfock.auth:login body
+                                                      (ackfock.db:db)
+				                      (name-value obj "email")
+				                      (name-value obj "password"))
+			          (url-replace (location body) "/")
+			          (clog-web-alert obj "Invalid" "The email and password are invalid."
+					          :time-out 3
+					          :place-top t)))))))
 
 (defun on-logout (body)
   (ackfock.auth:logout body)
   (url-replace (location body) "/"))
 
 (defun on-signup (body)
-  (init-site body)
-  (create-web-page body
-		   :signup `(:menu    ,'(())
-			     :content ,(lambda (body)
-					 (ackfock.auth:sign-up body (ackfock.db:db))))
-		   :authorize t))
+  (if (profile (init-site body))
+      (url-replace (location body) "/")
+      (create-web-page body
+		       :signup `(:menu    ,'(())
+			         :content ,(lambda (body)
+					     (ackfock.auth:sign-up body (ackfock.db:db)))))))
 
 (defun on-main (body)
   (let ((ackfock.main-page:*current-user* (profile (init-site body))))
@@ -192,9 +183,9 @@
                      `(:content ,#'ackfock.main-page:main))))
 
 (defun on-new-pass (body)
-  (init-site body)
-  (create-web-page body
-		   :change-password `(:menu    ,'(())
-				      :content ,(lambda (body)
-						  (ackfock.auth:change-password body (ackfock.db:db))))
-		   :authorize t))
+  (if (profile (init-site body))
+      (create-web-page body
+		       :change-password `(:menu    ,'(())
+				          :content ,(lambda (body)
+						      (ackfock.auth:change-password body (ackfock.db:db)))))
+      (url-replace (location body) "/")))
