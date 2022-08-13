@@ -1,5 +1,5 @@
 (defsystem "ackfock"
-  :version "1.2.1-alpha"
+  :version "1.2.2-alpha"
   :author "Shaka Chen"
   :license ""
   :depends-on ("envy"
