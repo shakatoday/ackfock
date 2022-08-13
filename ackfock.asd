@@ -34,7 +34,7 @@
                "clavier"
 
                ;; email delivery
-               "mailgun")
+               "sendgrid")
   :components ((:module "www"
                 :components
                 ((:static-file "index.html")))
