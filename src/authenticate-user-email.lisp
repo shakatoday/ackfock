@@ -32,7 +32,8 @@
    (update :users
      #.(ackfock.utils:ensure-plist '(set= email-authenticated-at))
      (where #.(ackfock.utils:ensure-plist '(:= email)))
-     (returning :*))))
+     (returning :*))
+   :as 'user))
    
 (defun authenticate-user-email (code)
   "Return corresponding user token when success, return nil otherwise"
@@ -41,6 +42,5 @@
     (when (and authentication-code
                (local-time:timestamp<= now ; otherwise the code is timeout
                                        (authentication-code-valid-until authentication-code)))
-      (getf (update-user-email-authenticated-at (authentication-code-email authentication-code)
-                                                now)
-            :token))))
+      (update-user-email-authenticated-at (authentication-code-email authentication-code)
+                                          now))))
