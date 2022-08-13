@@ -54,9 +54,6 @@
   "Setup the website, called on each url switch"
   ;; Initialize the clog-web environment
   (clog-web-initialize body)
-  ;; Instantly reload other windows open on authentication change
-  (set-on-authentication-change body (lambda (body)
-				       (url-replace (location body) "/")))
   (load-css (html-document body)
             "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
   ;; Initialzie the clog-web-site environment

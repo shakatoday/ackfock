@@ -40,10 +40,6 @@
   (gethash (lack-session-id-from-browser-cookie clog-obj)
            *lack-sessions*))
 
-(defun make-token ()
-  "Create a unique token used to associate a browser with a user"
-  (str:downcase (uuid:print-bytes nil (uuid:make-v4-uuid))))
-
 (defun current-user (clog-obj)
   (gethash :current-user
            (current-session clog-obj)))
@@ -161,7 +157,7 @@ if one is present and login fails."
 			           sql-connection
 			           "select email from users where email=? or username=?")
 			          (list email username)))))
-                  ;; Race condition between check email availability and sql-insert*
+                  ;; Race condition between check email availability and insert-into
 	          (cond (contents
                          (if (find email contents
                                    :key (lambda (row) (getf row :|email|))
@@ -175,20 +171,22 @@ if one is present and login fails."
 				             :time-out 3
 				             :place-top t)))
 		        (t
-                         (let ((token (make-token)))
-		           (dbi:do-sql
-		             sql-connection
-		             (sql-insert*
-			      "users"
-			      `(:email ,email
-                                :username ,username
-			        :password ,(cl-pass:hash password)
-			        :token    ,token)))
+                         (let ((new-user (ackfock.db:with-connection sql-connection
+                                           (datafly:retrieve-one
+                                            (sxql:insert-into :users
+                                              (sxql:set= :email email
+                                                         :username username
+                                                         :password (cl-pass:hash password))
+                                              (sxql:returning :*))
+                                            :as 'ackfock.model-definition:user))))
                            (ackfock.utils:send-authentication-email email
                                                                     username
                                                                     (format nil
                                                                             "~a/activate/~a"
                                                                             ackfock.config:*application-url*
                                                                             (ackfock.model-definition:authentication-code-code (create-authentication-code email))))
-                           (store-authentication-token body token)
-		           (url-replace (location body) next-step))))))))))))
+                           (setf (gethash :current-user
+                                          (current-session body))
+                                 new-user)
+                           (url-replace (location body)
+                                        next-step))))))))))))
