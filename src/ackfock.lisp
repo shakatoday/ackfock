@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage #:ackfock
-  (:use #:cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.theme)
+  (:use #:cl #:clog #:clog-web #:clog-web-dbi #:ackfock.theme)
   (:import-from :ackfock.auth
                 #:current-user)
   (:export start-app))
@@ -125,15 +125,15 @@
 
 (defun on-activate (body)
   (let* ((path-name (path-name (location body)))
-         (user-token (when (> (length path-name) (length "/activate/"))
-                       (ackfock.authenticate-user-email:authenticate-user-email (subseq path-name (length "/activate/")))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
-    (cond (user-token
+         (user (when (> (length path-name) (length "/activate/"))
+                 (ackfock.authenticate-user-email:authenticate-user-email (subseq path-name (length "/activate/")))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
+    (cond (user
+           (setf (current-user body) user)
            (clog-web-initialize body)
            (clog-web-alert body
                            "Success"
                            "Email verification success"
                            :color-class "w3-green")
-           (store-authentication-token body user-token)
            (sb-ext:schedule-timer (sb-ext:make-timer (lambda ()
                                                        (url-replace (location body) "/")))
                                   3))

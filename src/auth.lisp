@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.auth
-  (:use :cl :clog :clog-web :clog-auth :ackfock.authenticate-user-email)
+  (:use :cl :clog :clog-web :ackfock.authenticate-user-email)
   (:export #:login
            #:sign-up
            #:current-user
@@ -43,6 +43,11 @@
 (defun current-user (clog-obj)
   (gethash :current-user
            (current-session clog-obj)))
+
+(defun (setf current-user) (value clog-obj)
+  (setf (gethash :current-user
+                 (current-session clog-obj))
+        value))
 
 (defun login (body sql-connection email password)
   "Login and set current authentication token, it does not remove token
