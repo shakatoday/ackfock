@@ -1,11 +1,34 @@
 (in-package :cl-user)
 (defpackage ackfock.theme
   (:use :cl :clog :clog-web :ackfock.model-definition)
-  (:export #:ackfock-theme
-           #:*color-class*))
+  (:import-from :ackfock.auth
+                #:current-user)
+  (:export #:*color-class*))
 (in-package :ackfock.theme)
 
 (defparameter *color-class* "w3-khaki")
+
+(defun init-site (body)
+  "Setup the website, called on each url switch"
+  ;; Initialize the clog-web environment
+  (clog-web-initialize body)
+  (load-css (html-document body)
+            "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
+  ;; Initialzie the clog-web-site environment
+  (let ((profile (current-user body)))
+    (create-web-site body
+		     :settings `(:color-class  ,*color-class*
+				 :border-class ""
+				 :signup-link  "/signup"
+				 :login-link   "/login")
+		     :profile profile
+		     :roles (if profile
+				'(:member)
+				'(:guest))
+                     :theme 'ackfock-theme
+		     :title "Ackfock"
+		     :footer "(c) 2022 Shaka Chen"
+		     :logo nil)))
 
 (defun ackfock-theme (body page properties)
   "The Ackfock theme for clog-web-site.

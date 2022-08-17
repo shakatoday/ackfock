@@ -1,10 +1,10 @@
 (in-package :cl-user)
-(defpackage ackfock.main-page
+(defpackage ackfock.ui.main-page
   (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.model-definition)
   (:export #:*current-user*
-           #:main
+           #:main-content
            #:*landing-page*))
-(in-package :ackfock.main-page)
+(in-package :ackfock.ui.main-page)
 
 (defvar *current-user*)
 
@@ -14,7 +14,7 @@
       (read-sequence content stream)
       content)))
 
-(defun main (body)
+(defun main-content (body)
   (with-clog-create body
       (web-sidebar (:bind sidebar :class "w3-mobile w3-hide-small")
                    (div (:content "<b>Channels</b>" :class "w3-margin-top")))
