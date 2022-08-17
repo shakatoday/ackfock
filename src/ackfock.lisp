@@ -6,11 +6,27 @@
   (:export start-app))
 (in-package :ackfock)
 
-(defparameter *routes* `(("Account" (("Login"           "/login"   on-login    :login)
-				     ("Signup"          "/signup"  on-signup   :signup)
-				     ("Change Password" "/pass"    on-new-pass :change-password)
-				     ("Logout"          "/logout"  on-logout   :logout)))
-                         ("Content" (("Content"         "/content" on-main     :content))))
+(defparameter *routes* `(("Account" (("Login"
+                                      "/login"
+                                      on-login)
+				     ("Signup"
+                                      "/signup"
+                                      on-signup)
+                                     ("Activate"
+                                      "/activate"
+                                      on-activate)
+				     ("Change Password"
+                                      "/pass"
+                                      on-new-pass)
+				     ("Logout"
+                                      "/logout"
+                                      on-logout)))
+                         ("Content" (("Search"
+                                      "/search"
+                                      on-search)))
+                         ("Channel" (("Invitation"
+                                      "/i"
+                                      on-invitation))))
   "Setup website routes")
 
 (defun start-app (&key (port 8080) (open-browser-p nil))
@@ -37,17 +53,9 @@
 	      :boot-function (clog-web-meta
 			      "Ackfock is a platform of mini agreements and mini memos of understanding."))
   (clog-web-routes-from-menu *routes*)
-  (set-on-new-window 'on-activate :path "/activate")
-  (set-on-new-window 'on-search :path "/search")
-  (set-on-new-window 'on-invitation :path "/i")
 
   (when open-browser-p
     (open-browser)))
-
-;;
-;; Look and Feel
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun init-site (body)
   "Setup the website, called on each url switch"
