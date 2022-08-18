@@ -24,8 +24,9 @@
                ;; GUI framework
                "clog"
 
-               ;; lack middlewares
+               ;; server-side sessions
                "lack-middleware-session"
+               "clog-lack-session"
 
                ;; password hashing and verification library
                "cl-pass"
@@ -41,7 +42,7 @@
                (:module "src"
                 :depends-on ("www")
                 :components
-                ((:file "ackfock" :depends-on ("games" "auth"))
+                ((:file "ackfock" :depends-on ("games"))
                  (:module "games"
                   :depends-on ("model"
                                "model-definition"

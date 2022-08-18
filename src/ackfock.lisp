@@ -12,9 +12,10 @@
 
 (defun start-app (&key (port 8080) (open-browser-p nil))
   ;; Setup clog
-  (initialize 'on-main
+  (initialize nil
               :port port
               :lack-middleware-list `(,lack.middleware.session:*lack-middleware-session*
+                                      ,clog-lack-session:*middleware*
                                       ,(lambda (app)
                                          (lambda (env)
                                            (cond ((and (string= (getf env
@@ -26,7 +27,6 @@
                                                   `(200 (:content-type "text/html")
                                                         (,*landing-page*)))
                                                  (t
-                                                  (ackfock.auth:current-session-from-lack-session env)
                                                   (funcall app env))))))
 	      :extended-routing t
               :static-root (merge-pathnames "./www/"

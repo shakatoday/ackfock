@@ -5,48 +5,16 @@
            #:sign-up
            #:current-user
            #:change-password
-           #:*lack-sessions*
-           #:current-session-from-lack-session
            #:logout))
 (in-package :ackfock.auth)
 
-(defvar *lack-sessions* (make-hash-table :test 'equal :synchronized t))
-;; think about how to redefine below functions in a meta way on clog-web-dbi
-
-(defun current-session-from-lack-session (env)
-  (let ((current-lack-session-id (getf (getf env
-                                             :lack.session.options)
-                                       :id)))
-    (setf (gethash current-lack-session-id
-                   *lack-sessions*)
-          (getf env
-                :lack.session))))
-
-(defun lack-session-id-from-browser-cookie (clog-obj)
-  (let* ((cookie (js-query clog-obj "document.cookie"))
-         (key-value-pair-strings (ppcre:split ";" cookie))
-         (key-value-pair-alist (mapcar (lambda (string)
-                                         (let ((pairs (ppcre:split "="
-                                                                   string
-                                                                   :limit 2)))
-                                           (cons (first pairs)
-                                                 (second pairs))))
-                                       key-value-pair-strings)))
-    (cdr (assoc "lack.session"
-                key-value-pair-alist
-                :test #'string=))))
-
-(defun current-session (clog-obj)
-  (gethash (lack-session-id-from-browser-cookie clog-obj)
-           *lack-sessions*))
-
 (defun current-user (clog-obj)
   (gethash :current-user
-           (current-session clog-obj)))
+           (clog-lack-session:current-session clog-obj)))
 
 (defun (setf current-user) (value clog-obj)
   (setf (gethash :current-user
-                 (current-session clog-obj))
+                 (clog-lack-session:current-session clog-obj))
         value))
 
 (defun login (body sql-connection email password)
@@ -62,13 +30,13 @@ if one is present and login fails."
     (when (and contents
                (cl-pass:check-password password (getf (car contents) :|password|)))
       (setf (gethash :current-user
-                     (current-session body))
+                     (clog-lack-session:current-session body))
             (ackfock.db:with-connection sql-connection
               (ackfock.model-definition:user-from-plist (datafly.db::convert-row (car contents))))))))
 
 (defun logout (body)
   (remhash :current-user
-           (current-session body)))
+           (clog-lack-session:current-session body)))
 
 (defun change-password (body sql-connection &key (title "Change Password")
                                               (next-step "/"))
@@ -190,8 +158,6 @@ if one is present and login fails."
                                                                             "~a/activate/~a"
                                                                             ackfock.config:*application-url*
                                                                             (ackfock.model-definition:authentication-code-code (create-authentication-code email))))
-                           (setf (gethash :current-user
-                                          (current-session body))
-                                 new-user)
+                           (setf (current-user body) new-user)
                            (url-replace (location body)
                                         next-step))))))))))))
