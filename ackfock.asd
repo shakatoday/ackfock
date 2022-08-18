@@ -43,18 +43,16 @@
                 :components
                 ((:file "ackfock" :depends-on ("auth" "ui"))
                  (:module "ui"
-                  :depends-on ("theme"
-                               "view"
-                               "model"
+                  :depends-on ("model"
                                "model-definition"
                                "invitation"
                                "auth"
                                "authenticate-user-email"
                                "db")
-                  :components ((:file "pages" :depends-on ("main-page"))
-                               (:file "main-page")))
-                 (:file "view" :depends-on ("theme" "invitation" "model" "model-definition"))
-                 (:file "theme" :depends-on ("auth" "model-definition"))
+                  :components ((:file "pages" :depends-on ("main-page" "view" "theme"))
+                               (:file "main-page" :depends-on ("view"))
+                               (:file "theme" :depends-on ("view"))
+                               (:file "view")))
                  (:file "auth" :depends-on ("authenticate-user-email" "model-definition" "utils" "db"))
                  (:file "authenticate-user-email" :depends-on ("model-definition" "utils" "db"))
                  (:file "invitation" :depends-on ("model" "model-definition" "utils" "db"))
