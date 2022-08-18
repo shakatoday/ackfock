@@ -27,6 +27,12 @@
                                       on-invitation))))
   "Setup website routes")
 
+(defparameter *landing-page*
+  (with-open-file (stream (merge-pathnames #P"www/index.html" (asdf:system-source-directory :ackfock)))
+    (let ((content (make-string (file-length stream))))
+      (read-sequence content stream)
+      content)))
+
 (defun start-app (&key (port 8080) (open-browser-p nil))
   ;; Setup clog
   (initialize 'on-main
@@ -41,7 +47,7 @@
                                                                       (getf env
                                                                             :lack.session))))
                                                   `(200 (:content-type "text/html")
-                                                        (,ackfock.main-page:*landing-page*)))
+                                                        (,*landing-page*)))
                                                  (t
                                                   (ackfock.auth:current-session-from-lack-session env)
                                                   (funcall app env))))))

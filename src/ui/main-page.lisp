@@ -2,19 +2,12 @@
 (defpackage ackfock.ui.main-page
   (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.model-definition)
   (:export #:*current-user*
-           #:main-content
-           #:*landing-page*))
+           #:content))
 (in-package :ackfock.ui.main-page)
 
 (defvar *current-user*)
 
-(defparameter *landing-page*
-  (with-open-file (stream (merge-pathnames #P"www/index.html" (asdf:system-source-directory :ackfock)))
-    (let ((content (make-string (file-length stream))))
-      (read-sequence content stream)
-      content)))
-
-(defun main-content (body)
+(defun content (body)
   (with-clog-create body
       (web-sidebar (:bind sidebar :class "w3-mobile w3-hide-small")
                    (div (:content "<b>Channels</b>" :class "w3-margin-top")))
@@ -61,10 +54,9 @@
       (with-clog-create sidebar
           (div (:class "w3-border")
                (form (:bind new-channel-form :class "w3-section w3-row")
-                     (form-element (:bind new-channel-form-input
-                                     :text
-                                     :class "w3-col s9"
-                                     :name "name"))
+                     (form-element (:text
+                                    :class "w3-col s9"
+                                    :name "name"))
                      (button (:class "fa fa-plus-circle w3-button w3-col s3"))))
         (center-children new-channel-form)
         (set-on-submit new-channel-form

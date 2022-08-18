@@ -3,7 +3,8 @@
   (:use :cl :clog :clog-web :ackfock.model-definition)
   (:import-from :ackfock.auth
                 #:current-user)
-  (:export #:*color-class*))
+  (:export #:*color-class*
+           #:init-site))
 (in-package :ackfock.theme)
 
 (defparameter *color-class* "w3-khaki")

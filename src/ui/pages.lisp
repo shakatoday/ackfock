@@ -54,7 +54,7 @@
                      (user (when (> (length path-name) (length "/activate/"))
                              (ackfock.authenticate-user-email:authenticate-user-email (subseq path-name (length "/activate/")))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
                 (cond (user
-                       (setf (current-user body) user)
+                       (setf (ackfock.auth:current-user body) user)
                        (clog-web-initialize body)
                        (clog-web-alert body
                                        "Success"
@@ -132,4 +132,4 @@
               (let ((ackfock.ui.main-page:*current-user* (profile (init-site body))))
                 (create-web-page body
                                  :index
-                                 `(:content ,#'ackfock.perceivable.main-page:main-content)))))
+                                 `(:content ,#'ackfock.ui.main-page:content)))))
