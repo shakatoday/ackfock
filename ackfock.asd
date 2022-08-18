@@ -41,8 +41,8 @@
                (:module "src"
                 :depends-on ("www")
                 :components
-                ((:file "ackfock" :depends-on ("auth" "ui"))
-                 (:module "ui"
+                ((:file "ackfock" :depends-on ("games" "auth"))
+                 (:module "games"
                   :depends-on ("model"
                                "model-definition"
                                "invitation"

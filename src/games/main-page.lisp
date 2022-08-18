@@ -1,9 +1,9 @@
 (in-package :cl-user)
-(defpackage ackfock.ui.main-page
+(defpackage ackfock.game.main-page
   (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.model-definition)
   (:export #:*current-user*
            #:content))
-(in-package :ackfock.ui.main-page)
+(in-package :ackfock.game.main-page)
 
 (defvar *current-user*)
 
@@ -13,8 +13,8 @@
                    (div (:content "<b>Channels</b>" :class "w3-margin-top")))
     (add-card-look sidebar)
     (setf (z-index sidebar) 2)
-    (let* ((ackfock.ui.view:*body-location* (location body))
-           (ackfock.ui.view:*window* (window body))
+    (let* ((ackfock.game.view:*body-location* (location body))
+           (ackfock.game.view:*window* (window body))
            (sidebar-menu-button-for-mobile (connection-data-item body :sidebar-menu-button-for-mobile))
            (channel-content (create-div body))
            (channels (cons (make-private-channel) ; for user-private-memos
@@ -44,13 +44,13 @@
                                  (remove-class current-sidebar-item "w3-blue-gray")
                                  (setf current-sidebar-item sidebar-item)
                                  (add-class sidebar-item "w3-blue-gray")
-                                 (let ((ackfock.ui.view:*body-location* (location body))
-                                       (ackfock.ui.view:*window* (window body)))
-                                   (ackfock.ui.view:render channel
-                                                           current-user
-                                                           (ackfock.ui.view:make-main-page-env :sidebar-item sidebar-item
-                                                                                               :web-content channel-content
-                                                                                               :post-render-hash ackfock.ui.view:*bottom-new-memo-container-html-id*)))))))
+                                 (let ((ackfock.game.view:*body-location* (location body))
+                                       (ackfock.game.view:*window* (window body)))
+                                   (ackfock.game.view:render channel
+                                                             current-user
+                                                             (ackfock.game.view:make-main-page-env :sidebar-item sidebar-item
+                                                                                                   :web-content channel-content
+                                                                                                   :post-render-hash ackfock.game.view:*bottom-new-memo-container-html-id*)))))))
       (with-clog-create sidebar
           (div (:class "w3-border")
                (form (:bind new-channel-form :class "w3-section w3-row")
@@ -81,10 +81,10 @@
                                    :key (lambda (element) (channel-uuid (getf element :channel)))
                                    :test #'string=)))
         (setf current-sidebar-item (getf channel-select :sidebar-item))
-        (ackfock.ui.view:render (getf channel-select :channel)
-                                *current-user*
-                                (ackfock.ui.view:make-main-page-env :sidebar-item current-sidebar-item
-                                                                    :web-content channel-content
-                                                                    :post-render-hash (or memo-div-html-id
-                                                                                          ackfock.ui.view:*bottom-new-memo-container-html-id*))))
+        (ackfock.game.view:render (getf channel-select :channel)
+                                  *current-user*
+                                  (ackfock.game.view:make-main-page-env :sidebar-item current-sidebar-item
+                                                                        :web-content channel-content
+                                                                        :post-render-hash (or memo-div-html-id
+                                                                                              ackfock.game.view:*bottom-new-memo-container-html-id*))))
       (add-class current-sidebar-item "w3-blue-gray"))))

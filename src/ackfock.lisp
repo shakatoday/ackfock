@@ -33,6 +33,6 @@
 	                                    (asdf:system-source-directory :ackfock))
 	      :boot-function (clog-web-meta
 			      "Ackfock is a platform of mini agreements and mini memos of understanding."))
-  (ackfock.ui.pages:define-all)
+  (ackfock.game.pages:define-all)
   (when open-browser-p
     (open-browser)))

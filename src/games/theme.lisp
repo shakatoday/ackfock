@@ -1,11 +1,11 @@
 (in-package :cl-user)
-(defpackage ackfock.ui.theme
+(defpackage ackfock.game.theme
   (:use :cl :clog :clog-web :ackfock.model-definition)
   (:import-from :ackfock.auth
                 #:current-user)
   (:export #:*color-class*
            #:init-site))
-(in-package :ackfock.ui.theme)
+(in-package :ackfock.game.theme)
 
 (defparameter *color-class* "w3-khaki")
 
