@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage ackfock.view
+(defpackage ackfock.ui.view
   (:use :cl :ackfock.model-definition :clog :clog-web)
   (:export #:render
            #:make-main-page-env
@@ -7,7 +7,7 @@
            #:*body-location*
            #:*window*
            #:*hash-scroll-work-around-px*))
-(in-package :ackfock.view)
+(in-package :ackfock.ui.view)
 
 (defvar *body-location*)
 
@@ -32,9 +32,11 @@
   (format nil " ~{~a~^, ~}" (mapcar #'user-username
                                     (mapcar #'user-ackfock-user
                                             (cdr (assoc ack-or-fock
-                                                        (ackfock.model:memo-latest-ackfocks-per-user-by-ackfock current-user
+n                                                        (ackfock.model:memo-latest-ackfocks-per-user-by-ackfock current-user
                                                                                                                 memo)
                                                         :test #'string=))))))
+
+(defgeneric render (model-obj current-user &optional env))
 
 (defmethod render ((model-obj memo) (current-user user) &optional env)
   (cond ((channel-content-p env)
@@ -139,7 +141,7 @@
                                                          :class "w3-input")))
                                          (button (:bind memo-update-reply-submit-btn
                                                    :content "Submit"
-                                                   :class (str:concat "w3-button " ackfock.theme:*color-class*)))
+                                                   :class (str:concat "w3-button " ackfock.ui.theme:*color-class*)))
                                          (button (:bind memo-update-reply-cancel-btn
                                                    :content "Cancel"
                                                    :class (str:concat "w3-button w3-black w3-margin-left"))))
@@ -248,10 +250,10 @@
                                                  (mapcar #'user-username
                                                          (channel-users model-obj)))))
                         (span (:bind invite-to-channel-btn
-                                :class (str:concat "w3-button fa fa-user-plus w3-margin-left " ackfock.theme:*color-class*))
+                                :class (str:concat "w3-button fa fa-user-plus w3-margin-left " ackfock.ui.theme:*color-class*))
                               (div (:class "w3-small")))
                         (span (:bind link-invitation-btn
-                                :class (str:concat "w3-button fa fa-link w3-margin-left " ackfock.theme:*color-class*))
+                                :class (str:concat "w3-button fa fa-link w3-margin-left " ackfock.ui.theme:*color-class*))
                               (div (:class "w3-small")))
                         (dialog (:bind invite-to-channel-dialog)
                                 (form (:bind invite-to-channel-form :method "dialog")
@@ -264,7 +266,7 @@
                                       (span (:bind invite-to-channel-submit-span)
                                             (form-element (:submit
                                                            :value "Invite"
-                                                           :class (str:concat "w3-button " ackfock.theme:*color-class*)))
+                                                           :class (str:concat "w3-button " ackfock.ui.theme:*color-class*)))
                                             (form-element (:submit
                                                            :value "Cancel"
                                                            :class "w3-button w3-black")))))
@@ -281,7 +283,7 @@
                                 (span (:bind link-invitation-submit-span)
                                       (button (:bind invitation-link-generate-btn
                                                :content "Generate"
-                                               :class (str:concat "w3-button " ackfock.theme:*color-class*)))
+                                               :class (str:concat "w3-button " ackfock.ui.theme:*color-class*)))
                                       (form (:method "dialog")
                                             (form-element (:submit
                                                            :value "Close"
@@ -345,7 +347,7 @@
              (with-clog-create channel-head-div
                  (dialog (:bind go-to-memo-div-dialog :content "Scroll to searched memo?")
                          (form (:method "dialog")
-                               (form-element (:submit :value "Yes" :class (str:concat "w3-button " ackfock.theme:*color-class*)))
+                               (form-element (:submit :value "Yes" :class (str:concat "w3-button " ackfock.ui.theme:*color-class*)))
                                (form-element (:submit :value "No" :class (str:concat "w3-button w3-black")))))
                (unless (string= (post-render-hash env) *bottom-new-memo-container-html-id*)
                  (setf (dialog-openp go-to-memo-div-dialog) t)
@@ -387,7 +389,7 @@
                                                 :class "w3-input")))
                                 (button (:bind new-memo-btn
                                           :content "Submit"
-                                          :class (str:concat "w3-button " ackfock.theme:*color-class*))))
+                                          :class (str:concat "w3-button " ackfock.ui.theme:*color-class*))))
                (setf (requiredp memo-content-input) t)
                (set-on-click new-memo-btn
                              (lambda (btn-obj)

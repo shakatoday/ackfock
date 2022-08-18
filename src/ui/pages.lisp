@@ -13,7 +13,7 @@
   (defpage "channel-invitation"
     :path "/i"
     :renderer (lambda (body)
-                (let* ((web-site (ackfock.theme:init-site body))
+                (let* ((web-site (ackfock.ui.theme:init-site body))
                        (path-name (path-name (location body)))
                        (code (when (> (length path-name) (length "/i/")) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
                                (subseq path-name (length "/i/")))))
@@ -70,7 +70,7 @@
 
   (defpage "search"
     :renderer (lambda (body)
-                (let ((web-site (ackfock.theme:init-site body)))
+                (let ((web-site (ackfock.ui.theme:init-site body)))
                   (if (profile web-site)
                       (create-web-page
                        body
@@ -82,14 +82,14 @@
                                            (create-div body :content "Empty search input")
                                            (loop for memo in (ackfock.model:search-memo (profile web-site)
                                                                                         search-input)
-                                                 do (ackfock.view:render memo
-                                                                         (profile web-site)
-                                                                         body)))))))
+                                                 do (ackfock.ui.view:render memo
+                                                                            (profile web-site)
+                                                                            body)))))))
                       (url-replace (location body) "/")))))
 
   (defpage "login"
     :renderer (lambda (body)
-                (if (profile (ackfock.theme:init-site body))
+                (if (profile (ackfock.ui.theme:init-site body))
                     (url-replace (location body) "/")
                     (create-web-page
                      body
@@ -111,7 +111,7 @@
 
   (defpage "signup"
     :renderer (lambda (body)
-                (if (profile (ackfock.theme:init-site body))
+                (if (profile (ackfock.ui.theme:init-site body))
                     (url-replace (location body) "/")
                     (create-web-page body
 		                     :signup `(:menu    ,'(())
@@ -121,7 +121,7 @@
   (defpage "change-password"
     :path "/pass"
     :renderer (lambda (body)
-                (if (profile (ackfock.theme:init-site body))
+                (if (profile (ackfock.ui.theme:init-site body))
                     (create-web-page body
 		                     :change-password `(:menu    ,'(())
 				                        :content ,(lambda (body)
@@ -131,7 +131,7 @@
   (defpage "main"
     :path "/"
     :renderer (lambda (body)
-                (let ((ackfock.ui.main-page:*current-user* (profile (ackfock.theme:init-site body))))
+                (let ((ackfock.ui.main-page:*current-user* (profile (ackfock.ui.theme:init-site body))))
                   (create-web-page body
                                    :index
                                    `(:content ,#'ackfock.ui.main-page:content))))))
