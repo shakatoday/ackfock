@@ -23,7 +23,7 @@
   sidebar-item web-content post-gamify-hash)
 
 (defstruct channel-content
-  re-renderer web-content)
+  re-gamifier web-content)
 
 (defun make-memo-div-html-id (memo)
   (str:concat "memo-div-" (memo-uuid memo)))
@@ -116,7 +116,7 @@
                                                                  "<b>~a</b>: ~a..."
                                                                  (user-username (memo-creator rutils:it))
                                                                  (str:substring 0 100 (memo-content rutils:it)))))
-             (flet ((ackfock-memo-and-rerender-handler (ackfock)
+             (flet ((ackfock-memo-and-regamify-handler (ackfock)
                       (lambda (obj)
                         (declare (ignore obj))
                         (when (ackfock.model:ackfock-memo current-user
@@ -125,8 +125,8 @@
                           ;; regamify. memory leak?
                           (setf (inner-html ack-usernames-span) (latest-ackfock-users current-user model-obj "ACK"))
                           (setf (inner-html fock-usernames-span) (latest-ackfock-users current-user model-obj "FOCK"))))))
-               (set-on-click ack-btn (ackfock-memo-and-rerender-handler "ACK"))
-               (set-on-click fock-btn (ackfock-memo-and-rerender-handler "FOCK")))
+               (set-on-click ack-btn (ackfock-memo-and-regamify-handler "ACK"))
+               (set-on-click fock-btn (ackfock-memo-and-regamify-handler "FOCK")))
              (flet ((memo-update-reply-handler (memo-update-reply-btn)
                       (setf (inner-html memo-update-reply-div) "") ; memory leak?
                       (with-clog-create memo-update-reply-div
@@ -163,7 +163,7 @@
                                                                            (text-value memo-content-input)
                                                                            :as-an-update-p (str:containsp "Update"
                                                                                                           (text memo-update-reply-btn)))
-                                                 (funcall (channel-content-re-renderer env)))))))))
+                                                 (funcall (channel-content-re-gamifier env)))))))))
                (set-on-click memo-reply-btn #'memo-update-reply-handler))
              memo-div)))
         ((typep env 'clog-obj)
@@ -369,12 +369,12 @@
              (setf (height (create-div web-content)) (height channel-head-div))
              (let* ((body-location *body-location*)
                     (window *window*)
-                    (re-renderer (lambda ()
+                    (re-gamifier (lambda ()
                                    (let ((*body-location* body-location)
                                          (*window* window))
                                      (gamify model-obj current-user env))))
                     (memo-env (make-channel-content :web-content web-content
-                                                    :re-renderer re-renderer)))
+                                                    :re-gamifier re-gamifier)))
                (loop for memo in (if (private-channel-p model-obj)
                                      (user-private-memos current-user)
                                      (channel-memos model-obj))
@@ -404,6 +404,6 @@
                                                                   model-obj ; will check the null case inside the function
                                                                   (text-value memo-content-input))
                                           
-                                          (funcall re-renderer)))))
+                                          (funcall re-gamifier)))))
                  (setf (hash *body-location*) "")
                  (setf (hash *body-location*) *bottom-new-memo-container-html-id*))))))))
