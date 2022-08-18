@@ -49,9 +49,9 @@
                                "auth"
                                "authenticate-user-email"
                                "db")
-                  :components ((:file "pages" :depends-on ("main-page" "view" "theme"))
-                               (:file "main-page" :depends-on ("view"))
-                               (:file "view" :depends-on ("theme"))
+                  :components ((:file "pages" :depends-on ("main-page" "game" "theme"))
+                               (:file "main-page" :depends-on ("game"))
+                               (:file "game" :depends-on ("theme"))
                                (:file "theme")))
                  (:file "auth" :depends-on ("authenticate-user-email" "model-definition" "utils" "db"))
                  (:file "authenticate-user-email" :depends-on ("model-definition" "utils" "db"))

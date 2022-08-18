@@ -1,5 +1,5 @@
 (in-package :cl-user)
-(defpackage ackfock.game.view
+(defpackage ackfock.game
   (:use :cl :ackfock.model-definition :clog :clog-web)
   (:export #:render
            #:make-main-page-env
@@ -7,7 +7,7 @@
            #:*body-location*
            #:*window*
            #:*hash-scroll-work-around-px*))
-(in-package :ackfock.game.view)
+(in-package :ackfock.game)
 
 (defvar *body-location*)
 

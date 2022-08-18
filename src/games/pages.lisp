@@ -82,9 +82,9 @@
                                            (create-div body :content "Empty search input")
                                            (loop for memo in (ackfock.model:search-memo (profile web-site)
                                                                                         search-input)
-                                                 do (ackfock.game.view:render memo
-                                                                              (profile web-site)
-                                                                              body)))))))
+                                                 do (ackfock.game:render memo
+                                                                         (profile web-site)
+                                                                         body)))))))
                       (url-replace (location body) "/")))))
 
   (defpage "login"
