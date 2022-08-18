@@ -41,8 +41,18 @@
                (:module "src"
                 :depends-on ("www")
                 :components
-                ((:file "ackfock" :depends-on ("main-page" "view" "theme" "auth" "db"))
-                 (:file "main-page" :depends-on ("view" "theme" "model" "model-definition"))
+                ((:file "ackfock" :depends-on ("auth" "ui"))
+                 (:module "ui"
+                  :depends-on ("theme"
+                               "view"
+                               "model"
+                               "model-definition"
+                               "invitation"
+                               "auth"
+                               "authenticate-user-email"
+                               "db")
+                  :components ((:file "pages" :depends-on ("main-page"))
+                               (:file "main-page")))
                  (:file "view" :depends-on ("theme" "invitation" "model" "model-definition"))
                  (:file "theme" :depends-on ("auth" "model-definition"))
                  (:file "auth" :depends-on ("authenticate-user-email" "model-definition" "utils" "db"))
