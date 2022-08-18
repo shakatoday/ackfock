@@ -4,29 +4,6 @@
   (:export #:start-app))
 (in-package :ackfock)
 
-(defparameter *routes* `(("Account" (("Login"
-                                      "/login"
-                                      on-login)
-				     ("Signup"
-                                      "/signup"
-                                      on-signup)
-                                     ("Activate"
-                                      "/activate"
-                                      on-activate)
-				     ("Change Password"
-                                      "/pass"
-                                      on-new-pass)
-				     ("Logout"
-                                      "/logout"
-                                      on-logout)))
-                         ("Content" (("Search"
-                                      "/search"
-                                      on-search)))
-                         ("Channel" (("Invitation"
-                                      "/i"
-                                      on-invitation))))
-  "Setup website routes")
-
 (defparameter *landing-page*
   (with-open-file (stream (merge-pathnames #P"www/index.html" (asdf:system-source-directory :ackfock)))
     (let ((content (make-string (file-length stream))))
@@ -56,6 +33,6 @@
 	                                    (asdf:system-source-directory :ackfock))
 	      :boot-function (clog-web-meta
 			      "Ackfock is a platform of mini agreements and mini memos of understanding."))
-  (clog-web-routes-from-menu *routes*)
+  (ackfock.ui.pages:define-all)
   (when open-browser-p
     (open-browser)))
