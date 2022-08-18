@@ -82,7 +82,7 @@
                                            (create-div body :content "Empty search input")
                                            (loop for memo in (ackfock.model:search-memo (profile web-site)
                                                                                         search-input)
-                                                 do (ackfock.game:render memo
+                                                 do (ackfock.game:gamify memo
                                                                          (profile web-site)
                                                                          body)))))))
                       (url-replace (location body) "/")))))

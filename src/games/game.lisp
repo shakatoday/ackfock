@@ -1,7 +1,7 @@
 (in-package :cl-user)
 (defpackage ackfock.game
   (:use :cl :ackfock.model-definition :clog :clog-web)
-  (:export #:render
+  (:export #:gamify
            #:make-main-page-env
            #:*bottom-new-memo-container-html-id*
            #:*body-location*
@@ -20,7 +20,7 @@
 (defparameter *hash-scroll-work-around-px* 124)
 
 (defstruct (main-page-env (:conc-name nil))
-  sidebar-item web-content post-render-hash)
+  sidebar-item web-content post-gamify-hash)
 
 (defstruct channel-content
   re-renderer web-content)
@@ -36,9 +36,9 @@
                                                                                                                 memo)
                                                         :test #'string=))))))
 
-(defgeneric render (model-obj current-user &optional env))
+(defgeneric gamify (model-obj current-user &optional env))
 
-(defmethod render ((model-obj memo) (current-user user) &optional env)
+(defmethod gamify ((model-obj memo) (current-user user) &optional env)
   (cond ((channel-content-p env)
          (let ((web-content (channel-content-web-content env)))
            (with-clog-create web-content
@@ -122,7 +122,7 @@
                         (when (ackfock.model:ackfock-memo current-user
                                                           model-obj
                                                           ackfock)
-                          ;; rerender. memory leak?
+                          ;; regamify. memory leak?
                           (setf (inner-html ack-usernames-span) (latest-ackfock-users current-user model-obj "ACK"))
                           (setf (inner-html fock-usernames-span) (latest-ackfock-users current-user model-obj "FOCK"))))))
                (set-on-click ack-btn (ackfock-memo-and-rerender-handler "ACK"))
@@ -193,7 +193,7 @@
                                                      "")))
            memo-div))))
 
-(defmethod render ((model-obj channel) (current-user user) &optional env)
+(defmethod gamify ((model-obj channel) (current-user user) &optional env)
   (cond ((main-page-env-p env)
          (let ((web-content (web-content env)))
            (setf (inner-html web-content) "") ; memory leak? clog has destroy [generic-function] DESTROY CLOG-ELEMENT
@@ -349,7 +349,7 @@
                          (form (:method "dialog")
                                (form-element (:submit :value "Yes" :class (str:concat "w3-button " ackfock.game.theme:*color-class*)))
                                (form-element (:submit :value "No" :class (str:concat "w3-button w3-black")))))
-               (unless (string= (post-render-hash env) *bottom-new-memo-container-html-id*)
+               (unless (string= (post-gamify-hash env) *bottom-new-memo-container-html-id*)
                  (setf (dialog-openp go-to-memo-div-dialog) t)
                  (let ((body-location *body-location*)
                        (browser-window *window*))
@@ -359,7 +359,7 @@
                                    (declare (ignore dialog-obj))
                                    (when (string= (return-value go-to-memo-div-dialog) "Yes")
                                      (setf (hash body-location) "")
-                                     (setf (hash body-location) (post-render-hash env))
+                                     (setf (hash body-location) (post-gamify-hash env))
                                      (scroll-by browser-window
                                                 0
                                                 (- *hash-scroll-work-around-px*))))))))
@@ -372,13 +372,13 @@
                     (re-renderer (lambda ()
                                    (let ((*body-location* body-location)
                                          (*window* window))
-                                     (render model-obj current-user env))))
+                                     (gamify model-obj current-user env))))
                     (memo-env (make-channel-content :web-content web-content
                                                     :re-renderer re-renderer)))
                (loop for memo in (if (private-channel-p model-obj)
                                      (user-private-memos current-user)
                                      (channel-memos model-obj))
-                     do (render memo
+                     do (gamify memo
                                 current-user
                                 memo-env))
                (with-clog-create web-content

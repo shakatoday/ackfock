@@ -46,11 +46,11 @@
                                  (add-class sidebar-item "w3-blue-gray")
                                  (let ((ackfock.game:*body-location* (location body))
                                        (ackfock.game:*window* (window body)))
-                                   (ackfock.game:render channel
+                                   (ackfock.game:gamify channel
                                                         current-user
                                                         (ackfock.game:make-main-page-env :sidebar-item sidebar-item
                                                                                          :web-content channel-content
-                                                                                         :post-render-hash ackfock.game:*bottom-new-memo-container-html-id*)))))))
+                                                                                         :post-gamify-hash ackfock.game:*bottom-new-memo-container-html-id*)))))))
       (with-clog-create sidebar
           (div (:class "w3-border")
                (form (:bind new-channel-form :class "w3-section w3-row")
@@ -81,10 +81,10 @@
                                    :key (lambda (element) (channel-uuid (getf element :channel)))
                                    :test #'string=)))
         (setf current-sidebar-item (getf channel-select :sidebar-item))
-        (ackfock.game:render (getf channel-select :channel)
+        (ackfock.game:gamify (getf channel-select :channel)
                              *current-user*
                              (ackfock.game:make-main-page-env :sidebar-item current-sidebar-item
                                                               :web-content channel-content
-                                                              :post-render-hash (or memo-div-html-id
+                                                              :post-gamify-hash (or memo-div-html-id
                                                                                     ackfock.game:*bottom-new-memo-container-html-id*))))
       (add-class current-sidebar-item "w3-blue-gray"))))
