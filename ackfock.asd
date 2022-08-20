@@ -50,11 +50,11 @@
                                "auth"
                                "authenticate-user-email"
                                "db")
-                  :components ((:file "pages" :depends-on ("main-page" "game" "theme"))
+                  :components ((:file "game")
+                               (:file "pages" :depends-on ("main-page" "game" "theme"))
                                (:file "main-page" :depends-on ("game"))
                                (:file "memo" :depends-on ("channel" "game"))
                                (:file "channel" :depends-on ("game"))
-                               (:file "game" :depends-on ("theme"))
                                (:file "theme")))
                  (:file "auth" :depends-on ("authenticate-user-email" "model-definition" "utils" "db"))
                  (:file "authenticate-user-email" :depends-on ("model-definition" "utils" "db"))
