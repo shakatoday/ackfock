@@ -80,8 +80,8 @@
                                                                (web-auto-column (:content (local-time:format-timestring nil
                                                                                                                         (user-ackfock-created-at user-ackfock)
                                                                                                                         :format local-time:+rfc-1123-format+))))
-                                               (setf (visiblep history-ack-column) (string= (user-ackfock-ackfock user-ackfock) "ACK"))
-                                               (setf (visiblep history-fock-column) (string= (user-ackfock-ackfock user-ackfock) "FOCK"))))
+                                               (setf (visiblep history-ack-column) (eq (user-ackfock-ackfock user-ackfock) :ack))
+                                               (setf (visiblep history-fock-column) (eq (user-ackfock-ackfock user-ackfock) :fock))))
                                     (add-class ackfock-history-div "w3-animate-right")))))
              (rutils:when-it (memo-parent-memo model-obj)
                (add-class memo-reply-snippet-div *memo-reply-link-class*)

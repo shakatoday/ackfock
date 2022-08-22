@@ -46,16 +46,16 @@
   (let ((copy-plist (copy-list plist)))
     (remf copy-plist :created-at)
     (make-user-ackfock :user (user-from-plist copy-plist)
-                       :ackfock (getf plist :ackfock)
+                       :ackfock (string-to-ackfock (getf plist :ackfock))
                        :created-at (datetime-to-timestamp (getf plist :created-at)))))
 
 (defun user-ackfock-list-to-alist-by-ackfock (user-ackfock-list)
   (list (cons "ACK"
-              (remove-if-not (lambda (ackfock) (string= ackfock "ACK"))
+              (remove-if-not (lambda (ackfock) (eq ackfock :ack))
                              user-ackfock-list
                              :key #'user-ackfock-ackfock))
         (cons "FOCK"
-              (remove-if-not (lambda (ackfock) (string= ackfock "FOCK"))
+              (remove-if-not (lambda (ackfock) (eq ackfock :fock))
                              user-ackfock-list
                              :key #'user-ackfock-ackfock))))
 
@@ -163,7 +163,7 @@
                                ackfock)
                         (returning :created_at)))
                      (list :user current-user
-                           :ackfock ackfock))))))
+                           :ackfock (string-to-ackfock ackfock)))))))
 
 (defun-with-db-connection user-by-email (email)
   (when (and (str:non-blank-string-p email)

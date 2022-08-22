@@ -49,9 +49,10 @@
 
 (deftype ackfock () '(member :ACK :FOCK)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
 
-;; memo-user-ackfocks should be a function in model.lisp
 (defstruct user-ackfock
-  user ackfock created-at)
+  user
+  (ackfock nil :type (or ackfock nil))
+  created-at)
 
 (defmodel (user (:inflate created-at #'datetime-to-timestamp))
   uuid
