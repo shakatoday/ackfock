@@ -54,9 +54,9 @@
     :renderer (lambda (body)
                 (let* ((path-name (path-name (location body)))
                        (user (when (> (length path-name) (length "/activate/"))
-                               (ackfock.authenticate-user-email:authenticate-user-email (subseq path-name (length "/activate/")))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
+                               (ackfock.feature.email-activation:activate-user-email (subseq path-name (length "/activate/")))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
                   (cond (user
-                         (setf (ackfock.auth:current-user body) user)
+                         (setf (ackfock.feature.auth:current-user body) user)
                          (clog-web-initialize body)
                          (clog-web-alert body
                                          "Success"
@@ -95,10 +95,10 @@
                      body
                      :login `(:menu      ,'(())
 	                      :on-submit ,(lambda (obj)
-			                    (if (ackfock.auth:login body
-                                                                    (ackfock.db:db)
-				                                    (name-value obj "email")
-				                                    (name-value obj "password"))
+			                    (if (ackfock.feature.auth:login body
+                                                                            (ackfock.db:db)
+				                                            (name-value obj "email")
+				                                            (name-value obj "password"))
 			                        (url-replace (location body) "/")
 			                        (clog-web-alert obj "Invalid" "The email and password are invalid."
 					                        :time-out 3
@@ -106,7 +106,7 @@
 
   (defpage "logout"
     :renderer (lambda (body)
-                (ackfock.auth:logout body)
+                (ackfock.feature.auth:logout body)
                 (url-replace (location body) "/")))
 
   (defpage "signup"
@@ -116,7 +116,7 @@
                     (create-web-page body
 		                     :signup `(:menu    ,'(())
 			                       :content ,(lambda (body)
-					                   (ackfock.auth:sign-up body (ackfock.db:db))))))))
+					                   (ackfock.feature.auth:sign-up body (ackfock.db:db))))))))
 
   (defpage "change-password"
     :path "/pass"
@@ -125,7 +125,7 @@
                     (create-web-page body
 		                     :change-password `(:menu    ,'(())
 				                        :content ,(lambda (body)
-						                    (ackfock.auth:change-password body (ackfock.db:db)))))
+						                    (ackfock.feature.auth:change-password body (ackfock.db:db)))))
                     (url-replace (location body) "/"))))
 
   (defpage "main"

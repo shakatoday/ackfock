@@ -2,13 +2,13 @@
 (defpackage ackfock.utils
   (:use :cl)
   (:export #:*email-validator*
-           #:send-authentication-email
+           #:send-activation-email
            #:ensure-plist))
 (in-package :ackfock.utils)
 
 (defvar *email-validator* (make-instance 'clavier:email-validator))
 
-(defun send-authentication-email (email recipient-name link)
+(defun send-activation-email (email recipient-name link)
   (sendgrid:send-email :to email
                        :subject (format nil "Hi ~a, please verify your Ackfock account"
                                         recipient-name)

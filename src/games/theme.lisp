@@ -1,7 +1,7 @@
 (in-package :cl-user)
 (defpackage ackfock.game.theme
   (:use :cl :clog :clog-web :ackfock.model-definition)
-  (:import-from :ackfock.auth
+  (:import-from :ackfock.feature.auth
                 #:current-user)
   (:export #:*color-class*
            #:init-site))

@@ -1,12 +1,12 @@
 (in-package :cl-user)
-(defpackage ackfock.auth
-  (:use :cl :clog :clog-web :ackfock.authenticate-user-email)
+(defpackage ackfock.feature.auth
+  (:use :cl :clog :clog-web :ackfock.feature.email-activation)
   (:export #:login
            #:sign-up
            #:current-user
            #:change-password
            #:logout))
-(in-package :ackfock.auth)
+(in-package :ackfock.feature.auth)
 
 (defun current-user (clog-obj)
   (gethash :current-user
@@ -152,12 +152,12 @@ if one is present and login fails."
                                                          :password (cl-pass:hash password))
                                               (sxql:returning :*))
                                             :as 'ackfock.model-definition:user))))
-                           (ackfock.utils:send-authentication-email email
-                                                                    username
-                                                                    (format nil
-                                                                            "~a/activate/~a"
-                                                                            ackfock.config:*application-url*
-                                                                            (ackfock.model-definition:authentication-code-code (create-authentication-code email))))
+                           (ackfock.utils:send-activation-email email
+                                                                username
+                                                                (format nil
+                                                                        "~a/activate/~a"
+                                                                        ackfock.config:*application-url*
+                                                                        (ackfock.model-definition:activation-code-code (create-activation-code email))))
                            (setf (current-user body) new-user)
                            (url-replace (location body)
                                         next-step))))))))))))

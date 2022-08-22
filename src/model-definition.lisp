@@ -33,10 +33,10 @@
            #:memo-creator
            #:memo-creator-id
            #:memo-parent-memo-id
-           #:authentication-code-code
-           #:authentication-code-email
-           #:authentication-code-valid-until
-           #:authentication-code
+           #:activation-code-code
+           #:activation-code-email
+           #:activation-code-valid-until
+           #:activation-code
            #:memo-parent-memo
            #:invitation-code
            #:invitation-code-code
@@ -78,8 +78,8 @@
   channel-id
   created-at)
 
-(defmodel (authentication-code (:inflate created-at #'datetime-to-timestamp)
-                               (:inflate valid-until #'datetime-to-timestamp))
+(defmodel (activation-code (:inflate created-at #'datetime-to-timestamp)
+                           (:inflate valid-until #'datetime-to-timestamp))
   email
   code
   created-at

@@ -47,8 +47,7 @@
                   :depends-on ("model"
                                "model-definition"
                                "invitation"
-                               "auth"
-                               "authenticate-user-email"
+                               "features"
                                "db")
                   :components ((:file "game")
                                (:file "pages" :depends-on ("main-page" "game" "theme"))
@@ -56,8 +55,10 @@
                                (:file "memo" :depends-on ("channel" "game"))
                                (:file "channel" :depends-on ("game"))
                                (:file "theme")))
-                 (:file "auth" :depends-on ("authenticate-user-email" "model-definition" "utils" "db"))
-                 (:file "authenticate-user-email" :depends-on ("model-definition" "utils" "db"))
+                 (:module "features"
+                  :depends-on ("model-definition" "utils" "db")
+                  :components ((:file "auth" :depends-on ("email-activation"))
+                               (:file "email-activation")))
                  (:file "invitation" :depends-on ("model" "model-definition" "utils" "db"))
                  (:file "model" :depends-on ("model-definition" "utils" "db" "config"))
                  (:file "utils")
