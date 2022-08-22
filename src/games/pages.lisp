@@ -29,10 +29,10 @@
                                                                          (url-replace (location body) "/login")))
                                                     3))
                             (t
-                             (ackfock.invitation:consume-invitation-code (profile web-site)
-                                                                         code)
+                             (ackfock.feature.channel-invitation:consume-invitation-code (profile web-site)
+                                                                                         code)
                              (url-replace (location body) "/")))
-                    (ackfock.invitation:no-such-code ()
+                    (ackfock.feature.channel-invitation:no-such-code ()
                       (create-web-page body
                                        :index
                                        `(:content ,(lambda (body)
@@ -40,13 +40,13 @@
                                                                      "Not Exists"
                                                                      "No such invitation link"
                                                                      :color-class "w3-red")))))
-                    (ackfock.invitation:invalid-code (invalid-code-condition)
+                    (ackfock.feature.channel-invitation:invalid-code (invalid-code-condition)
                       (create-web-page body
                                        :index
                                        `(:content ,(lambda (body)
                                                      (clog-web-alert body
                                                                      "Invalid"
-                                                                     (ackfock.invitation:text invalid-code-condition)
+                                                                     (ackfock.feature.channel-invitation:condition-message invalid-code-condition)
                                                                      :color-class "w3-red")))))))))
 
   (defpage "account-activation"
@@ -80,8 +80,8 @@
                                                                          "q")))
                                        (if (str:blankp search-input)
                                            (create-div body :content "Empty search input")
-                                           (loop for memo in (ackfock.model:search-memo (profile web-site)
-                                                                                        search-input)
+                                           (loop for memo in (ackfock.feature.search:search-memo (profile web-site)
+                                                                                                 search-input)
                                                  do (ackfock.game:gamify memo
                                                                          (profile web-site)
                                                                          body)))))))

@@ -1,18 +1,16 @@
 (in-package :cl-user)
-(defpackage ackfock.invitation
-  (:use :cl :datafly :sxql :ackfock.model-definition)
+(defpackage ackfock.feature.channel-invitation
+  (:use :cl :datafly :sxql :ackfock.model)
   (:import-from :ackfock.db
                 #:defun-with-db-connection)
-  (:import-from :ackfock.model
-                #:has-access-p)
   (:export #:*invitation-code-expiration-message*
            #:*invitation-code-had-been-consumed-message*
            #:consume-invitation-code
            #:create-invitation-code
            #:no-such-code
            #:invalid-code
-           #:text))
-(in-package :ackfock.invitation)
+           #:condition-message))
+(in-package :ackfock.feature.channel-invitation)
 
 (defparameter *invitation-code-expiration-message* "Invitation link has already expired.")
 
@@ -35,14 +33,14 @@
        :as 'invitation-code))))
 
 (define-condition invitation-code-consumption-error (error)
-  ((text :initarg :text :reader text)))
+  ((text :initarg :condition-message :reader condition-message)))
 
 (define-condition no-such-code (invitation-code-consumption-error)
-  ((text :initarg :text :reader text)))
+  ((text :initarg :condition-message :reader condition-message)))
 
 (define-condition invalid-code (invitation-code-consumption-error)
   ;; expired or already consumed
-  ((text :initarg :text :reader text)))
+  ((text :initarg :condition-message :reader condition-message)))
 
 (defun get-invitation-code-by-code (code)
   (retrieve-one
@@ -57,12 +55,12 @@
     (let ((invitation-code (get-invitation-code-by-code code))
           (now (local-time:now)))
       (unless invitation-code
-        (error 'no-such-code :text (format nil "No such code: ~a." code)))
+        (error 'no-such-code :condition-message (format nil "No such code: ~a." code)))
       (unless (local-time:timestamp<= now ; otherwise the code is timeout
                                       (invitation-code-valid-until invitation-code))
-        (error 'invalid-code :text *invitation-code-expiration-message*))
+        (error 'invalid-code :condition-message *invitation-code-expiration-message*))
       (when (invitation-code-used-by-user-id invitation-code)
-        (error 'invalid-code :text *invitation-code-had-been-consumed-message*))
+        (error 'invalid-code :condition-message *invitation-code-had-been-consumed-message*))
       (execute
        (insert-into :user_channel_access
          (set= :user_id (user-uuid current-user)

@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.game.memo
-  (:use :cl :ackfock.model-definition :ackfock.game.channel :clog :clog-web)
+  (:use :cl :ackfock.model :ackfock.game.channel :clog :clog-web)
   (:import-from :ackfock.game
                 #:gamify
                 #:*body-location*
@@ -17,8 +17,8 @@
   (format nil " ~{~a~^, ~}" (mapcar #'user-username
                                     (mapcar #'user-ackfock-user
                                             (cdr (assoc ack-or-fock
-                                                        (ackfock.model:memo-latest-ackfocks-per-user-by-ackfock current-user
-                                                                                                                memo)
+                                                        (ackfock.features:memo-latest-ackfocks-per-user-by-ackfock current-user
+                                                                                                                   memo)
                                                         :test #'string=))))))
 
 (defmethod gamify ((model-obj memo) (current-user user) &optional env)
@@ -71,7 +71,7 @@
                                     (add-class ackfock-history-btn "fa-long-arrow-left")
                                     (add-class ackfock-history-btn "w3-black")
                                     (setf (text ackfock-history-btn) " Hide History")
-                                    (loop for user-ackfock in (ackfock.model:memo-user-ackfocks current-user model-obj)
+                                    (loop for user-ackfock in (ackfock.features:memo-user-ackfocks current-user model-obj)
                                           do (with-clog-create ackfock-history-div
                                                  (web-auto-row (:class "w3-margin w3-border-bottom")
                                                                (web-auto-column (:content (user-username (user-ackfock-user user-ackfock))))
@@ -102,9 +102,9 @@
              (flet ((ackfock-memo-and-regamify-handler (ackfock)
                       (lambda (obj)
                         (declare (ignore obj))
-                        (when (ackfock.model:ackfock-memo current-user
-                                                          model-obj
-                                                          ackfock)
+                        (when (ackfock.features:ackfock-memo current-user
+                                                             model-obj
+                                                             ackfock)
                           ;; regamify. memory leak?
                           (setf (inner-html ack-usernames-span) (latest-ackfock-users current-user model-obj "ACK"))
                           (setf (inner-html fock-usernames-span) (latest-ackfock-users current-user model-obj "FOCK"))))))
@@ -141,11 +141,11 @@
                                                                                                             :time-out 3
                                                                                                             :place-top t))
                                               ;; XSS danger!
-                                              (t (ackfock.model:reply-memo current-user
-                                                                           model-obj
-                                                                           (text-value memo-content-input)
-                                                                           :as-an-update-p (str:containsp "Update"
-                                                                                                          (text memo-update-reply-btn)))
+                                              (t (ackfock.features:reply-memo current-user
+                                                                              model-obj
+                                                                              (text-value memo-content-input)
+                                                                              :as-an-update-p (str:containsp "Update"
+                                                                                                             (text memo-update-reply-btn)))
                                                  (funcall (channel-content-re-gamifier env)))))))))
                (set-on-click memo-reply-btn #'memo-update-reply-handler))
              memo-div)))

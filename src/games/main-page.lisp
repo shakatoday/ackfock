@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.game.main-page
-  (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.model-definition)
+  (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.model)
   (:export #:*current-user*
            #:content))
 (in-package :ackfock.game.main-page)
@@ -67,8 +67,8 @@
                                                                                                   "New channel name can't be blank"
                                                                                                   :time-out 3
                                                                                                   :place-top t))
-                               (t (ackfock.model:new-channel current-user
-                                                             (name-value new-channel-form "name"))
+                               (t (ackfock.features:new-channel current-user
+                                                                (name-value new-channel-form "name"))
                                   (url-replace (location body) "/"))))))
       (set-margin-side channel-content
                        :left (format nil "~apx" (width sidebar)))

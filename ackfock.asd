@@ -44,10 +44,8 @@
                 :components
                 ((:file "ackfock" :depends-on ("games"))
                  (:module "games"
-                  :depends-on ("model"
-                               "model-definition"
-                               "invitation"
-                               "features"
+                  :depends-on ("features"
+                               "model"
                                "db")
                   :components ((:file "game")
                                (:file "pages" :depends-on ("main-page" "game" "theme"))
@@ -56,14 +54,15 @@
                                (:file "channel" :depends-on ("game"))
                                (:file "theme")))
                  (:module "features"
-                  :depends-on ("model-definition" "utils" "db")
-                  :components ((:file "auth" :depends-on ("email-activation"))
-                               (:file "email-activation")))
-                 (:file "invitation" :depends-on ("model" "model-definition" "utils" "db"))
-                 (:file "model" :depends-on ("model-definition" "utils" "db" "config"))
-                 (:file "utils")
-                 (:file "model-definition" :depends-on ("db"))
+                  :depends-on ("model" "utils" "db" "config")
+                  :components ((:file "features")
+                               (:file "search")
+                               (:file "auth" :depends-on ("email-activation"))
+                               (:file "email-activation")
+                               (:file "channel-invitation")))
+                 (:file "model" :depends-on ("db"))
                  (:file "db" :depends-on ("config"))
+                 (:file "utils")
                  (:file "config"))))
   :description ""
   :in-order-to ((test-op (test-op "ackfock-test"))))

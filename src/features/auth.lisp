@@ -32,7 +32,7 @@ if one is present and login fails."
       (setf (gethash :current-user
                      (clog-lack-session:current-session body))
             (ackfock.db:with-connection sql-connection
-              (ackfock.model-definition:user-from-plist (datafly.db::convert-row (car contents))))))))
+              (ackfock.model:user-from-plist (datafly.db::convert-row (car contents))))))))
 
 (defun logout (body)
   (remhash :current-user
@@ -66,7 +66,7 @@ if one is present and login fails."
                               (dbi:prepare
                                sql-connection
                                "select uuid, password from users where uuid=?")
-                              (list (ackfock.model-definition:user-uuid (profile (get-web-site body))))))))
+                              (list (ackfock.model:user-uuid (profile (get-web-site body))))))))
               (cond ((and contents
                           (cl-pass:check-password (form-result result "oldpass")
                                                   (getf (car contents) :|password|)))
@@ -76,7 +76,7 @@ if one is present and login fails."
                         "users"
                         `(:password ,(cl-pass:hash (form-result result "password")))
                         "uuid=?")
-                       (list (ackfock.model-definition:user-uuid (profile (get-web-site body)))))
+                       (list (ackfock.model:user-uuid (profile (get-web-site body)))))
                      (url-replace (location body) next-step))
                     (t
                      (clog-web-alert body "Old Password"
@@ -151,13 +151,13 @@ if one is present and login fails."
                                                          :username username
                                                          :password (cl-pass:hash password))
                                               (sxql:returning :*))
-                                            :as 'ackfock.model-definition:user))))
+                                            :as 'ackfock.model:user))))
                            (ackfock.utils:send-activation-email email
                                                                 username
                                                                 (format nil
                                                                         "~a/activate/~a"
                                                                         ackfock.config:*application-url*
-                                                                        (ackfock.model-definition:activation-code-code (create-activation-code email))))
+                                                                        (ackfock.model:activation-code-code (create-activation-code email))))
                            (setf (current-user body) new-user)
                            (url-replace (location body)
                                         next-step))))))))))))

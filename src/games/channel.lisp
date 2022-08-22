@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.game.channel
-  (:use :cl :ackfock.model-definition :ackfock.game :clog :clog-web)
+  (:use :cl :ackfock.model :ackfock.game :clog :clog-web)
   (:export #:channel-content-p
            #:channel-content-web-content
            #:channel-content-re-gamifier))
@@ -42,9 +42,9 @@
                                                         :place-top t)
                                         (setf (value channel-name-input) (channel-name model-obj)))
                                        (t
-                                        (ackfock.model:rename-channel current-user
-                                                                      model-obj
-                                                                      new-channel-name)
+                                        (ackfock.features:rename-channel current-user
+                                                                         model-obj
+                                                                         new-channel-name)
                                         (setf (text (sidebar-item env)) new-channel-name)))))
                              (setf (disabledp channel-name-input)
                                    (not (disabledp channel-name-input)))
@@ -122,8 +122,8 @@
                           (setf (text-value invitation-link-text-input)
                                 (str:concat ackfock.config:*application-url* "/i/"
                                             (invitation-code-code
-                                             (ackfock.invitation:create-invitation-code current-user
-                                                                                        model-obj))))))
+                                             (ackfock.feature.channel-invitation:create-invitation-code current-user
+                                                                                                        model-obj))))))
                    (set-on-click link-invitation-btn
                                  (lambda (btn-obj)
                                    (declare (ignore btn-obj))
@@ -138,7 +138,7 @@
                                (lambda (dialog-obj)
                                  (when (string= (return-value dialog-obj) "Invite")
                                    (let* ((email (name-value invite-to-channel-form "email"))
-                                          (target-user (ackfock.model:user-by-email email)))
+                                          (target-user (ackfock.features:user-by-email email)))
                                      ;; race condition gap notice
                                      (cond ((str:blankp email) (clog-web-alert channel-head-div "Blank"
                                                                                "The email field can't be blank."
@@ -153,9 +153,9 @@
                                                                                :time-out 3
                                                                                :place-top t))
                                            ;; XSS DANGER!
-                                           (t (ackfock.model:invite-to-channel current-user
-                                                                               (user-email target-user)
-                                                                               model-obj)
+                                           (t (ackfock.features:invite-to-channel current-user
+                                                                                  (user-email target-user)
+                                                                                  model-obj)
                                               (setf (text channel-members-span) (format nil
                                                                                         "~{~a~^, ~}"
                                                                                         (mapcar #'user-username
@@ -216,9 +216,9 @@
                                                                                                      "New memo can't be blank"
                                                                                                      :time-out 3
                                                                                                      :place-top t))
-                                       (t (ackfock.model:new-memo current-user
-                                                                  model-obj ; will check the null case inside the function
-                                                                  (text-value memo-content-input))
+                                       (t (ackfock.features:new-memo current-user
+                                                                     model-obj ; will check the null case inside the function
+                                                                     (text-value memo-content-input))
                                           (funcall re-gamifier)))))
                  (setf (hash *body-location*) "")
                  (setf (hash *body-location*) *bottom-new-memo-container-html-id*))))))))

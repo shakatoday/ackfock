@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.game
-  (:use :cl :ackfock.model-definition :clog :clog-web)
+  (:use :cl)
   (:export #:gamify
            #:make-main-page-env
            #:main-page-env-p

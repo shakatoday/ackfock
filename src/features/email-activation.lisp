@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.feature.email-activation
-  (:use :cl :datafly :sxql :ackfock.model-definition)
+  (:use :cl :datafly :sxql :ackfock.model)
   (:import-from :ackfock.db
                 #:defun-with-db-connection)
   (:export #:create-activation-code
