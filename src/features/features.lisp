@@ -11,11 +11,6 @@
            #:memo-user-ackfocks))
 (in-package :ackfock.features)
 
-(defconstant +dummy-uuid+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
-
-(defun dummy-uuid ()
-  (string +dummy-uuid+))
-
 (defmacro defun-with-db-connection-and-current-user (name lambda-list &body body)
   "Wrap with WITH-CONNECTION (DB) and handler-case. bound USER-ID according to CURRENT-USER"
   (let* ((docstring-list (when (and (stringp (first body))
