@@ -45,6 +45,7 @@
 (in-package :ackfock.model)
 
 (defvar *email-validator* (make-instance 'clavier:email-validator))
+
 (defmodel (user (:inflate created-at #'datetime-to-timestamp))
   uuid
   email
