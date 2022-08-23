@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.feature.email-activation
-  (:use :cl :datafly :sxql :ackfock.model)
+  (:use :cl :datafly :sxql)
   (:import-from :ackfock.db
                 #:defun-with-db-connection)
   (:export #:create-code
@@ -44,8 +44,8 @@
         (now (local-time:now)))
     (when (and activation-code
                (local-time:timestamp<= now ; otherwise the code is timeout
-                                       (activation-code-valid-until activation-code)))
-      (update-user-email-activated-at (activation-code-email activation-code)
+                                       (ackfock.model:activation-code-valid-until activation-code)))
+      (update-user-email-activated-at (ackfock.model:activation-code-email activation-code)
                                       now))))
 
 (defun send-email (email recipient-name link)
