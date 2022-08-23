@@ -21,14 +21,14 @@
              :code code
              :valid-until valid-until)
        (returning :*))
-     :as 'activation-code)))
+     :as 'ackfock.model:activation-code)))
 
 (defun-with-db-connection get-activation-code-by-code (code)
   (retrieve-one
    (select :*
      (from :activation_code)
      (where (:= :code code)))
-   :as 'activation-code))
+   :as 'ackfock.model:activation-code))
 
 (defun-with-db-connection update-user-email-activated-at (email email-activated-at)
   (retrieve-one
@@ -36,7 +36,7 @@
      (set= :email-activated-at email-activated-at)
      (where (:= :email email))
      (returning :*))
-   :as 'user))
+   :as 'ackfock.model:user))
 
 (defun activate (code)
   "Return corresponding user model when success, return nil otherwise"

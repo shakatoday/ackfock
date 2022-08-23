@@ -63,14 +63,14 @@
            :channel_id (or (memo-channel-id memo)
                            :null))
      (returning :*))
-   :as 'memo))
+   :as 'ackfock.model:memo))
 
 (defun-with-db-connection-and-current-user new-channel (channel-name)
   (let ((channel (retrieve-one
                   (insert-into :channel
                     (set= :name channel-name)
                     (returning :*))
-                  :as 'channel)))
+                  :as 'ackfock.model:channel)))
     (execute
      (insert-into :user_channel_access
        (set= :user-id user-id
@@ -84,7 +84,7 @@
                                       (select :uuid
                                         (from :users)
                                         (where (:= :email target-user-email)))
-                                      :as 'user))))
+                                      :as 'ackfock.model:user))))
       (execute
        (insert-into :user_channel_access
          (set= :user_id target-user-id

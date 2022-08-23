@@ -30,7 +30,7 @@
                :source_user_id (ackfock.model:user-uuid current-user)
                :channel_id (ackfock.model:channel-uuid channel))
          (returning :*))
-       :as 'invitation-code))))
+       :as 'ackfock.model:invitation-code))))
 
 (define-condition invitation-code-consumption-error (error)
   ((text :initarg :condition-message :reader condition-message)))
@@ -47,7 +47,7 @@
    (select :*
      (from :invitation_code)
      (where (:= :code code)))
-   :as 'invitation-code))
+   :as 'ackfock.model:invitation-code))
 
 (defun-with-db-connection consume-invitation-code (current-user code)
   (when (and (ackfock.model:user-p current-user)
