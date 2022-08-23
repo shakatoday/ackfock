@@ -54,7 +54,7 @@
     :renderer (lambda (body)
                 (let* ((path-name (path-name (location body)))
                        (user (when (> (length path-name) (length "/activate/"))
-                               (ackfock.feature.email-activation:activate-user-email (subseq path-name (length "/activate/")))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
+                               (ackfock.feature.email-activation:activate (subseq path-name (length "/activate/")))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
                   (cond (user
                          (setf (ackfock.feature.auth:current-user body) user)
                          (clog-web-initialize body)

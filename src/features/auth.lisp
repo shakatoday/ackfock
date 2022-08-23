@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.feature.auth
-  (:use :cl :clog :clog-web :ackfock.feature.email-activation)
+  (:use :cl :clog :clog-web)
   (:export #:login
            #:sign-up
            #:current-user
@@ -117,7 +117,7 @@ if one is present and login fails."
 			        "The username must be at least 4 characters."
 			        :time-out 3
 			        :place-top t))
-               ((null (clavier:validate ackfock.utils:*email-validator*
+               ((null (clavier:validate ackfock.model:*email-validator*
                                         email))
                 (clog-web-alert form-top-div "Email invalid"
 			        "Not a valid email address"
@@ -152,12 +152,12 @@ if one is present and login fails."
                                                          :password (cl-pass:hash password))
                                               (sxql:returning :*))
                                             :as 'ackfock.model:user))))
-                           (ackfock.utils:send-activation-email email
-                                                                username
-                                                                (format nil
-                                                                        "~a/activate/~a"
-                                                                        ackfock.config:*application-url*
-                                                                        (ackfock.model:activation-code-code (create-activation-code email))))
+                           (ackfock.feature.email-activation:send-email email
+                                                                        username
+                                                                        (format nil
+                                                                                "~a/activate/~a"
+                                                                                ackfock.config:*application-url*
+                                                                                (ackfock.model:activation-code-code (ackfock.feature.email-activation:create-code email))))
                            (setf (current-user body) new-user)
                            (url-replace (location body)
                                         next-step))))))))))))

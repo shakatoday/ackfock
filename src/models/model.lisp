@@ -40,8 +40,33 @@
            #:string-to-ackfock
            #:plist-to-user-ackfock
            #:user-ackfock-list-to-alist-by-ackfock
-           #:user-by-email))
+           #:user-by-email
+           #:*email-validator*))
 (in-package :ackfock.model)
+
+(defvar *email-validator* (make-instance 'clavier:email-validator))
+(defmodel (user (:inflate created-at #'datetime-to-timestamp))
+  uuid
+  email
+  username
+  created-at)
+
+(defun-with-db-connection user-by-email (email)
+  (when (and (str:non-blank-string-p email)
+             (clavier:validate *email-validator* email))
+    (retrieve-one
+     (select :*
+       (from :users)
+       (where (:= :email email)))
+     :as 'user)))
+
+(defmacro user-from-plist (plist)
+  (cons 'make-user
+        (reduce #'append
+                (mapcar (lambda (keyword-arg)
+                          `(,keyword-arg (getf ,plist ,keyword-arg))) ; use the later created-at so we need a copy and remf
+                                        ; TODO: created-at needs an inflation-function
+                        '(:uuid :email :username :created-at)))))
 
 (deftype ackfock () '(member :ACK :FOCK)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
 
@@ -74,29 +99,6 @@
               (remove-if-not (lambda (ackfock) (eq ackfock :fock))
                              user-ackfock-list
                              :key #'user-ackfock-ackfock))))
-
-(defmodel (user (:inflate created-at #'datetime-to-timestamp))
-  uuid
-  email
-  username
-  created-at)
-
-(defun-with-db-connection user-by-email (email)
-  (when (and (str:non-blank-string-p email)
-             (clavier:validate ackfock.utils:*email-validator* email))
-    (retrieve-one
-     (select :*
-       (from :users)
-       (where (:= :email email)))
-     :as 'user)))
-
-(defmacro user-from-plist (plist)
-  (cons 'make-user
-        (reduce #'append
-                (mapcar (lambda (keyword-arg)
-                          `(,keyword-arg (getf ,plist ,keyword-arg))) ; use the later created-at so we need a copy and remf
-                                        ; TODO: created-at needs an inflation-function
-                        '(:uuid :email :username :created-at)))))
 
 (defmodel (channel)
   uuid

@@ -54,7 +54,7 @@
                                (:file "channel" :depends-on ("game"))
                                (:file "theme")))
                  (:module "features"
-                  :depends-on ("models" "utils" "db" "config")
+                  :depends-on ("models" "db" "config")
                   :components ((:file "features")
                                (:file "search")
                                (:file "auth" :depends-on ("email-activation"))
@@ -65,7 +65,6 @@
                   :components ((:file "model")
                                (:file "relationships" :depends-on ("model"))))
                  (:file "db" :depends-on ("config"))
-                 (:file "utils")
                  (:file "config"))))
   :description ""
   :in-order-to ((test-op (test-op "ackfock-test"))))

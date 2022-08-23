@@ -11,13 +11,6 @@
            #:memo-user-ackfocks))
 (in-package :ackfock.features)
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (set-macro-character #\$ nil)
-  (set-macro-character #\$
-                       (lambda (stream char)
-                         (declare (ignore char))
-                         (ackfock.utils:ensure-plist (read stream)))))
-
 (defconstant +dummy-uuid+ :A2543078-7D5B-4F40-B6FD-DBC58E863752)
 
 (defun dummy-uuid ()
@@ -52,14 +45,14 @@
   (execute
    (if (private-channel-p channel)
        (insert-into :memo
-         $(set= :creator_id user-id
-                content))
+         (set= :creator_id user-id
+               :content content))
        (let ((channel-id (channel-uuid channel)))
          (when (ackfock.model.relationships:has-access-p current-user channel)
            (insert-into :memo
-             $(set= :creator_id user-id
-                    content
-                    channel-id)))))))
+             (set= :creator_id user-id
+                   :content content
+                   :channel-id channel-id)))))))
 
 (defun-with-db-connection-and-current-user reply-memo (memo new-content &key as-an-update-p)
   (retrieve-one
@@ -85,8 +78,8 @@
                   :as 'channel)))
     (execute
      (insert-into :user_channel_access
-       $(set= user-id
-              :channel_id (channel-uuid channel))))
+       (set= :user-id user-id
+             :channel_id (channel-uuid channel))))
     channel))
 
 (defun-with-db-connection-and-current-user invite-to-channel (target-user-email channel)
@@ -115,7 +108,7 @@
                                           (from :user_ackfock)
                                           (inner-join :users
                                                       :on (:= :users.uuid :user_ackfock.user_id))
-                                          (where (:and $(:= memo-id)
+                                          (where (:and (:= :memo-id memo-id)
                                                        (:= :users.uuid user-id)))
                                           (order-by (:desc :user_ackfock.created_at))
                                           (limit 1))))))
@@ -125,7 +118,7 @@
                (select :*
                  (from :user_channel_access)
                  (where (:and (:= :channel_id (memo-channel-id memo))
-                              $(:= user-id)))))
+                              (:= :user-id user-id)))))
           (let ((data-plist-list (mapcar #'datafly.db::convert-row
                                          (dbi:fetch-all
                                           (dbi:execute
@@ -147,9 +140,9 @@
       (apply #'make-user-ackfock
              (append (retrieve-one
                       (insert-into :user_ackfock
-                        $(set= memo-id
-                               user-id
-                               ackfock)
+                        (set= :memo-id memo-id
+                              :user-id user-id
+                              :ackfock ackfock)
                         (returning :created_at)))
                      (list :user current-user
                            :ackfock (string-to-ackfock ackfock)))))))

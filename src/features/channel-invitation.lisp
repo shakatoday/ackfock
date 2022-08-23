@@ -46,7 +46,7 @@
   (retrieve-one
    (select :*
      (from :invitation_code)
-     (where #.(ackfock.utils:ensure-plist '(:= code))))
+     (where (:= :code code)))
    :as 'invitation-code))
 
 (defun-with-db-connection consume-invitation-code (current-user code)

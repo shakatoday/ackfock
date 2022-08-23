@@ -3,11 +3,12 @@
   (:use :cl :datafly :sxql :ackfock.model)
   (:import-from :ackfock.db
                 #:defun-with-db-connection)
-  (:export #:create-activation-code
-           #:activate-user-email))
+  (:export #:create-code
+           #:activate
+           #:send-email))
 (in-package :ackfock.feature.email-activation)
 
-(defun-with-db-connection create-activation-code (email &key (ttl-in-sec (* 60 60))) ; by default code will expire in 1 hour
+(defun-with-db-connection create-code (email &key (ttl-in-sec (* 60 60))) ; by default code will expire in 1 hour
   "Create an activation code for EMAIL with TTL-IN-SEC, insert it into database, and return an ACTIVATION-CODE object if success."
   (let ((valid-until (local-time:format-timestring nil
                                                    (local-time:timestamp+ (local-time:now)
@@ -16,7 +17,9 @@
         (code (str:downcase (uuid:print-bytes nil (uuid:make-v4-uuid)))))
     (retrieve-one
      (insert-into :activation_code
-       #.(ackfock.utils:ensure-plist '(set= email code valid-until))
+       (set= :email email
+             :code code
+             :valid-until valid-until)
        (returning :*))
      :as 'activation-code)))
 
@@ -24,18 +27,18 @@
   (retrieve-one
    (select :*
      (from :activation_code)
-     (where #.(ackfock.utils:ensure-plist '(:= code))))
+     (where (:= :code code)))
    :as 'activation-code))
 
 (defun-with-db-connection update-user-email-activated-at (email email-activated-at)
   (retrieve-one
    (update :users
-     #.(ackfock.utils:ensure-plist '(set= email-activated-at))
-     (where #.(ackfock.utils:ensure-plist '(:= email)))
+     (set= :email-activated-at email-activated-at)
+     (where (:= :email email))
      (returning :*))
    :as 'user))
 
-(defun activate-user-email (code)
+(defun activate (code)
   "Return corresponding user model when success, return nil otherwise"
   (let ((activation-code (get-activation-code-by-code code)) ; Race condition?
         (now (local-time:now)))
@@ -44,3 +47,20 @@
                                        (activation-code-valid-until activation-code)))
       (update-user-email-activated-at (activation-code-email activation-code)
                                       now))))
+
+(defun send-email (email recipient-name link)
+  (sendgrid:send-email :to email
+                       :subject (format nil "Hi ~a, please verify your Ackfock account"
+                                        recipient-name)
+                       :content-type "text/html"
+                       :content (spinneret:with-html-string
+                                  (:doctype)
+                                  (:html
+                                   (:body
+                                    (:h1 "Account Verification")
+                                    (:p "Howdy,")
+                                    (:p "Welcome to Ackfock!. Please confirm your email address by clicking the link below")
+                                    (:a :href link link)
+                                    (:p "If you did not sign up for an Ackfock account, you can simply disregard this email.")
+                                    (:p "Happy Ack & Fock!")
+                                    (:p "The Ackfock Team"))))))
