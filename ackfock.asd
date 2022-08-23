@@ -1,5 +1,5 @@
 (defsystem "ackfock"
-  :version "1.2.3-alpha"
+  :version "1.2.3"
   :author "Shaka Chen"
   :license ""
   :depends-on ("envy"
@@ -45,7 +45,7 @@
                 ((:file "ackfock" :depends-on ("games"))
                  (:module "games"
                   :depends-on ("features"
-                               "model"
+                               "models"
                                "db")
                   :components ((:file "game")
                                (:file "pages" :depends-on ("main-page" "game" "theme"))
@@ -54,13 +54,16 @@
                                (:file "channel" :depends-on ("game"))
                                (:file "theme")))
                  (:module "features"
-                  :depends-on ("model" "utils" "db" "config")
+                  :depends-on ("models" "utils" "db" "config")
                   :components ((:file "features")
                                (:file "search")
                                (:file "auth" :depends-on ("email-activation"))
                                (:file "email-activation")
                                (:file "channel-invitation")))
-                 (:file "model" :depends-on ("db"))
+                 (:module "models"
+                  :depends-on ("db")
+                  :components ((:file "model")
+                               (:file "relationships" :depends-on ("model"))))
                  (:file "db" :depends-on ("config"))
                  (:file "utils")
                  (:file "config"))))

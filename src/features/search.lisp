@@ -2,7 +2,7 @@
 (defpackage ackfock.feature.search
   (:use :cl)
   (:import-from :ackfock.db
-                #:defun-with-db-connection-and-current-user)
+                #:defun-with-db-connection)
   (:export #:search-memo))
 (in-package :ackfock.feature.search)
 
@@ -12,9 +12,8 @@
       (read-sequence contents stream)
       contents)))
 
-(defun-with-db-connection-and-current-user search-memo (query)
+(defun-with-db-connection search-memo (current-user query)
   "Return a current-user accessible list of ACKFOCK.MODEL-DEFINITION:MEMO order by search rank."
-  (declare (ignore user-id))
   (when (stringp query)
     (let* ((query (ppcre:regex-replace-all
                    "\\s+"
@@ -39,7 +38,7 @@
                                                    *search-query-sql-string*)
                                       (list query query))))))
       (remove-if-not (lambda (memo)
-                       (ackfock.model:has-access-p current-user memo))
+                       (ackfock.model.relationships:has-access-p current-user memo))
                      (loop for data-plist in data-plist-list
                            collect (progn
                                      (remf data-plist :search-rank)

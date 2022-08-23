@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.game.theme
-  (:use :cl :clog :clog-web :ackfock.model)
+  (:use :cl :clog :clog-web)
   (:import-from :ackfock.feature.auth
                 #:current-user)
   (:export #:*color-class*
@@ -107,7 +107,7 @@ Page properties:
                     login-menu-right-items)
               (push (create-div menu
                                 :class login-menu-right-class
-                                :content (user-username (profile website)))
+                                :content (ackfock.model:user-username (profile website)))
                     login-menu-right-items)
               (set-on-click login-menu-right-menu
                             (lambda (obj)

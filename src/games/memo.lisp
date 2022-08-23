@@ -1,6 +1,10 @@
 (in-package :cl-user)
 (defpackage ackfock.game.memo
-  (:use :cl :ackfock.model :ackfock.game.channel :clog :clog-web)
+  (:use :cl :clog :clog-web)
+  (:import-from :ackfock.game.channel
+                #:channel-content-p
+                #:channel-content-web-content
+                #:channel-content-re-gamifier)
   (:import-from :ackfock.game
                 #:gamify
                 #:*body-location*
@@ -11,17 +15,17 @@
 (defparameter *memo-reply-link-class* "w3-leftbar w3-light-gray w3-text-gray w3-margin-left w3-padding-small")
 
 (defun make-memo-div-html-id (memo)
-  (str:concat "memo-div-" (memo-uuid memo)))
+  (str:concat "memo-div-" (ackfock.model:memo-uuid memo)))
 
 (defun latest-ackfock-users (current-user memo ack-or-fock)
-  (format nil " ~{~a~^, ~}" (mapcar #'user-username
-                                    (mapcar #'user-ackfock-user
+  (format nil " ~{~a~^, ~}" (mapcar #'ackfock.model:user-username
+                                    (mapcar #'ackfock.model:user-ackfock-user
                                             (cdr (assoc ack-or-fock
                                                         (ackfock.features:memo-latest-ackfocks-per-user-by-ackfock current-user
                                                                                                                    memo)
                                                         :test #'string=))))))
 
-(defmethod gamify ((model-obj memo) (current-user user) &optional env)
+(defmethod gamify ((model-obj ackfock.model:memo) (current-user ackfock.model:user) &optional env)
   (cond ((channel-content-p env)
          (let ((web-content (channel-content-web-content env)))
            (with-clog-create web-content
@@ -33,10 +37,10 @@
                               (span (:class "w3-large"
                                      :content (format nil
                                                       "<b>~a:</b>"
-                                                      (user-username (memo-creator model-obj)))))
+                                                      (ackfock.model:user-username (ackfock.model.relationships:memo-creator model-obj)))))
                               (br ())
                               ;; TODO: handle xss risk
-                              (div (:content (lf-to-br (memo-content model-obj)))))
+                              (div (:content (lf-to-br (ackfock.model:memo-content model-obj)))))
                          (div ()
                               (button (:bind memo-reply-btn :class "fa fa-reply w3-button" :content " Reply"))))
                     (div (:bind memo-update-reply-div))
@@ -74,16 +78,16 @@
                                     (loop for user-ackfock in (ackfock.features:memo-user-ackfocks current-user model-obj)
                                           do (with-clog-create ackfock-history-div
                                                  (web-auto-row (:class "w3-margin w3-border-bottom")
-                                                               (web-auto-column (:content (user-username (user-ackfock-user user-ackfock))))
+                                                               (web-auto-column (:content (ackfock.model:user-username (ackfock.model:user-ackfock-user user-ackfock))))
                                                                (web-auto-column (:bind history-ack-column :content "Ack" :class "w3-text-green"))
                                                                (web-auto-column (:bind history-fock-column :content "Fock" :class "w3-text-purple"))
                                                                (web-auto-column (:content (local-time:format-timestring nil
-                                                                                                                        (user-ackfock-created-at user-ackfock)
+                                                                                                                        (ackfock.model:user-ackfock-created-at user-ackfock)
                                                                                                                         :format local-time:+rfc-1123-format+))))
-                                               (setf (visiblep history-ack-column) (eq (user-ackfock-ackfock user-ackfock) :ack))
-                                               (setf (visiblep history-fock-column) (eq (user-ackfock-ackfock user-ackfock) :fock))))
+                                               (setf (visiblep history-ack-column) (eq (ackfock.model:user-ackfock-ackfock user-ackfock) :ack))
+                                               (setf (visiblep history-fock-column) (eq (ackfock.model:user-ackfock-ackfock user-ackfock) :fock))))
                                     (add-class ackfock-history-div "w3-animate-right")))))
-             (rutils:when-it (memo-parent-memo model-obj)
+             (rutils:when-it (ackfock.model.relationships:memo-parent-memo model-obj)
                (add-class memo-reply-snippet-div *memo-reply-link-class*)
                (let ((body-location *body-location*)
                      (browser-window *window*))
@@ -97,8 +101,8 @@
                                             (- *hash-scroll-work-around-px*)))))
                (setf (inner-html memo-reply-snippet-div) (format nil
                                                                  "<b>~a</b>: ~a..."
-                                                                 (user-username (memo-creator rutils:it))
-                                                                 (str:substring 0 100 (memo-content rutils:it)))))
+                                                                 (ackfock.model:user-username (ackfock.model.relationships:memo-creator rutils:it))
+                                                                 (str:substring 0 100 (ackfock.model:memo-content rutils:it)))))
              (flet ((ackfock-memo-and-regamify-handler (ackfock)
                       (lambda (obj)
                         (declare (ignore obj))
@@ -119,7 +123,7 @@
                                             (text-area (:bind memo-content-input
                                                          :value (if (str:containsp "Update"
                                                                                    (text memo-update-reply-btn))
-                                                                    (memo-content model-obj)
+                                                                    (ackfock.model:memo-content model-obj)
                                                                     "")
                                                          :class "w3-input")))
                                          (button (:bind memo-update-reply-submit-btn
@@ -161,17 +165,17 @@
                                 (span (:class "w3-large"
                                        :content (format nil
                                                         "<b>~a:</b>"
-                                                        (user-username (memo-creator model-obj)))))
+                                                        (ackfock.model:user-username (ackfock.model.relationships:memo-creator model-obj)))))
                                 (br ())
                                 ;; TODO: handle xss risk
-                                (div (:content (lf-to-br (memo-content model-obj)))))
+                                (div (:content (lf-to-br (ackfock.model:memo-content model-obj)))))
                         (form-element (:bind memo-div-html-id-input :text :hidden t :name "memo-div-html-id"))
                         (form-element (:bind channel-id-input :text :hidden t :name "channel-id"))))
-           (let ((memo-channel (memo-channel model-obj)))
+           (let ((memo-channel (ackfock.model.relationships:memo-channel model-obj)))
              (setf (text channel-name) (or (rutils:when-it memo-channel
-                                             (channel-name rutils:it))
+                                             (ackfock.model:channel-name rutils:it))
                                            "My private memos"))
              (setf (text-value memo-div-html-id-input) (make-memo-div-html-id model-obj))
-             (setf (text-value channel-id-input) (or (memo-channel-id model-obj)
+             (setf (text-value channel-id-input) (or (ackfock.model:memo-channel-id model-obj)
                                                      "")))
            memo-div))))

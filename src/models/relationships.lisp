@@ -1,109 +1,15 @@
 (in-package :cl-user)
-(defpackage ackfock.model
-  (:use :cl :ackfock.db :datafly :sxql)
-  (:export #:ackfock
-           #:user-ackfock
-           #:user-ackfock-user
-           #:user-ackfock-ackfock
-           #:user-ackfock-created-at
-           #:make-user-ackfock
-           #:user
-           #:user-uuid
-           #:user-email
-           #:user-username
-           #:user-p
-           #:make-user
-           #:user-channels
+(defpackage ackfock.model.relationships
+  (:use :cl :datafly :sxql :ackfock.db :ackfock.model)
+  (:export #:user-channels
            #:user-private-memos
-           #:channel
-           #:channel-p
-           #:channel-uuid
-           #:channel-name
            #:channel-users
            #:channel-memos
-           #:make-private-channel
-           #:private-channel-p
-           #:memo
-           #:memo-p
-           #:make-memo
-           #:memo-uuid
-           #:memo-content
-           #:memo-channel
-           #:memo-channel-id
            #:memo-creator
-           #:memo-creator-id
-           #:memo-parent-memo-id
-           #:activation-code-code
-           #:activation-code-email
-           #:activation-code-valid-until
-           #:activation-code
+           #:memo-channel
            #:memo-parent-memo
-           #:invitation-code
-           #:invitation-code-code
-           #:invitation-code-valid-until
-           #:invitation-code-used-by-user-id
-           #:invitation-code-channel-id
-           #:user-from-plist
            #:has-access-p))
-(in-package :ackfock.model)
-
-(deftype ackfock () '(member :ACK :FOCK)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
-
-(defstruct user-ackfock
-  user
-  (ackfock nil :type (or ackfock nil))
-  created-at)
-
-(defmodel (user (:inflate created-at #'datetime-to-timestamp))
-  uuid
-  email
-  username
-  created-at)
-
-(defmodel (channel)
-  uuid
-  name)
-
-(defun make-private-channel ()
-  (make-channel :uuid nil
-                :name "My private memos"))
-
-(defun private-channel-p (channel)
-  (null (channel-uuid channel)))
-
-(defmodel (memo (:inflate created-at #'datetime-to-timestamp))
-  uuid
-  content
-  (as-an-update nil :type boolean)
-  creator-id
-  parent-memo-id
-  channel-id
-  created-at)
-
-(defmodel (activation-code (:inflate created-at #'datetime-to-timestamp)
-                           (:inflate valid-until #'datetime-to-timestamp))
-  email
-  code
-  created-at
-  valid-until)
-
-(defmodel (invitation-code (:inflate created-at #'datetime-to-timestamp)
-                           (:inflate valid-until #'datetime-to-timestamp)
-                           (:has-a channel (where (:= :uuid channel-id))))
-  code
-  source-user-id
-  used-by-user-id
-  channel-id
-  created-at
-  valid-until)
-
-(defmacro user-from-plist (plist)
-  (cons 'make-user
-        (reduce #'append
-                (mapcar (lambda (keyword-arg)
-                          `(,keyword-arg (getf ,plist ,keyword-arg))) ; use the later created-at so we need a copy and remf
-                                        ; TODO: created-at needs an inflation-function
-                        '(:uuid :email :username :created-at)))))
+(in-package :ackfock.model.relationships)
 
 (defun-with-db-connection user-channels (user)
   (retrieve-all
@@ -168,6 +74,8 @@
        (from :memo)
        (where (:= :memo.uuid (memo-parent-memo-id memo))))
      :as 'memo)))
+
+(defgeneric has-access-p (user model-obj))
 
 (defmethod has-access-p ((user user) (model-obj channel))
   (let ((channel-id (channel-uuid model-obj))

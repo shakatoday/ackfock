@@ -11,8 +11,7 @@
            #:db
            #:with-connection
            #:defun-with-db-connection
-           #:all-migrations-applied-p
-           #:defun-with-db-connection-and-current-user))
+           #:all-migrations-applied-p))
 (in-package :ackfock.db)
 
 (defparameter *migration-provider*
@@ -41,31 +40,6 @@
        ,@docstring-list
        (with-connection (db)
          ,@body))))
-
-(defmacro defun-with-db-connection-and-current-user (name lambda-list &body body)
-  "Wrap with WITH-CONNECTION (DB) and handler-case. bound USER-ID according to CURRENT-USER"
-  (let* ((docstring-list (when (and (stringp (first body))
-                                    (cdr body)) ; which means (> (length body) 1))
-                           (list (first body))))
-         (body (if (null docstring-list)
-                   body
-                   (subseq body 1)))
-         (lambda-list (cons 'current-user lambda-list)))
-    `(defun ,name ,lambda-list
-       ,@docstring-list
-       (with-connection (db)
-         (handler-case
-             ;; race condition notice below!
-             (let ((user-id (user-uuid current-user)))
-               ,@body)
-           (type-error (condition)
-             (when (ackfock.config:developmentp)
-               (print condition))
-             nil)
-           (sb-pcl::no-primary-method-error (condition)
-             (when (ackfock.config:developmentp)
-               (print condition))
-             nil))))))
 
 ;; This has to be a function because *connection* can change.
 ;;

@@ -7,11 +7,8 @@
            #:rename-channel
            #:invite-to-channel
            #:memo-latest-ackfocks-per-user-by-ackfock
-           #:user-by-email
            #:ackfock-memo
-           #:memo-user-ackfocks
-           #:search-memo
-           #:has-access-p))
+           #:memo-user-ackfocks))
 (in-package :ackfock.features)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -26,38 +23,30 @@
 (defun dummy-uuid ()
   (string +dummy-uuid+))
 
-(defun string-to-ackfock (string)
-  "If the STRING is \"ACK\" or \"FOCK\", this function returns :ACK or :FOCK. All the other cases it returns nil"
-  (and (stringp string)
-       (member string
-               '("ACK" "FOCK")
-               :test #'string=)
-       (alexandria:make-keyword string)))
-
-(defmacro user-from-plist (plist)
-  (cons 'make-user
-        (reduce #'append
-                (mapcar (lambda (keyword-arg)
-                          `(,keyword-arg (getf ,plist ,keyword-arg))) ; use the later created-at so we need a copy and remf
-                                        ; TODO: created-at needs an inflation-function
-                        '(:uuid :email :username :created-at)))))
-
-(defun plist-to-user-ackfock (plist)
-  (let ((copy-plist (copy-list plist)))
-    (remf copy-plist :created-at)
-    (make-user-ackfock :user (user-from-plist copy-plist)
-                       :ackfock (string-to-ackfock (getf plist :ackfock))
-                       :created-at (datetime-to-timestamp (getf plist :created-at)))))
-
-(defun user-ackfock-list-to-alist-by-ackfock (user-ackfock-list)
-  (list (cons "ACK"
-              (remove-if-not (lambda (ackfock) (eq ackfock :ack))
-                             user-ackfock-list
-                             :key #'user-ackfock-ackfock))
-        (cons "FOCK"
-              (remove-if-not (lambda (ackfock) (eq ackfock :fock))
-                             user-ackfock-list
-                             :key #'user-ackfock-ackfock))))
+(defmacro defun-with-db-connection-and-current-user (name lambda-list &body body)
+  "Wrap with WITH-CONNECTION (DB) and handler-case. bound USER-ID according to CURRENT-USER"
+  (let* ((docstring-list (when (and (stringp (first body))
+                                    (cdr body)) ; which means (> (length body) 1))
+                           (list (first body))))
+         (body (if (null docstring-list)
+                   body
+                   (subseq body 1)))
+         (lambda-list (cons 'current-user lambda-list)))
+    `(defun ,name ,lambda-list
+       ,@docstring-list
+       (with-connection (db)
+         (handler-case
+             ;; race condition notice below!
+             (let ((user-id (ackfock.model:user-uuid current-user)))
+               ,@body)
+           (type-error (condition)
+             (when (ackfock.config:developmentp)
+               (print condition))
+             nil)
+           (sb-pcl::no-primary-method-error (condition)
+             (when (ackfock.config:developmentp)
+               (print condition))
+             nil))))))
 
 (defun-with-db-connection-and-current-user new-memo (channel content)
   (execute
@@ -66,7 +55,7 @@
          $(set= :creator_id user-id
                 content))
        (let ((channel-id (channel-uuid channel)))
-         (when (has-access-p current-user channel)
+         (when (ackfock.model.relationships:has-access-p current-user channel)
            (insert-into :memo
              $(set= :creator_id user-id
                     content
@@ -102,7 +91,7 @@
 
 (defun-with-db-connection-and-current-user invite-to-channel (target-user-email channel)
   (declare (ignore user-id))
-  (when (has-access-p current-user channel)
+  (when (ackfock.model.relationships:has-access-p current-user channel)
     (let ((target-user-id (user-uuid (retrieve-one
                                       (select :uuid
                                         (from :users)
@@ -153,7 +142,7 @@
 (defun-with-db-connection-and-current-user ackfock-memo (memo ackfock)
   "Return an ACKFOCK.MODEL-DEFINITION::USER-ACKFOCK if success. Nil otherwise."
   (let ((memo-id (memo-uuid memo)))
-    (when (has-access-p current-user memo)
+    (when (ackfock.model.relationships:has-access-p current-user memo)
       ;; race condition gap notice!
       (apply #'make-user-ackfock
              (append (retrieve-one
@@ -165,18 +154,9 @@
                      (list :user current-user
                            :ackfock (string-to-ackfock ackfock)))))))
 
-(defun-with-db-connection user-by-email (email)
-  (when (and (str:non-blank-string-p email)
-             (clavier:validate ackfock.utils:*email-validator* email))
-    (retrieve-one
-     (select :*
-       (from :users)
-       (where $(:= email)))
-     :as 'user)))
-
 (defun-with-db-connection-and-current-user rename-channel (channel new-name)
   (declare (ignore user-id))
-  (when (and (has-access-p current-user channel)
+  (when (and (ackfock.model.relationships:has-access-p current-user channel)
              (str:non-blank-string-p new-name))
     (execute
      (update :channel
@@ -185,7 +165,7 @@
 
 (defun-with-db-connection-and-current-user memo-user-ackfocks (memo)
   (declare (ignore user-id))
-  (when (has-access-p current-user memo)
+  (when (ackfock.model.relationships:has-access-p current-user memo)
     (mapcar #'plist-to-user-ackfock
             (retrieve-all
              (select :*

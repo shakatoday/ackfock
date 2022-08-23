@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.game.main-page
-  (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi #:ackfock.model)
+  (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi)
   (:export #:*current-user*
            #:content))
 (in-package :ackfock.game.main-page)
@@ -17,8 +17,8 @@
            (ackfock.game:*window* (window body))
            (sidebar-menu-button-for-mobile (connection-data-item body :sidebar-menu-button-for-mobile))
            (channel-content (create-div body))
-           (channels (cons (make-private-channel) ; for user-private-memos
-                           (user-channels *current-user*)))
+           (channels (cons (ackfock.model:make-private-channel) ; for user-private-memos
+                           (ackfock.model.relationships:user-channels *current-user*)))
            (current-user *current-user*)
            (channel-selects
              (make-array (length channels)
@@ -28,7 +28,7 @@
                                                 ,channel
                                                 :sidebar-item
                                                 ,(create-web-sidebar-item sidebar
-                                                                          :content (channel-name channel))))
+                                                                          :content (ackfock.model:channel-name channel))))
                                             channels)))
            (current-sidebar-item))
       (set-on-click sidebar-menu-button-for-mobile
@@ -78,7 +78,7 @@
              (memo-div-html-id (form-data-item (form-post-data body) "memo-div-html-id"))
              (channel-select (find channel-id
                                    channel-selects
-                                   :key (lambda (element) (channel-uuid (getf element :channel)))
+                                   :key (lambda (element) (ackfock.model:channel-uuid (getf element :channel)))
                                    :test #'string=)))
         (setf current-sidebar-item (getf channel-select :sidebar-item))
         (ackfock.game:gamify (getf channel-select :channel)

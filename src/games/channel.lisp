@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.game.channel
-  (:use :cl :ackfock.model :ackfock.game :clog :clog-web)
+  (:use :cl :ackfock.game :clog :clog-web)
   (:export #:channel-content-p
            #:channel-content-web-content
            #:channel-content-re-gamifier))
@@ -9,7 +9,7 @@
 (defstruct channel-content
   re-gamifier web-content)
 
-(defmethod gamify ((model-obj channel) (current-user user) &optional env)
+(defmethod gamify ((model-obj ackfock.model:channel) (current-user ackfock.model:user) &optional env)
   (cond ((main-page-env-p env)
          (let ((web-content (web-content env)))
            (setf (inner-html web-content) "") ; memory leak? clog has destroy [generic-function] DESTROY CLOG-ELEMENT
@@ -21,10 +21,10 @@
                                                :text
                                                :name "channel-name"
                                                :class "w3-xlarge"
-                                               :value (channel-name model-obj)))
+                                               :value (ackfock.model:channel-name model-obj)))
                                (span ()
                                      (button (:bind channel-name-edit-button
-                                               :hidden (private-channel-p model-obj)
+                                               :hidden (ackfock.model:private-channel-p model-obj)
                                                :class "fa fa-edit w3-button w3-large"))))))
              (setf (disabledp channel-name-input) t)
              (setf (requiredp channel-name-input) t)
@@ -40,7 +40,7 @@
                                                         "The new channel name can't be blank."
                                                         :time-out 3
                                                         :place-top t)
-                                        (setf (value channel-name-input) (channel-name model-obj)))
+                                        (setf (value channel-name-input) (ackfock.model:channel-name model-obj)))
                                        (t
                                         (ackfock.features:rename-channel current-user
                                                                          model-obj
@@ -53,18 +53,18 @@
              (set-on-blur channel-name-input
                           (lambda (input-obj)
                             (unless (disabledp input-obj) ; submit a blank new channel name doesn't blur the input text field. However, it triggers the click handler on channel-name-edit-button. So we have to avoid duplicate toggles
-                              (setf (value input-obj) (channel-name model-obj))
+                              (setf (value input-obj) (ackfock.model:channel-name model-obj))
                               (setf (disabledp input-obj) t)
                               (toggle-class channel-name-edit-button "fa-edit"))))
-             (unless (private-channel-p model-obj)
+             (unless (ackfock.model:private-channel-p model-obj)
                (with-clog-create channel-head-div
                    (div (:bind channel-members-div :class "w3-margin-left")
                         (span (:bind channel-members-span
                                 :class "w3-large"
                                 :content (format nil
                                                  "~{~a~^, ~}"
-                                                 (mapcar #'user-username
-                                                         (channel-users model-obj)))))
+                                                 (mapcar #'ackfock.model:user-username
+                                                         (ackfock.model.relationships:channel-users model-obj)))))
                         (span (:bind invite-to-channel-btn
                                 :class (str:concat "w3-button fa fa-user-plus w3-margin-left " ackfock.game.theme:*color-class*))
                               (div (:class "w3-small")))
@@ -121,7 +121,7 @@
                  (flet ((generate-invitation-link ()
                           (setf (text-value invitation-link-text-input)
                                 (str:concat ackfock.config:*application-url* "/i/"
-                                            (invitation-code-code
+                                            (ackfock.model:invitation-code-code
                                              (ackfock.feature.channel-invitation:create-invitation-code current-user
                                                                                                         model-obj))))))
                    (set-on-click link-invitation-btn
@@ -138,7 +138,7 @@
                                (lambda (dialog-obj)
                                  (when (string= (return-value dialog-obj) "Invite")
                                    (let* ((email (name-value invite-to-channel-form "email"))
-                                          (target-user (ackfock.features:user-by-email email)))
+                                          (target-user (ackfock.model:user-by-email email)))
                                      ;; race condition gap notice
                                      (cond ((str:blankp email) (clog-web-alert channel-head-div "Blank"
                                                                                "The email field can't be blank."
@@ -154,12 +154,12 @@
                                                                                :place-top t))
                                            ;; XSS DANGER!
                                            (t (ackfock.features:invite-to-channel current-user
-                                                                                  (user-email target-user)
+                                                                                  (ackfock.model:user-email target-user)
                                                                                   model-obj)
                                               (setf (text channel-members-span) (format nil
                                                                                         "~{~a~^, ~}"
-                                                                                        (mapcar #'user-username
-                                                                                                (channel-users model-obj))))))))))))
+                                                                                        (mapcar #'ackfock.model:user-username
+                                                                                                (ackfock.model.relationships:channel-users model-obj))))))))))))
              (with-clog-create channel-head-div
                  (dialog (:bind go-to-memo-div-dialog :content "Scroll to searched memo?")
                          (form (:method "dialog")
@@ -191,9 +191,9 @@
                                      (gamify model-obj current-user env))))
                     (memo-env (make-channel-content :web-content web-content
                                                     :re-gamifier re-gamifier)))
-               (loop for memo in (if (private-channel-p model-obj)
-                                     (user-private-memos current-user)
-                                     (channel-memos model-obj))
+               (loop for memo in (if (ackfock.model:private-channel-p model-obj)
+                                     (ackfock.model.relationships:user-private-memos current-user)
+                                     (ackfock.model.relationships:channel-memos model-obj))
                      do (gamify memo
                                 current-user
                                 memo-env))
