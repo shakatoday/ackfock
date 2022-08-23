@@ -19,7 +19,7 @@
      (insert-into :activation_code
        (set= :email email
              :code code
-             :valid-until valid-until)
+             :valid_until valid-until)
        (returning :*))
      :as 'ackfock.model:activation-code)))
 
@@ -33,7 +33,7 @@
 (defun-with-db-connection update-user-email-activated-at (email email-activated-at)
   (retrieve-one
    (update :users
-     (set= :email-activated-at email-activated-at)
+     (set= :email_activated_at email-activated-at)
      (where (:= :email email))
      (returning :*))
    :as 'ackfock.model:user))

@@ -47,7 +47,7 @@
            (insert-into :memo
              (set= :creator_id user-id
                    :content content
-                   :channel-id channel-id)))))))
+                   :channel_id channel-id)))))))
 
 (defun-with-db-connection-and-current-user reply-memo (memo new-content &key as-an-update-p)
   (retrieve-one
@@ -73,7 +73,7 @@
                   :as 'ackfock.model:channel)))
     (execute
      (insert-into :user_channel_access
-       (set= :user-id user-id
+       (set= :user_id user-id
              :channel_id (channel-uuid channel))))
     channel))
 
@@ -103,7 +103,7 @@
                                           (from :user_ackfock)
                                           (inner-join :users
                                                       :on (:= :users.uuid :user_ackfock.user_id))
-                                          (where (:and (:= :memo-id memo-id)
+                                          (where (:and (:= :memo_id memo-id)
                                                        (:= :users.uuid user-id)))
                                           (order-by (:desc :user_ackfock.created_at))
                                           (limit 1))))))
@@ -113,7 +113,7 @@
                (select :*
                  (from :user_channel_access)
                  (where (:and (:= :channel_id (memo-channel-id memo))
-                              (:= :user-id user-id)))))
+                              (:= :user_id user-id)))))
           (let ((data-plist-list (mapcar #'datafly.db::convert-row
                                          (dbi:fetch-all
                                           (dbi:execute
@@ -135,8 +135,8 @@
       (apply #'make-user-ackfock
              (append (retrieve-one
                       (insert-into :user_ackfock
-                        (set= :memo-id memo-id
-                              :user-id user-id
+                        (set= :memo_id memo-id
+                              :user_id user-id
                               :ackfock ackfock)
                         (returning :created_at)))
                      (list :user current-user
