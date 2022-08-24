@@ -46,8 +46,8 @@
 (in-package :ackfock.model)
 
 (defun valid-email-address-p (string)
-  (not (null
-	(ppcre:scan "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$" string))))
+  (serapeum:true
+   (ppcre:scan "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$" string)))
 
 (defmodel (user (:inflate created-at #'datetime-to-timestamp))
   uuid
