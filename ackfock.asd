@@ -34,13 +34,10 @@
 
                ;; email delivery
                "sendgrid")
-  :components ((:module "www"
+  :components ((:module "src"
+                :depends-on ("www" "db")
                 :components
-                ((:static-file "index.html")))
-               (:module "src"
-                :depends-on ("www")
-                :components
-                ((:file "ackfock" :depends-on ("games"))
+                ((:file "ackfock" :depends-on ("games" "config"))
                  (:module "games"
                   :depends-on ("features"
                                "models"
@@ -63,6 +60,13 @@
                   :components ((:file "model")
                                (:file "relationships" :depends-on ("model"))))
                  (:file "db" :depends-on ("config"))
-                 (:file "config"))))
+                 (:file "config")))
+               (:module "www"
+                :components
+                ((:static-file "index.html")))
+               (:module "db"
+                :components
+                ((:static-file "search_query.sql")
+                 (:static-file "memo_latest_ackfocks_per_user.sql"))))
   :description ""
   :in-order-to ((test-op (test-op "ackfock-test"))))

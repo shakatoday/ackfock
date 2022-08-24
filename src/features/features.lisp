@@ -11,6 +11,10 @@
            #:memo-user-ackfocks))
 (in-package :ackfock.features)
 
+(defparameter *memo-latest-ackfocks-per-user-sql-query*
+  (rutils.string:read-file (merge-pathnames #p"db/memo_latest_ackfocks_per_user.sql"
+                                            ackfock.config:*application-root*)))
+
 (defmacro defun-with-db-connection-and-current-user (name lambda-list &body body)
   "Wrap with WITH-CONNECTION (DB) and handler-case. bound USER-ID according to CURRENT-USER"
   (let* ((docstring-list (when (and (stringp (first body))
@@ -118,11 +122,7 @@
                                          (dbi:fetch-all
                                           (dbi:execute
                                            (dbi:prepare *connection*
-                                                        "select distinct on (user_ackfock.user_id) *
-                                                 from user_ackfock
-                                                 inner join users on users.uuid = user_ackfock.user_id
-                                                 where memo_id = ?
-                                                 order by user_ackfock.user_id, user_ackfock.created_at desc")
+                                                        *memo-latest-ackfocks-per-user-sql-query*)
                                            (list memo-id))))))
             (ackfock.model:user-ackfock-list-to-alist-by-ackfock (mapcar #'ackfock.model:plist-to-user-ackfock
                                                                          data-plist-list)))))))

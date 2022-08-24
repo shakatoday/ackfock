@@ -7,10 +7,8 @@
 (in-package :ackfock.feature.search)
 
 (defparameter *search-query-sql-string*
-  (with-open-file (stream (merge-pathnames #P"db/search_query.sql" ackfock.config:*application-root*))
-    (let ((contents (make-string (file-length stream))))
-      (read-sequence contents stream)
-      contents)))
+  (rutils.string:read-file (merge-pathnames #P"db/search_query.sql"
+                                            ackfock.config:*application-root*)))
 
 (defun-with-db-connection search-memo (current-user query)
   "Return a current-user accessible list of ACKFOCK.MODEL-DEFINITION:MEMO order by search rank."
