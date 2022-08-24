@@ -6,6 +6,7 @@
                "uiop"
                "str"
                "alexandria"
+               "serapeum"
                "rutils"
                "uuid"
                "local-time"

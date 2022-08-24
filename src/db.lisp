@@ -30,14 +30,14 @@
 
 (defmacro defun-with-db-connection (name lambda-list &body body)
   "Define a function by DEFUN and put the BODY inside (WITH-CONNECTION (DB)). Docstring will be safely processed."
-  (let* ((docstring-list (when (and (stringp (first body))
-                                    (cdr body)) ; which means (> (length body) 1))
-                            (list (first body))))
-         (body (if (null docstring-list)
-                   body
-                   (subseq body 1))))
+  (let* ((docstring (when (and (stringp (first body))
+                               (cdr body)) ; which means (> (length body) 1))
+                      (first body)))
+         (body (if docstring
+                   (cdr body)
+                   body)))
     `(defun ,name ,lambda-list
-       ,@docstring-list
+       ,@(serapeum:unsplice docstring)
        (with-connection (db)
          ,@body))))
 
