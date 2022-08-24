@@ -41,10 +41,13 @@
            #:plist-to-user-ackfock
            #:user-ackfock-list-to-alist-by-ackfock
            #:user-by-email
-           #:*email-validator*))
+           #:*email-validator*
+           #:valid-email-address-p))
 (in-package :ackfock.model)
 
-(defvar *email-validator* (make-instance 'clavier:email-validator))
+(defun valid-email-address-p (string)
+  (not (null
+	(ppcre:scan "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$" string))))
 
 (defmodel (user (:inflate created-at #'datetime-to-timestamp))
   uuid
@@ -54,7 +57,7 @@
 
 (defun-with-db-connection user-by-email (email)
   (when (and (str:non-blank-string-p email)
-             (clavier:validate *email-validator* email))
+             (valid-email-address-p email))
     (retrieve-one
      (select :*
        (from :users)

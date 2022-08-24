@@ -117,8 +117,7 @@ if one is present and login fails."
 			        "The username must be at least 4 characters."
 			        :time-out 3
 			        :place-top t))
-               ((null (clavier:validate ackfock.model:*email-validator*
-                                        email))
+               ((not (ackfock.model:valid-email-address-p email))
                 (clog-web-alert form-top-div "Email invalid"
 			        "Not a valid email address"
 			        :time-out 3

@@ -144,10 +144,10 @@
                                                                                "The email field can't be blank."
                                                                                :time-out 3
                                                                                :place-top t))
-                                           ((null (clavier:validate ackfock.model:*email-validator* email)) (clog-web-alert channel-head-div "Email invalid"
-                                                                                                                            "Not a valid email address"
-                                                                                                                            :time-out 3
-                                                                                                                            :place-top t))
+                                           ((not (ackfock.model:valid-email-address-p email)) (clog-web-alert channel-head-div "Email invalid"
+                                                                                                              "Not a valid email address"
+                                                                                                              :time-out 3
+                                                                                                              :place-top t))
                                            ((null target-user) (clog-web-alert channel-head-div "Not Exists"
                                                                                "There is no user associated with the given email."
                                                                                :time-out 3

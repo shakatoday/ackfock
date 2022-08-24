@@ -32,9 +32,6 @@
                ;; password hashing and verification library
                "cl-pass"
 
-               ;; email and more validators
-               "clavier"
-
                ;; email delivery
                "sendgrid")
   :components ((:module "www"
