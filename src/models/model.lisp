@@ -2,16 +2,20 @@
 (defpackage ackfock.model
   (:use :cl :ackfock.db :datafly :sxql)
   (:export #:ackfock
+           #:string-to-ackfock
            #:user-ackfock
            #:user-ackfock-user
            #:user-ackfock-ackfock
            #:user-ackfock-created-at
+           #:plist-to-user-ackfock
            #:user
            #:user-uuid
            #:user-email
            #:user-username
            #:user-p
            #:make-user
+           #:user-from-plist
+           #:user-by-email
            #:channel
            #:channel-p
            #:channel-uuid
@@ -35,12 +39,7 @@
            #:invitation-code-valid-until
            #:invitation-code-used-by-user-id
            #:invitation-code-channel-id
-           #:user-from-plist
-           #:string-to-ackfock
-           #:plist-to-user-ackfock
            #:user-ackfock-list-to-alist-by-ackfock
-           #:user-by-email
-           #:*email-validator*
            #:valid-email-address-p))
 (in-package :ackfock.model)
 
