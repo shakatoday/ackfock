@@ -50,11 +50,11 @@
                                (:file "theme")))
                  (:module "features"
                   :depends-on ("models" "db" "config")
-                  :components ((:file "features")
-                               (:file "search")
+                  :components ((:file "features" :depends-on ("auth"))
                                (:file "auth" :depends-on ("email-activation"))
                                (:file "email-activation")
-                               (:file "channel-invitation")))
+                               (:file "search" :depends-on ("auth"))
+                               (:file "channel-invitation" :depends-on ("auth"))))
                  (:module "models"
                   :depends-on ("db")
                   :components ((:file "model")

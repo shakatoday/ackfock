@@ -10,7 +10,7 @@
   (rutils.string:read-file (merge-pathnames #P"db/search_query.sql"
                                             ackfock.config:*application-root*)))
 
-(defun-with-db-connection search-memo (current-user query)
+(defun-with-db-connection search-memo (query)
   "Return a current-user accessible list of ACKFOCK.MODEL-DEFINITION:MEMO order by search rank."
   (when (stringp query)
     (let* ((query (ppcre:regex-replace-all
@@ -35,8 +35,7 @@
                                       (dbi:prepare datafly:*connection*
                                                    *search-query-sql-string*)
                                       (list query query))))))
-      (remove-if-not (lambda (memo)
-                       (ackfock.model.relationships:has-access-p current-user memo))
+      (remove-if-not #'ackfock.feature.auth:current-user-has-access-p
                      (loop for data-plist in data-plist-list
                            collect (progn
                                      (remf data-plist :search-rank)

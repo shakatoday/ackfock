@@ -11,7 +11,7 @@
 
 (defmethod gamify ((object ackfock.model:channel) (context main-page-env))
   (let ((web-content (web-content context))
-        (current-player ackfock.game:*current-player*))
+        (current-user ackfock.feature.auth:*current-user*))
     (setf (inner-html web-content) "") ; memory leak? clog has destroy [generic-function] DESTROY CLOG-ELEMENT
     (with-clog-create web-content
         (div (:bind channel-head-div :class "w3-card w3-white w3-block")
@@ -33,7 +33,8 @@
                       ;; TODO: solve race condition gap
                       (unless (disabledp channel-name-input)
                         (let ((new-channel-name (name-value channel-name-form
-                                                            "channel-name")))
+                                                            "channel-name"))
+                              (ackfock.feature.auth:*current-user* current-user))
                           (cond ((str:blankp new-channel-name)
                                  (clog-web-alert web-content
                                                  "Blank"
@@ -42,8 +43,7 @@
                                                  :place-top t)
                                  (setf (value channel-name-input) (ackfock.model:channel-name object)))
                                 (t
-                                 (ackfock.features:rename-channel current-player
-                                                                  object
+                                 (ackfock.features:rename-channel object
                                                                   new-channel-name)
                                  (setf (text (sidebar-item context)) new-channel-name)))))
                       (setf (disabledp channel-name-input)
@@ -122,8 +122,8 @@
                    (setf (text-value invitation-link-text-input)
                          (str:concat ackfock.config:*application-url* "/i/"
                                      (ackfock.model:invitation-code-code
-                                      (ackfock.feature.channel-invitation:create-invitation-code current-player
-                                                                                                 object))))))
+                                      (let ((ackfock.feature.auth:*current-user* current-user))
+                                        (ackfock.feature.channel-invitation:create-invitation-code object)))))))
             (set-on-click link-invitation-btn
                           (lambda (btn-obj)
                             (declare (ignore btn-obj))
@@ -153,9 +153,9 @@
                                                                         :time-out 3
                                                                         :place-top t))
                                     ;; XSS DANGER!
-                                    (t (ackfock.features:invite-to-channel current-player
-                                                                           (ackfock.model:user-email target-user)
-                                                                           object)
+                                    (t (let ((ackfock.feature.auth:*current-user* current-user))
+                                         (ackfock.features:invite-to-channel (ackfock.model:user-email target-user)
+                                                                             object))
                                        (setf (text channel-members-span) (format nil
                                                                                  "~{~a~^, ~}"
                                                                                  (mapcar #'ackfock.model:user-username
@@ -185,16 +185,16 @@
       (setf (height (create-div web-content)) (height channel-head-div))
       (let* ((body-location *body-location*)
              (window *window*)
-             (current-player ackfock.game:*current-player*)
+             (current-user ackfock.feature.auth:*current-user*)
              (re-gamifier (lambda ()
                             (let ((*body-location* body-location)
                                   (*window* window)
-                                  (ackfock.game:*current-player* current-player))
+                                  (ackfock.feature.auth:*current-user* current-user))
                               (gamify object context))))
              (memo-env (make-channel-content :web-content web-content
                                              :re-gamifier re-gamifier)))
         (loop for memo in (if (ackfock.model:private-channel-p object)
-                              (ackfock.model.relationships:user-private-memos current-player)
+                              (ackfock.model.relationships:user-private-memos current-user)
                               (ackfock.model.relationships:channel-memos object))
               do (gamify memo
                          memo-env))
@@ -217,9 +217,9 @@
                                                                                               "New memo can't be blank"
                                                                                               :time-out 3
                                                                                               :place-top t))
-                                (t (ackfock.features:new-memo current-player
-                                                              object ; will check the null case inside the function
-                                                              (text-value memo-content-input))
+                                (t (let ((ackfock.feature.auth:*current-user* current-user))
+                                     (ackfock.features:new-memo object ; will check the null case inside the function
+                                                                (text-value memo-content-input)))
                                    (funcall re-gamifier)))))
           (setf (hash *body-location*) "")
           (setf (hash *body-location*) *bottom-new-memo-container-html-id*))))))

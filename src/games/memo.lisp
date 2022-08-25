@@ -20,13 +20,12 @@
   (format nil " ~{~a~^, ~}" (mapcar #'ackfock.model:user-username
                                     (mapcar #'ackfock.model:user-ackfock-user
                                             (cdr (assoc ack-or-fock
-                                                        (ackfock.features:memo-latest-ackfocks-per-user-by-ackfock ackfock.game:*current-player*
-                                                                                                                   memo)
+                                                        (ackfock.features:memo-latest-ackfocks-per-user-by-ackfock memo)
                                                         :test #'string=))))))
 
 (defmethod gamify ((object ackfock.model:memo) (context ackfock.game.channel:channel-content))
   (let ((web-content (channel-content-web-content context))
-        (current-player ackfock.game:*current-player*))
+        (current-user ackfock.feature.auth:*current-user*))
     (with-clog-create web-content
         (div (:bind memo-div :class "w3-border-bottom w3-padding" :html-id (make-memo-div-html-id object))
              (div (:bind memo-reply-snippet-div))
@@ -74,7 +73,8 @@
                              (add-class ackfock-history-btn "fa-long-arrow-left")
                              (add-class ackfock-history-btn "w3-black")
                              (setf (text ackfock-history-btn) " Hide History")
-                             (loop for user-ackfock in (ackfock.features:memo-user-ackfocks current-player object)
+                             (loop for user-ackfock in (let ((ackfock.feature.auth:*current-user* current-user))
+                                                         (ackfock.features:memo-user-ackfocks object))
                                    do (with-clog-create ackfock-history-div
                                           (web-auto-row (:class "w3-margin w3-border-bottom")
                                                         (web-auto-column (:content (ackfock.model:user-username (ackfock.model:user-ackfock-user user-ackfock))))
@@ -105,11 +105,11 @@
       (flet ((ackfock-memo-and-regamify-handler (ackfock)
                (lambda (obj)
                  (declare (ignore obj))
-                 (when (ackfock.features:ackfock-memo current-player
-                                                      object
-                                                      ackfock)
-                   ;; regamify. memory leak?
-                   (let ((ackfock.game:*current-player* current-player)) ; latest-ackfock-users references this special variable
+                 (let ((ackfock.feature.auth:*current-user* current-user))
+                   ;; latest-ackfock-users also references this special variable
+                   (when (ackfock.features:ackfock-memo object
+                                                        ackfock)
+                     ;; regamify. memory leak?
                      (setf (inner-html ack-usernames-span) (latest-ackfock-users object "ACK"))
                      (setf (inner-html fock-usernames-span) (latest-ackfock-users object "FOCK")))))))
         (set-on-click ack-btn (ackfock-memo-and-regamify-handler "ACK"))
@@ -145,11 +145,11 @@
                                                                                                      :time-out 3
                                                                                                      :place-top t))
                                        ;; XSS danger!
-                                       (t (ackfock.features:reply-memo ackfock.game:*current-player*
-                                                                       object
-                                                                       (text-value memo-content-input)
-                                                                       :as-an-update-p (str:containsp "Update"
-                                                                                                      (text memo-update-reply-btn)))
+                                       (t (let ((ackfock.feature.auth:*current-user* current-user))
+                                            (ackfock.features:reply-memo object
+                                                                         (text-value memo-content-input)
+                                                                         :as-an-update-p (str:containsp "Update"
+                                                                                                        (text memo-update-reply-btn))))
                                           (funcall (channel-content-re-gamifier context)))))))))
         (set-on-click memo-reply-btn #'memo-update-reply-handler))
       memo-div)))

@@ -29,8 +29,8 @@
                                                                          (url-replace (location body) "/login")))
                                                     3))
                             (t
-                             (ackfock.feature.channel-invitation:consume-invitation-code (profile web-site)
-                                                                                         code)
+                             (let ((ackfock.feature.auth:*current-user* (profile web-site)))
+                               (ackfock.feature.channel-invitation:consume-invitation-code code))
                              (url-replace (location body) "/")))
                     (ackfock.feature.channel-invitation:no-such-code ()
                       (create-web-page body
@@ -80,11 +80,10 @@
                                                                          "q")))
                                        (if (str:blankp search-input)
                                            (create-div body :content "Empty search input")
-                                           (let ((ackfock.game:*current-player* (profile web-site)))
-                                             (loop for memo in (ackfock.feature.search:search-memo (profile web-site)
-                                                                                                 search-input)
-                                                 do (ackfock.game:gamify memo
-                                                                         body))))))))
+                                           (let ((ackfock.feature.auth:*current-user* (profile web-site)))
+                                             (loop for memo in (ackfock.feature.search:search-memo search-input)
+                                                   do (ackfock.game:gamify memo
+                                                                           body))))))))
                       (url-replace (location body) "/")))))
 
   (defpage "login"
@@ -131,7 +130,7 @@
   (defpage "main"
     :path "/"
     :renderer (lambda (body)
-                (let ((ackfock.game:*current-player* (profile (ackfock.game.theme:init-site body))))
+                (let ((ackfock.feature.auth:*current-user* (profile (ackfock.game.theme:init-site body))))
                   (create-web-page body
                                    :index
                                    `(:content ,#'ackfock.game.main-page:content))))))

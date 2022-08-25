@@ -16,8 +16,8 @@
 
 (defparameter *invitation-code-had-been-consumed-message* "One-time invitation link had been consumed. (Visiting without login won't consume the link")
 
-(defun-with-db-connection create-invitation-code (current-user channel &key (ttl-in-hour (* 24 3)))
-  (when (ackfock.model.relationships:has-access-p current-user channel)
+(defun-with-db-connection create-invitation-code (channel &key (ttl-in-hour (* 24 3)))
+  (when (ackfock.feature.auth:current-user-has-access-p channel)
     (let ((valid-until (local-time:format-timestring nil
                                                      (local-time:timestamp+ (local-time:now)
                                                                             ttl-in-hour
@@ -27,7 +27,7 @@
        (insert-into :invitation_code
          (set= :code code
                :valid_until valid-until
-               :source_user_id (ackfock.model:user-uuid current-user)
+               :source_user_id (ackfock.model:user-uuid ackfock.feature.auth:*current-user*)
                :channel_id (ackfock.model:channel-uuid channel))
          (returning :*))
        :as 'ackfock.model:invitation-code))))
@@ -49,9 +49,9 @@
      (where (:= :code code)))
    :as 'ackfock.model:invitation-code))
 
-(defun-with-db-connection consume-invitation-code (current-user code)
-  (when (and (ackfock.model:user-p current-user)
-             (ackfock.model:user-uuid current-user))
+(defun-with-db-connection consume-invitation-code (code)
+  (when (and (ackfock.model:user-p ackfock.feature.auth:*current-user*)
+             (ackfock.model:user-uuid ackfock.feature.auth:*current-user*))
     (let ((invitation-code (get-invitation-code-by-code code))
           (now (local-time:now)))
       (unless invitation-code
@@ -63,10 +63,10 @@
         (error 'invalid-code :condition-message *invitation-code-had-been-consumed-message*))
       (execute
        (insert-into :user_channel_access
-         (set= :user_id (ackfock.model:user-uuid current-user)
+         (set= :user_id (ackfock.model:user-uuid ackfock.feature.auth:*current-user*)
                :channel_id (ackfock.model:invitation-code-channel-id invitation-code))
          (on-conflict-do-nothing)))
       (execute
        (update :invitation_code
-         (set= :used_by_user_id (ackfock.model:user-uuid current-user))
+         (set= :used_by_user_id (ackfock.model:user-uuid ackfock.feature.auth:*current-user*))
          (where (:= :code code)))))))

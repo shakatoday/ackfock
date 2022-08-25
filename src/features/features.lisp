@@ -15,48 +15,37 @@
   (rutils.string:read-file (merge-pathnames #p"db/memo_latest_ackfocks_per_user.sql"
                                             ackfock.config:*application-root*)))
 
-(defmacro defun-with-db-connection-and-current-user (name lambda-list &body body)
-  "Wrap with WITH-CONNECTION (DB) and handler-case. bound USER-ID according to CURRENT-USER"
+(defmacro defun-with-db-connection-and-current-user-uuid (name lambda-list &body body)
+  "Define a function by DEFUN and put the BODY inside (WITH-CONNECTION (DB)). Bound CURRENT-USER-ID to (ackfock.model:user-uuid ackfock.feature.auth:*current-user*). Check the source to see how docstring is extracted"
   (let ((docstring (when (stringp (first body))
-                     (pop body)))
-        (lambda-list (cons 'current-user lambda-list)))
+                     (pop body))))
     `(defun ,name ,lambda-list
        ,@(serapeum:unsplice docstring)
-       (with-connection (db)
-         (handler-case
-             ;; race condition notice below!
-             (let ((user-id (ackfock.model:user-uuid current-user)))
-               ,@body)
-           (type-error (condition)
-             (when (ackfock.config:developmentp)
-               (print condition))
-             nil)
-           (sb-pcl::no-primary-method-error (condition)
-             (when (ackfock.config:developmentp)
-               (print condition))
-             nil))))))
+       (ackfock.db:with-connection (ackfock.db:db)
+         (let ((current-user-id (ackfock.model:user-uuid ackfock.feature.auth:*current-user*)))
+           ,@body)))))
 
-(defun-with-db-connection-and-current-user new-memo (channel content)
+(defun-with-db-connection-and-current-user-uuid new-memo (channel content)
   (execute
    (if (ackfock.model:private-channel-p channel)
        (insert-into :memo
-         (set= :creator_id user-id
+         (set= :creator_id current-user-id
                :content content))
        (let ((channel-id (ackfock.model:channel-uuid channel)))
-         (when (ackfock.model.relationships:has-access-p current-user channel)
+         (when (ackfock.feature.auth:current-user-has-access-p channel)
            (insert-into :memo
-             (set= :creator_id user-id
+             (set= :creator_id current-user-id
                    :content content
                    :channel_id channel-id)))))))
 
-(defun-with-db-connection-and-current-user reply-memo (memo new-content &key as-an-update-p)
+(defun-with-db-connection-and-current-user-uuid reply-memo (memo new-content &key as-an-update-p)
   (retrieve-one
    ;; TODO: should check channel access
    (insert-into :memo
-     (set= :creator_id user-id
+     (set= :creator_id current-user-id
            :parent_memo_id (ackfock.model:memo-uuid memo)
            :as_an_update (if (and as-an-update-p
-                                  (string= (ackfock.model:memo-creator-id memo) user-id))
+                                  (string= (ackfock.model:memo-creator-id memo) current-user-id))
                              "true"
                              "false")
            :content new-content
@@ -65,7 +54,7 @@
      (returning :*))
    :as 'ackfock.model:memo))
 
-(defun-with-db-connection-and-current-user new-channel (channel-name)
+(defun-with-db-connection-and-current-user-uuid new-channel (channel-name)
   (let ((channel (retrieve-one
                   (insert-into :channel
                     (set= :name channel-name)
@@ -73,13 +62,12 @@
                   :as 'ackfock.model:channel)))
     (execute
      (insert-into :user_channel_access
-       (set= :user_id user-id
+       (set= :user_id current-user-id
              :channel_id (ackfock.model:channel-uuid channel))))
     channel))
 
-(defun-with-db-connection-and-current-user invite-to-channel (target-user-email channel)
-  (declare (ignore user-id))
-  (when (ackfock.model.relationships:has-access-p current-user channel)
+(defun-with-db-connection invite-to-channel (target-user-email channel)
+  (when (ackfock.feature.auth:current-user-has-access-p channel)
     (let ((target-user-id (ackfock.model:user-uuid (retrieve-one
                                                     (select :uuid
                                                       (from :users)
@@ -91,12 +79,12 @@
                :channel_id (ackfock.model:channel-uuid channel))
          (on-conflict-do-nothing))))))
 
-(defun-with-db-connection-and-current-user memo-latest-ackfocks-per-user-by-ackfock (memo)
+(defun-with-db-connection-and-current-user-uuid memo-latest-ackfocks-per-user-by-ackfock (memo)
   "Return an alist by \"ACK\" and \"FOCK\" associated with corresponding USER-ACKFOCK"
   (let ((memo-id (ackfock.model:memo-uuid memo)))
     (if (null (ackfock.model:memo-channel-id memo))
         ;; private memo
-        (when (string= (ackfock.model:memo-creator-id memo) user-id)
+        (when (string= (ackfock.model:memo-creator-id memo) current-user-id)
           (let ((current-user-ackfock (ackfock.model:plist-to-user-ackfock
                                        (retrieve-one
                                         (select :*
@@ -104,7 +92,7 @@
                                           (inner-join :users
                                                       :on (:= :users.uuid :user_ackfock.user_id))
                                           (where (:and (:= :memo_id memo-id)
-                                                       (:= :users.uuid user-id)))
+                                                       (:= :users.uuid current-user-id)))
                                           (order-by (:desc :user_ackfock.created_at))
                                           (limit 1))))))
             (ackfock.model:user-ackfock-list-to-alist-by-ackfock (list current-user-ackfock))))
@@ -113,7 +101,7 @@
                (select :*
                  (from :user_channel_access)
                  (where (:and (:= :channel_id (ackfock.model:memo-channel-id memo))
-                              (:= :user_id user-id)))))
+                              (:= :user_id current-user-id)))))
           (let ((data-plist-list (mapcar #'datafly.db::convert-row
                                          (dbi:fetch-all
                                           (dbi:execute
@@ -123,33 +111,31 @@
             (ackfock.model:user-ackfock-list-to-alist-by-ackfock (mapcar #'ackfock.model:plist-to-user-ackfock
                                                                          data-plist-list)))))))
 
-(defun-with-db-connection-and-current-user ackfock-memo (memo ackfock)
+(defun-with-db-connection-and-current-user-uuid ackfock-memo (memo ackfock)
   "Return an ACKFOCK.MODEL::USER-ACKFOCK if success. Nil otherwise."
   (let ((memo-id (ackfock.model:memo-uuid memo)))
-    (when (ackfock.model.relationships:has-access-p current-user memo)
+    (when (ackfock.feature.auth:current-user-has-access-p memo)
       ;; race condition gap notice!
-      (ackfock.model:user-ackfock current-user
+      (ackfock.model:user-ackfock ackfock.feature.auth:*current-user*
                     (ackfock.model:string-to-ackfock ackfock)
                     (datetime-to-timestamp (getf (retrieve-one
                                                   (insert-into :user_ackfock
                                                     (set= :memo_id memo-id
-                                                          :user_id user-id
+                                                          :user_id current-user-id
                                                           :ackfock ackfock)
                                                     (returning :created_at)))
                                                  :created-at))))))
 
-(defun-with-db-connection-and-current-user rename-channel (channel new-name)
-  (declare (ignore user-id))
-  (when (and (ackfock.model.relationships:has-access-p current-user channel)
+(defun-with-db-connection rename-channel (channel new-name)
+  (when (and (ackfock.feature.auth:current-user-has-access-p channel)
              (str:non-blank-string-p new-name))
     (execute
      (update :channel
        (set= :name new-name)
        (where (:= :uuid (ackfock.model:channel-uuid channel)))))))
 
-(defun-with-db-connection-and-current-user memo-user-ackfocks (memo)
-  (declare (ignore user-id))
-  (when (ackfock.model.relationships:has-access-p current-user memo)
+(defun-with-db-connection memo-user-ackfocks (memo)
+  (when (ackfock.feature.auth:current-user-has-access-p memo)
     (mapcar #'ackfock.model:plist-to-user-ackfock
             (retrieve-all
              (select :*

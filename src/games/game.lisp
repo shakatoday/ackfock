@@ -11,15 +11,12 @@
            #:*body-location*
            #:*window*
            #:*hash-scroll-work-around-px*
-           #:*current-player*
            #:*environment*))
 (in-package :ackfock.game)
 
 (defvar *body-location*)
 
 (defvar *window*)
-
-(defvar *current-player*)
 
 (defvar *environment*)
 

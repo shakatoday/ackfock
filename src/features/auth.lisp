@@ -5,8 +5,12 @@
            #:sign-up
            #:current-user
            #:change-password
-           #:logout))
+           #:logout
+           #:*current-user*
+           #:current-user-has-access-p))
 (in-package :ackfock.feature.auth)
+
+(defvar *current-user*)
 
 (defun current-user (clog-obj)
   (gethash :current-user
@@ -17,9 +21,12 @@
                  (clog-lack-session:current-session clog-obj))
         value))
 
+(defun current-user-has-access-p (model-obj)
+  (ackfock.model.relationships:has-access-p *current-user*
+                                            model-obj))
+
 (defun login (body sql-connection email password)
-  "Login and set current authentication token, it does not remove token
-if one is present and login fails."
+  "Login and store current user in sessions"
   (check-type body clog-body)
   (let ((contents (dbi:fetch-all
 		   (dbi:execute
@@ -66,7 +73,7 @@ if one is present and login fails."
                               (dbi:prepare
                                sql-connection
                                "select uuid, password from users where uuid=?")
-                              (list (ackfock.model:user-uuid (profile (get-web-site body))))))))
+                              (list (ackfock.model:user-uuid *current-user*))))))
               (cond ((and contents
                           (cl-pass:check-password (form-result result "oldpass")
                                                   (getf (car contents) :|password|)))
@@ -76,7 +83,7 @@ if one is present and login fails."
                         "users"
                         `(:password ,(cl-pass:hash (form-result result "password")))
                         "uuid=?")
-                       (list (ackfock.model:user-uuid (profile (get-web-site body)))))
+                       (list (ackfock.model:user-uuid *current-user*)))
                      (url-replace (location body) next-step))
                     (t
                      (clog-web-alert body "Old Password"

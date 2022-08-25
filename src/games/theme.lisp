@@ -1,8 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.game.theme
   (:use :cl :clog :clog-web)
-  (:import-from :ackfock.feature.auth
-                #:current-user)
   (:export #:*color-class*
            #:init-site))
 (in-package :ackfock.game.theme)
@@ -16,7 +14,7 @@
   (load-css (html-document body)
             "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
   ;; Initialzie the clog-web-site environment
-  (let ((profile (current-user body)))
+  (let ((profile (ackfock.feature.auth:current-user body)))
     (create-web-site body
 		     :settings `(:color-class  ,*color-class*
 				 :border-class ""

@@ -15,8 +15,8 @@
            (sidebar-menu-button-for-mobile (connection-data-item body :sidebar-menu-button-for-mobile))
            (channel-content (create-div body))
            (channels (cons (ackfock.model:make-private-channel) ; for user-private-memos
-                           (ackfock.model.relationships:user-channels ackfock.game:*current-player*)))
-           (current-user ackfock.game:*current-player*)
+                           (ackfock.model.relationships:user-channels ackfock.feature.auth:*current-user*)))
+           (current-user ackfock.feature.auth:*current-user*)
            (channel-selects
              (make-array (length channels)
                          :initial-contents (mapcar
@@ -43,7 +43,7 @@
                                  (add-class sidebar-item "w3-blue-gray")
                                  (let ((ackfock.game:*body-location* (location body))
                                        (ackfock.game:*window* (window body))
-                                       (ackfock.game:*current-player* current-user))
+                                       (ackfock.feature.auth:*current-user* current-user))
                                    (ackfock.game:gamify channel
                                                         (ackfock.game:make-main-page-env :sidebar-item sidebar-item
                                                                                          :web-content channel-content
@@ -64,8 +64,8 @@
                                                                                                   "New channel name can't be blank"
                                                                                                   :time-out 3
                                                                                                   :place-top t))
-                               (t (ackfock.features:new-channel current-user
-                                                                (name-value new-channel-form "name"))
+                               (t (let ((ackfock.feature.auth:*current-user* current-user))
+                                    (ackfock.features:new-channel (name-value new-channel-form "name")))
                                   (url-replace (location body) "/"))))))
       (set-margin-side channel-content
                        :left (format nil "~apx" (width sidebar)))
