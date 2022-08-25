@@ -50,7 +50,7 @@ Page properties:
 	 (text-class     (get-setting website :text-class ""))
 	 (login-link     (get-setting website :login-link "/login"))
 	 (signup-link    (get-setting website :signup-link "/signup"))
-	 (username-link  (get-setting website :username-link "/"))
+	 ;; use this in the future (username-link  (get-setting website :username-link "/"))
 	 (content        (get-property properties :content "")))
     ;;
     ;; Setup CSS style changes

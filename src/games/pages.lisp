@@ -80,11 +80,11 @@
                                                                          "q")))
                                        (if (str:blankp search-input)
                                            (create-div body :content "Empty search input")
-                                           (loop for memo in (ackfock.feature.search:search-memo (profile web-site)
+                                           (let ((ackfock.game:*current-player* (profile web-site)))
+                                             (loop for memo in (ackfock.feature.search:search-memo (profile web-site)
                                                                                                  search-input)
                                                  do (ackfock.game:gamify memo
-                                                                         (profile web-site)
-                                                                         body)))))))
+                                                                         body))))))))
                       (url-replace (location body) "/")))))
 
   (defpage "login"
@@ -131,7 +131,7 @@
   (defpage "main"
     :path "/"
     :renderer (lambda (body)
-                (let ((ackfock.game.main-page:*current-user* (profile (ackfock.game.theme:init-site body))))
+                (let ((ackfock.game:*current-player* (profile (ackfock.game.theme:init-site body))))
                   (create-web-page body
                                    :index
                                    `(:content ,#'ackfock.game.main-page:content))))))

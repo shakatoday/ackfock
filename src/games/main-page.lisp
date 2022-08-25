@@ -1,11 +1,8 @@
 (in-package :cl-user)
 (defpackage ackfock.game.main-page
   (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi)
-  (:export #:*current-user*
-           #:content))
+  (:export #:content))
 (in-package :ackfock.game.main-page)
-
-(defvar *current-user*)
 
 (defun content (body)
   (with-clog-create body
@@ -18,8 +15,8 @@
            (sidebar-menu-button-for-mobile (connection-data-item body :sidebar-menu-button-for-mobile))
            (channel-content (create-div body))
            (channels (cons (ackfock.model:make-private-channel) ; for user-private-memos
-                           (ackfock.model.relationships:user-channels *current-user*)))
-           (current-user *current-user*)
+                           (ackfock.model.relationships:user-channels ackfock.game:*current-player*)))
+           (current-user ackfock.game:*current-player*)
            (channel-selects
              (make-array (length channels)
                          :initial-contents (mapcar
@@ -45,9 +42,9 @@
                                  (setf current-sidebar-item sidebar-item)
                                  (add-class sidebar-item "w3-blue-gray")
                                  (let ((ackfock.game:*body-location* (location body))
-                                       (ackfock.game:*window* (window body)))
+                                       (ackfock.game:*window* (window body))
+                                       (ackfock.game:*current-player* current-user))
                                    (ackfock.game:gamify channel
-                                                        current-user
                                                         (ackfock.game:make-main-page-env :sidebar-item sidebar-item
                                                                                          :web-content channel-content
                                                                                          :post-gamify-hash ackfock.game:*bottom-new-memo-container-html-id*)))))))
@@ -82,7 +79,6 @@
                                    :test #'string=)))
         (setf current-sidebar-item (getf channel-select :sidebar-item))
         (ackfock.game:gamify (getf channel-select :channel)
-                             *current-user*
                              (ackfock.game:make-main-page-env :sidebar-item current-sidebar-item
                                                               :web-content channel-content
                                                               :post-gamify-hash (or memo-div-html-id

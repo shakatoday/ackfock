@@ -3,19 +3,25 @@
   (:use :cl)
   (:export #:gamify
            #:make-main-page-env
-           #:main-page-env-p
+           #:main-page-env
            #:web-content
            #:sidebar-item
            #:post-gamify-hash
            #:*bottom-new-memo-container-html-id*
            #:*body-location*
            #:*window*
-           #:*hash-scroll-work-around-px*))
+           #:*hash-scroll-work-around-px*
+           #:*current-player*
+           #:*environment*))
 (in-package :ackfock.game)
 
 (defvar *body-location*)
 
 (defvar *window*)
+
+(defvar *current-player*)
+
+(defvar *environment*)
 
 (defparameter *hash-scroll-work-around-px* 124)
 
@@ -24,4 +30,4 @@
 (defstruct (main-page-env (:conc-name nil))
   sidebar-item web-content post-gamify-hash)
 
-(defgeneric gamify (model-obj current-user &optional env))
+(defgeneric gamify (object context))
