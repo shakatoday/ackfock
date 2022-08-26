@@ -95,7 +95,7 @@
                                                        (:= :users.uuid current-user-id)))
                                           (order-by (:desc :user_ackfock.created_at))
                                           (limit 1))))))
-            (ackfock.model:user-ackfock-list-to-alist-by-ackfock (list current-user-ackfock))))
+            (ackfock.model:user-ackfock-list-to-alist-by-ackfock (serapeum:unsplice current-user-ackfock))))
         ;; memo in a channel
         (when (retrieve-one
                (select :*

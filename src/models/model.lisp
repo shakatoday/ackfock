@@ -86,11 +86,12 @@
   (created-at local-time:timestamp))
 
 (defun plist-to-user-ackfock (plist)
-  (let ((copy-plist (copy-list plist)))
-    (remf copy-plist :created-at)
-    (user-ackfock (user-from-plist copy-plist)
-                  (string-to-ackfock (getf plist :ackfock))
-                  (datetime-to-timestamp (getf plist :created-at)))))
+  (when plist
+    (let ((copy-plist (copy-list plist)))
+      (remf copy-plist :created-at)
+      (user-ackfock (user-from-plist copy-plist)
+                    (string-to-ackfock (getf plist :ackfock))
+                    (datetime-to-timestamp (getf plist :created-at))))))
 
 (defun user-ackfock-list-to-alist-by-ackfock (user-ackfock-list)
   (list (cons "ACK"
