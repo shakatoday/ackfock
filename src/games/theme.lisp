@@ -51,10 +51,6 @@ Page properties:
 	 ;; use this in the future (username-link  (get-setting website :username-link "/"))
 	 (content        (get-property properties :content "")))
     ;;
-    ;; Setup CSS style changes
-    (let ((sb (create-style-block body)))
-      (add-style sb :element "a.clog-theme" '(("text-decoration" "none"))))
-    ;;
     ;; Page layout
     ;; SECTION: Menu bar
     (let* ((menu (create-div body
@@ -62,7 +58,7 @@ Page properties:
            (logo-a (create-a menu
                              :link (url website)
                              :content (title website)
-                             :class "w3-bar-item w3-xlarge w3-sans-serif clog-theme")))
+                             :class "w3-bar-item w3-xlarge w3-sans-serif ackfock-theme")))
       (setf (z-index menu) 3)
       (add-class menu color-class)
       (if (profile website)
@@ -81,7 +77,7 @@ Page properties:
                                                       :class "w3-bar-item fa fa-user w3-hide-medium w3-hide-large w3-right"))
                    (search-icon-for-mobile (create-div menu
                                                        :class "w3-bar-item fa fa-search w3-hide-medium w3-hide-large w3-right"))
-                   (login-menu-right-class "w3-bar-item clog-theme w3-right w3-mobile w3-hide-small")
+                   (login-menu-right-class "w3-bar-item ackfock-theme w3-right w3-mobile w3-hide-small")
                    (login-menu-right-items nil))
               (create-form-element search-form
                                    :search
@@ -128,7 +124,7 @@ Page properties:
                                             "w3-hide-small")))))
 	  (when login-link
             (create-a menu
-                      :class "w3-bar-item clog-theme w3-right"
+                      :class "w3-bar-item ackfock-theme w3-right"
                       :content "login"
 		      :link login-link)))
       (let ((menu-margin-div (create-div body)))
