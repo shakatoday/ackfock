@@ -43,7 +43,7 @@
                                "models"
                                "db")
                   :components ((:file "game")
-                               (:file "pages" :depends-on ("main-page" "game" "theme"))
+                               (:file "entries" :depends-on ("main-page" "game" "theme"))
                                (:file "main-page" :depends-on ("game"))
                                (:file "memo" :depends-on ("channel" "game"))
                                (:file "channel" :depends-on ("game"))
