@@ -11,7 +11,10 @@
            #:*body-location*
            #:*window*
            #:*hash-scroll-work-around-px*
-           #:*environment*))
+           #:*environment*
+           #:built-on-clog
+           #:init
+           #:operation-stop))
 (in-package :ackfock.game)
 
 (defvar *body-location*)
@@ -23,7 +26,7 @@
                                             ackfock.config:*application-root*)))
 
 (defvar *environment*
-  '(:port 8080))
+  '(:port 8080 :top-context built-on-clog))
 
 (defparameter *hash-scroll-work-around-px* 124)
 
@@ -34,15 +37,13 @@
 
 (defgeneric gamify (object context))
 
-(defgeneric init (options context))
+(defgeneric init (context &key))
 
-(defgeneric operation-start (context))
+(defgeneric operation-stop (context &key))
 
-(defgeneric operation-stop (context))
-
-(defmethod init (options (context (eql (asdf:find-system :clog))))
+(defmethod init ((context (eql 'ackfock.game:built-on-clog)) &key (port 8080))
   (clog:initialize nil
-                   :port (getf *environment* :port)
+                   :port port
                    :lack-middleware-list `(,lack.middleware.session:*lack-middleware-session*
                                            ,clog-lack-session:*middleware*
                                            ,(lambda (app)
@@ -62,3 +63,6 @@
 	                                         ackfock.config:*application-root*)
 	           :boot-function (clog-web:clog-web-meta
 			           "Ackfock is a platform of mini agreements and mini memos of understanding.")))
+
+(defmethod operation-stop ((context (eql 'ackfock.game:built-on-clog)) &key)
+  (clog:shutdown))

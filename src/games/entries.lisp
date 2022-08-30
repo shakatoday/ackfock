@@ -11,7 +11,7 @@
                      :path (or path
                                (str:concat "/" name))))
 
-(defmethod gamify ((object (eql 'ackfock.game.entries:all-entries)) (context (eql (asdf:find-system :clog))))
+(defmethod gamify ((object (eql 'ackfock.game.entries:all-entries)) (context (eql 'ackfock.game:built-on-clog)))
   (define-entry "channel-invitation"
     :path "/i"
     :clog-new-window-handler
