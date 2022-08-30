@@ -143,4 +143,4 @@
       (let ((ackfock.feature.auth:*current-user* (profile (ackfock.game.theme:init-site body))))
         (create-web-page body
                          :index
-                         `(:content ,#'ackfock.game.main-page:content))))))
+                         `(:content ,#'ackfock.game.main-entry:content))))))

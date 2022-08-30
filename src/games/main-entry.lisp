@@ -1,8 +1,8 @@
 (in-package :cl-user)
-(defpackage ackfock.game.main-page
+(defpackage ackfock.game.main-entry
   (:use :cl #:clog #:clog-web #:clog-auth #:clog-web-dbi)
   (:export #:content))
-(in-package :ackfock.game.main-page)
+(in-package :ackfock.game.main-entry)
 
 (defun content (body)
   (with-clog-create body
