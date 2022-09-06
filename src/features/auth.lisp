@@ -36,8 +36,7 @@
 		    (list email)))))
     (when (and contents
                (cl-pass:check-password password (getf (car contents) :|password|)))
-      (setf (gethash :current-user
-                     (clog-lack-session:current-session body))
+      (setf (current-user body)
             (ackfock.db:with-connection sql-connection
               (ackfock.model:user-from-plist (datafly.db::convert-row (car contents))))))))
 
