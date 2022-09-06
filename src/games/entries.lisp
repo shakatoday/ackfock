@@ -1,6 +1,6 @@
 (in-package :cl-user)
 (defpackage ackfock.game.entries
-  (:use :cl #:clog #:clog-web)
+  (:use :cl :clog :clog-web)
   (:import-from :ackfock.game
                 #:gamify)
   (:export #:all-entries))
@@ -96,18 +96,9 @@
     (lambda (body)
       (if (profile (ackfock.game.theme:init-site body))
           (url-replace (location body) "/")
-          (create-web-page
-           body
-           :login `(:menu      ,'(())
-	            :on-submit ,(lambda (obj)
-			          (if (ackfock.feature.auth:login body
-                                                                  (ackfock.db:db)
-				                                  (name-value obj "email")
-				                                  (name-value obj "password"))
-			              (url-replace (location body) "/")
-			              (clog-web-alert obj "Invalid" "The email and password are invalid."
-					              :time-out 3
-					              :place-top t))))))))
+          (create-web-page body
+                           :login
+                           `(:content ,#'ackfock.game.auth:login)))))
 
   (define-entry "logout"
     :clog-new-window-handler

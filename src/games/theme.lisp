@@ -17,7 +17,6 @@
   (let ((profile (ackfock.feature.auth:current-user body)))
     (create-web-site body
 		     :settings `(:color-class  ,*color-class*
-				 :border-class ""
 				 :signup-link  "/signup"
 				 :login-link   "/login")
 		     :profile profile
@@ -44,15 +43,12 @@ Page properties:
   ;; Settings and Properties with default values
   (let* ((website        (get-web-site body))
 	 (color-class    (get-setting website :color-class "w3-black"))
-	 (border-class   (get-setting website :border-class ""))
-	 (text-class     (get-setting website :text-class ""))
 	 (login-link     (get-setting website :login-link "/login"))
-	 (signup-link    (get-setting website :signup-link "/signup"))
 	 ;; use this in the future (username-link  (get-setting website :username-link "/"))
 	 (content        (get-property properties :content "")))
     ;;
     ;; Page layout
-    ;; SECTION: Menu bar
+    ;; SECTION: top bar
     (let* ((menu (create-div body
                              :class "w3-top w3-bar"))
            (logo-a (create-a menu
@@ -138,32 +134,6 @@ Page properties:
 	   (funcall content body))
 	  (t
 	   (create-div body :content (format nil "~A" content)))))
-      ;; SECTION: Special pages - Login
-      (cond ((eq page :login)
-             (let* ((outter    (create-web-container body))
-	            (form      (create-form outter))
-	            (p1        (create-p form))
-	            (l1        (create-label p1 :content "Email"
-					        :class text-class))
-	            (user      (create-form-element p1 :email
-					            :name "email"
-					            :class (format nil "w3-input ~A" border-class)))
-	            (p2        (create-p form))
-	            (l2        (create-label p2 :content "Password"
-					        :class text-class))
-	            (pass      (create-form-element p2 :password
-					            :name "password"
-					            :class (format nil "w3-input ~A" border-class)))
-	            (p3        (create-p form)))
-	       (declare (ignore l1 l2 p3))
-	       (setf (maximum-width outter) (unit :px 500))
-	       (setf (requiredp user) t)
-	       (setf (requiredp pass) t)
-	       (create-form-element form :submit :value "Submit"
-					         :class (format nil "~A ~A" "w3-button" color-class))
-	       (set-on-submit form (getf properties :on-submit))
-	       (when signup-link
-	         (create-a form :class "w3-right" :content "sign up" :link signup-link)))))
       ;; SECTION: Footer
       (create-br body)
       (create-br body)
