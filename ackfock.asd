@@ -43,8 +43,9 @@
                                "models"
                                "db")
                   :components ((:file "game")
-                               (:file "entries" :depends-on ("main-entry" "game" "theme"))
+                               (:file "entries" :depends-on ("main-entry" "game" "auth" "theme"))
                                (:file "main-entry" :depends-on ("game"))
+                               (:file "auth" :depends-on ("theme"))
                                (:file "memo" :depends-on ("channel" "game"))
                                (:file "channel" :depends-on ("game"))
                                (:file "theme")))
