@@ -3,21 +3,20 @@
   (:use :cl :clog :clog-web)
   (:import-from :ackfock.game
                 #:gamify)
+  (:shadow #:name)
   (:export #:all-entries))
 (in-package :ackfock.game.entries)
 
 (defvar *mapper* (myway:make-mapper))
 
-(defun define-entry (name &key base-path path-extention path-mapper clog-new-window-handler)
-  (let ((base-path (or base-path
-                       (str:concat "/" name))))
-    (when (and path-extention
-               path-mapper)
-      (myway:connect *mapper*
-                     (str:concat base-path path-extention)
-                     path-mapper))
-    (set-on-new-window clog-new-window-handler
-                       :path base-path)))
+(defun define-entry (name &key (base-path (str:concat "/" name)) path-extention path-mapper clog-new-window-handler)
+  (when (and path-extention
+             path-mapper)
+    (myway:connect *mapper*
+                   (str:concat base-path path-extention)
+                   path-mapper))
+  (set-on-new-window clog-new-window-handler
+                     :path base-path))
 
 (defmethod gamify ((object (eql 'ackfock.game.entries:all-entries)) (context (eql 'ackfock.game:built-on-clog)))
   (define-entry "channel-invitation"
