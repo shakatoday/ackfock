@@ -16,10 +16,10 @@
   (gethash :current-user
            (clog-lack-session:current-session clog-obj)))
 
-(defun (setf current-user) (value clog-obj)
+(defun (setf current-user) (user clog-obj)
   (setf (gethash :current-user
                  (clog-lack-session:current-session clog-obj))
-        value))
+        user))
 
 (defun current-user-has-access-p (model-obj)
   (ackfock.model.relationships:has-access-p *current-user*
