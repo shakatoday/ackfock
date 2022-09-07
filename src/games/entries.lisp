@@ -6,20 +6,29 @@
   (:export #:all-entries))
 (in-package :ackfock.game.entries)
 
-(defun define-entry (name &key path clog-new-window-handler)
-  (set-on-new-window clog-new-window-handler
-                     :path (or path
-                               (str:concat "/" name))))
+(defvar *mapper* (myway:make-mapper))
+
+(defun define-entry (name &key base-path path-extention path-mapper clog-new-window-handler)
+  (let ((base-path (or base-path
+                       (str:concat "/" name))))
+    (when (and path-extention
+               path-mapper)
+      (myway:connect *mapper*
+                     (str:concat base-path path-extention)
+                     path-mapper))
+    (set-on-new-window clog-new-window-handler
+                       :path base-path)))
 
 (defmethod gamify ((object (eql 'ackfock.game.entries:all-entries)) (context (eql 'ackfock.game:built-on-clog)))
   (define-entry "channel-invitation"
-    :path "/i"
+    :base-path "/i"
+    :path-extention "/?:code?"
+    :path-mapper (lambda (params) (getf params :code))
     :clog-new-window-handler
     (lambda (body)
-      (let* ((web-site (ackfock.game.theme:init-site body))
-             (path-name (path-name (location body)))
-             (code (when (> (length path-name) (length "/i/")) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
-                     (subseq path-name (length "/i/")))))
+      (let ((web-site (ackfock.game.theme:init-site body))
+            (code (myway:dispatch *mapper*
+                                  (path-name (location body))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
         (handler-case
             (cond ((str:blankp code)
                    (url-replace (location body) "/"))
@@ -53,12 +62,14 @@
                                                            :color-class "w3-red")))))))))
 
   (define-entry "account-activation"
-    :path "/activate"
+    :base-path "/activate"
+    :path-extention "/?:code?"
+    :path-mapper (lambda (params) (getf params :code))
     :clog-new-window-handler
     (lambda (body)
-      (let* ((path-name (path-name (location body)))
-             (user (when (> (length path-name) (length "/activate/"))
-                     (ackfock.feature.email-activation:activate (subseq path-name (length "/activate/")))))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
+      (let ((user (rutils:when-it (myway:dispatch *mapper*
+                                                  (path-name (location body)))
+                    (ackfock.feature.email-activation:activate rutils:it)))) ; TODO: 1. return 404 when failed 2. check type/length or other ways to avoid from db access and improve performance.
         (cond (user
                (setf (ackfock.feature.auth:current-user body) user)
                (clog-web-initialize body)
@@ -117,7 +128,7 @@
 					         (ackfock.feature.auth:sign-up body (ackfock.db:db))))))))
 
   (define-entry "change-password"
-    :path "/pass"
+    :base-path "/pass"
     :clog-new-window-handler
     (lambda (body)
       (let ((current-user (profile (ackfock.game.theme:init-site body))))
@@ -129,7 +140,7 @@
             (url-replace (location body) "/")))))
 
   (define-entry "main"
-    :path "/"
+    :base-path "/"
     :clog-new-window-handler
     (lambda (body)
       (let ((ackfock.feature.auth:*current-user* (profile (ackfock.game.theme:init-site body))))

@@ -29,6 +29,9 @@
                "lack-middleware-session"
                "clog-lack-session"
 
+               ;; routing library
+               "myway"
+
                ;; password hashing and verification library
                "cl-pass"
 
