@@ -120,12 +120,13 @@
     :path "/pass"
     :clog-new-window-handler
     (lambda (body)
-      (if (profile (ackfock.game.theme:init-site body))
-          (create-web-page body
-		           :change-password `(:menu    ,'(())
-				              :content ,(lambda (body)
-						          (ackfock.feature.auth:change-password body (ackfock.db:db)))))
-          (url-replace (location body) "/"))))
+      (let ((current-user (profile (ackfock.game.theme:init-site body))))
+        (if current-user
+            (create-web-page body
+		             :change-password `(:content ,(lambda (body)
+                                                            (let ((ackfock.feature.auth:*current-user* current-user))
+						              (ackfock.feature.auth:change-password body (ackfock.db:db))))))
+            (url-replace (location body) "/")))))
 
   (define-entry "main"
     :path "/"
