@@ -8,6 +8,9 @@
            #:send-email))
 (in-package :ackfock.feature.email-activation)
 
+(defparameter *send-email-from*
+  "noreply@ackfock.com")
+
 (defun-with-db-connection create-code (email &key (ttl-in-sec (* 60 60))) ; by default code will expire in 1 hour
   "Create an activation code for EMAIL with TTL-IN-SEC, insert it into database, and return an ACTIVATION-CODE object if success."
   (let ((valid-until (local-time:format-timestring nil
@@ -50,6 +53,7 @@
 
 (defun send-email (email recipient-name link)
   (sendgrid:send-email :to email
+                       :from *send-email-from*
                        :subject (format nil "Hi ~a, please verify your Ackfock account"
                                         recipient-name)
                        :content-type "text/html"
