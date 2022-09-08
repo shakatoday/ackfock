@@ -9,11 +9,14 @@
 
 (defvar *mapper* (myway:make-mapper))
 
-(defun define-entry (name &key (base-path (str:concat "/" name)) path-extention path-mapper clog-new-window-handler)
-  (when (and path-extention
+(defparameter *code-based-path-extension*
+  "/?:code?")
+
+(defun define-entry (name &key (base-path (str:concat "/" name)) path-extension path-mapper clog-new-window-handler)
+  (when (and path-extension
              path-mapper)
     (myway:connect *mapper*
-                   (str:concat base-path path-extention)
+                   (str:concat base-path path-extension)
                    path-mapper))
   (set-on-new-window clog-new-window-handler
                      :path base-path))
@@ -21,7 +24,7 @@
 (defmethod gamify ((object (eql 'ackfock.game.entries:all-entries)) (context (eql 'ackfock.game:built-on-clog)))
   (define-entry "channel-invitation"
     :base-path "/i"
-    :path-extention "/?:code?"
+    :path-extension *code-based-path-extension*
     :path-mapper (lambda (params) (getf params :code))
     :clog-new-window-handler
     (lambda (body)
@@ -62,7 +65,7 @@
 
   (define-entry "account-activation"
     :base-path "/activate"
-    :path-extention "/?:code?"
+    :path-extension *code-based-path-extension*
     :path-mapper (lambda (params) (getf params :code))
     :clog-new-window-handler
     (lambda (body)
@@ -128,6 +131,8 @@
 
   (define-entry "change-password"
     :base-path "/pass"
+    :path-extension *code-based-path-extension*
+    :path-mapper (lambda (params) (getf params :code))
     :clog-new-window-handler
     (lambda (body)
       (let ((current-user (profile (ackfock.game.theme:init-site body))))
