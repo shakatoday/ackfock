@@ -44,16 +44,21 @@
   (remhash :current-user
            (clog-lack-session:current-session body)))
 
-(defun change-password (body sql-connection &key (title "Change Password")
-                                              (next-step "/"))
+(defun change-password (body sql-connection
+                        &key
+                          (title "Change Password")
+                          (next-step "/")
+                          user)
   "Setup a change password form and handle change of password"
   (check-type body clog-body)
-  (let ((current-user-uuid (ackfock.model:user-uuid *current-user*)))
+  (let ((current-user-uuid (ackfock.model:user-uuid (or user
+                                                        *current-user*))))
     (clog-web-form
      body title
-     `(("Old Password" "oldpass" :password)
-       ("New Password" "password" :password)
-       ("Retype Password" "repass" :password))
+     (append (unless user
+               '(("Old Password" "oldpass" :password)))
+             '(("New Password" "password" :password)
+               ("Retype Password" "repass" :password)))
      (lambda (result)
        (cond ((not
                (equal (form-result result "password")
@@ -68,15 +73,17 @@
                               :time-out 3
                               :place-top t))
              (t
-              (let ((contents (dbi:fetch-all
-                               (dbi:execute
-                                (dbi:prepare
-                                 sql-connection
-                                 "select uuid, password from users where uuid=?")
-                                (list current-user-uuid)))))
-                (cond ((and contents
-                            (cl-pass:check-password (form-result result "oldpass")
-                                                    (getf (car contents) :|password|)))
+              (let ((contents (unless user
+                                (dbi:fetch-all
+                                 (dbi:execute
+                                  (dbi:prepare
+                                   sql-connection
+                                   "select uuid, password from users where uuid=?")
+                                  (list current-user-uuid))))))
+                (cond ((or user
+                           (and contents
+                                (cl-pass:check-password (form-result result "oldpass")
+                                                        (getf (car contents) :|password|))))
                        (dbi:do-sql
                          sql-connection
                          (sql-update

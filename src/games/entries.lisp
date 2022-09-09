@@ -135,13 +135,30 @@
     :path-mapper (lambda (params) (getf params :code))
     :clog-new-window-handler
     (lambda (body)
-      (let ((current-user (profile (ackfock.game.theme:init-site body))))
-        (if current-user
-            (create-web-page body
-		             :change-password `(:content ,(lambda (body)
-                                                            (let ((ackfock.feature.auth:*current-user* current-user))
-						              (ackfock.feature.auth:change-password body (ackfock.db:db))))))
-            (url-replace (location body) "/")))))
+      (let ((current-user (profile (ackfock.game.theme:init-site body)))
+            (password-recovery-user
+              (handler-case
+                  (ackfock.db:with-connection (ackfock.db:db)
+                    (ackfock.model:activation-code-user (myway:dispatch *mapper*
+                                                                        (path-name (location body)))))
+                (t (condition)
+                  (format t "Condition caught when retrieving activation-code-user - ~a.~&"
+                          condition)
+                  nil))))
+        (cond (password-recovery-user (ackfock.feature.auth:logout body)
+                                      (create-web-page body
+                                                       :change-password
+                                                       `(:content ,(lambda (body)
+                                                                     (ackfock.feature.auth:change-password body
+                                                                                                           (ackfock.db:db)
+                                                                                                           :user password-recovery-user)))))
+              (current-user (create-web-page body
+		                             :change-password
+                                             `(:content ,(lambda (body)
+                                                           (let ((ackfock.feature.auth:*current-user* current-user))
+					                     (ackfock.feature.auth:change-password body
+                                                                                                   (ackfock.db:db)))))))
+              (t (url-replace (location body) "/"))))))
 
   (define-entry "main"
     :base-path "/"
