@@ -38,5 +38,7 @@
 			 (clog-web-alert obj "Invalid" "The email and password are invalid."
 					 :time-out 3
 					 :place-top t))))
-    (when signup-link
-      (create-a form :class "w3-right" :content "sign up" :link signup-link))))
+    (create-a form :class "w3-right" :content "sign up" :link signup-link)
+    (let ((forget-password-button (create-div form
+                                              :class "w3-small w3-margin"
+                                              :content "<u>Forgot password?</u>"))))))
