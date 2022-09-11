@@ -39,6 +39,27 @@
 					 :time-out 3
 					 :place-top t))))
     (create-a form :class "w3-right" :content "sign up" :link signup-link)
-    (let ((forget-password-button (create-div form
-                                              :class "w3-small w3-margin"
-                                              :content "<u>Forgot password?</u>"))))))
+    (with-clog-create form
+        (div (:class "w3-margin")
+             (div (:bind forgot-password-btn
+                    :content "<u>Forgot password?</u>"
+                    :class "w3-small"))
+             (dialog (:bind password-recovery-dialog)
+                     (form (:bind password-recovery-form :method "dialog")
+                           (div (:content "Password recovery by email" :class "w3-xlarge"))
+                           (p ()
+                              (label (:content "Email" :class "w3-large"))
+                              (form-element (:text
+                                             :name "email"
+                                             :class "w3-input")))
+                           (span (:bind password-recovery-submit-span)
+                                 (form-element (:submit
+                                                :value "Send"
+                                                :class (str:concat "w3-button " ackfock.game.theme:*color-class*)))
+                                 (form-element (:submit
+                                                :value "Cancel"
+                                                :class "w3-button w3-black"))))))
+      (set-on-click forgot-password-btn
+                    (lambda (obj)
+                      (declare (ignore obj))
+                      (setf (dialog-openp password-recovery-dialog) t))))))
