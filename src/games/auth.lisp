@@ -40,7 +40,8 @@
 					 :place-top t))))
     (create-a form :class "w3-right" :content "sign up" :link signup-link)
     (with-clog-create form
-        (div (:class "w3-margin")
+        (div (:bind password-recovery-div
+               :class "w3-margin")
              (div (:bind forgot-password-btn
                     :content "<u>Forgot password?</u>"
                     :class "w3-small"))
@@ -62,4 +63,35 @@
       (set-on-click forgot-password-btn
                     (lambda (obj)
                       (declare (ignore obj))
-                      (setf (dialog-openp password-recovery-dialog) t))))))
+                      (setf (dialog-openp password-recovery-dialog) t)))
+      (set-on-event password-recovery-dialog
+                    "close"
+                    (lambda (dialog-obj)
+                          (when (string= (return-value dialog-obj) "Send")
+                            (let* ((email (name-value password-recovery-form "email"))
+                                   (target-user (ackfock.model:user-by-email email)))
+                              ;; race condition gap notice
+                              (cond ((str:blankp email) (clog-web-alert password-recovery-div "Blank"
+                                                                        "The email field can't be blank."
+                                                                        :time-out 3
+                                                                        :place-top t))
+                                    ((not (ackfock.model:valid-email-address-p email)) (clog-web-alert password-recovery-div "Email invalid"
+                                                                                                       "Not a valid email address"
+                                                                                                       :time-out 3
+                                                                                                       :place-top t))
+                                    ((null target-user) (clog-web-alert password-recovery-div "Not Exists"
+                                                                        "There is no user associated with the given email."
+                                                                        :time-out 3
+                                                                        :place-top t))
+                                    (t ;; TODO: make it atomic!!!
+                                     (let ((activation-code (ackfock.feature.email-activation:create-code email)))
+                                       (ackfock.feature.email-activation:send-reset-password email
+                                                                                             (ackfock.model:user-username target-user)
+                                                                                             (str:concat ackfock.config:*application-url*
+                                                                                                         "/pass/"
+                                                                                                         (ackfock.model:activation-code-code activation-code)))
+                                       (clog-web-alert password-recovery-div "Sent"
+                                                                       "Please check your email inbox to reset your password"
+                                                                       :color-class "w3-green"
+                                                                       :time-out 3
+                                                                       :place-top t)))))))))))

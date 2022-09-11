@@ -5,7 +5,8 @@
                 #:defun-with-db-connection)
   (:export #:create-code
            #:activate
-           #:send-email))
+           #:send-email
+           #:send-reset-password))
 (in-package :ackfock.feature.email-activation)
 
 (defparameter *send-email-from*
@@ -66,5 +67,23 @@
                                     (:p "Welcome to Ackfock!. Please confirm your email address by clicking the link below")
                                     (:a :href link link)
                                     (:p "If you did not sign up for an Ackfock account, you can simply disregard this email.")
+                                    (:p "Happy Ack & Fock!")
+                                    (:p "The Ackfock Team"))))))
+
+(defun send-reset-password (email recipient-name link)
+  (sendgrid:send-email :to email
+                       :from *send-email-from*
+                       :subject (format nil "Hi ~a, here's the link to reset your password"
+                                        recipient-name)
+                       :content-type "text/html"
+                       :content (spinneret:with-html-string
+                                  (:doctype)
+                                  (:html
+                                   (:body
+                                    (:h1 "Password recovery")
+                                    (:p "Howdy,")
+                                    (:p "We received password recovery request. If it's your intention, please click the following to reset your password. It will expire in one hour.")
+                                    (:a :href link link)
+                                    (:p "If you did not request a password recovery, you can simply disregard this email.")
                                     (:p "Happy Ack & Fock!")
                                     (:p "The Ackfock Team"))))))
