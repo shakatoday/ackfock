@@ -6,7 +6,8 @@
   (:export #:create-code
            #:activate
            #:send-email
-           #:send-reset-password))
+           #:send-reset-password
+           #:get-activation-code-by-code))
 (in-package :ackfock.feature.email-activation)
 
 (defparameter *send-email-from*

@@ -138,9 +138,13 @@
       (let ((current-user (profile (ackfock.game.theme:init-site body)))
             (password-recovery-user
               (handler-case
-                  (ackfock.db:with-connection (ackfock.db:db)
-                    (ackfock.model:activation-code-user (myway:dispatch *mapper*
-                                                                        (path-name (location body)))))
+                  (let ((activation-code (ackfock.feature.email-activation:get-activation-code-by-code
+                                          (myway:dispatch *mapper*
+                                                          (path-name (location body))))))
+                    ;; TODO: transaction gap
+                    (when (local-time:timestamp<= (local-time:now) ; othewise the code is timeout
+                                                  (ackfock.model:activation-code-valid-until activation-code))
+                      (ackfock.model.relationships:activation-code-user activation-code)))
                 (t (condition)
                   (format t "Condition caught when retrieving activation-code-user - ~a.~&"
                           condition)

@@ -8,7 +8,8 @@
            #:memo-creator
            #:memo-channel
            #:memo-parent-memo
-           #:has-access-p))
+           #:has-access-p
+           #:activation-code-user))
 (in-package :ackfock.model.relationships)
 
 (defun-with-db-connection user-channels (user)
@@ -74,6 +75,15 @@
        (from :memo)
        (where (:= :memo.uuid (memo-parent-memo-id memo))))
      :as 'memo)))
+
+(defun-with-db-connection activation-code-user (activation-code)
+  (rutils:when-it (and (activation-code-p activation-code)
+                       (activation-code-email activation-code))
+    (retrieve-one
+     (select :*
+       (from :users)
+       (where (:= :users.email rutils:it)))
+     :as 'user)))
 
 (defgeneric has-access-p (user model-obj))
 

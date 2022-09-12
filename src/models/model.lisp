@@ -34,14 +34,14 @@
            #:activation-code-email
            #:activation-code-valid-until
            #:activation-code
+           #:activation-code-p
            #:invitation-code
            #:invitation-code-code
            #:invitation-code-valid-until
            #:invitation-code-used-by-user-id
            #:invitation-code-channel-id
            #:user-ackfock-list-to-alist-by-ackfock
-           #:valid-email-address-p
-           #:activation-code-user))
+           #:valid-email-address-p))
 (in-package :ackfock.model)
 
 (defun valid-email-address-p (string)
@@ -125,8 +125,7 @@
   created-at)
 
 (defmodel (activation-code (:inflate created-at #'datetime-to-timestamp)
-                           (:inflate valid-until #'datetime-to-timestamp)
-                           (:has-a user (where (:= :email email))))
+                           (:inflate valid-until #'datetime-to-timestamp))
   email
   code
   created-at
