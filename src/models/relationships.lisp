@@ -85,7 +85,7 @@
       (retrieve-one
        (select :*
          (from :user_channel_access)
-         (where (:and (:= :user_id user-id )
+         (where (:and (:= :user_id user-id)
                       (:= :channel_id channel-id))))))))
 
 (defmethod has-access-p ((user user) (model-obj memo))
