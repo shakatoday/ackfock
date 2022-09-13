@@ -6,6 +6,9 @@
 
 (defun login (body)
   (let* ((website (get-web-site body))
+         (from-password-recovery (string= (form-data-item (form-get-data body)
+                                                          "recover")
+                                          "t"))
 	 (signup-link (get-setting website :signup-link "/signup"))
          (outter (create-web-container body))
 	 (form (create-form outter))
@@ -21,6 +24,12 @@
 				    :class "w3-input"))
 	 (p3 (create-p form)))
     (declare (ignore l1 l2 p3))
+    (when from-password-recovery
+      (clog-web-alert outter "Success"
+                      "Password reset succeeded. Please re-login"
+                      :color-class "w3-green"
+		      :time-out 3
+		      :place-top t))
     (setf (maximum-width outter) (unit :px 500))
     (setf (requiredp user) t)
     (setf (requiredp pass) t)
