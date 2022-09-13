@@ -53,6 +53,10 @@
   (check-type body clog-body)
   (let ((current-user-uuid (ackfock.model:user-uuid (or user
                                                         *current-user*))))
+    (when user
+      (create-p body
+                :class "w3-xlarge"
+                :content (str:concat "Reset password for " (ackfock.model:user-email user))))
     (clog-web-form
      body title
      (append (unless user

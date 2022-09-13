@@ -155,7 +155,8 @@
                                                        `(:content ,(lambda (body)
                                                                      (ackfock.feature.auth:change-password body
                                                                                                            (ackfock.db:db)
-                                                                                                           :user password-recovery-user)))))
+                                                                                                           :user password-recovery-user
+                                                                                                           :next-step "/login")))))
               (current-user (create-web-page body
 		                             :change-password
                                              `(:content ,(lambda (body)
