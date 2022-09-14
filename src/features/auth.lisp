@@ -68,7 +68,7 @@
                (equal (form-result result "password")
                       (form-result result "repass")))
               (clog-web-alert body "Password Mismatch"
-                              "The new passwords do match."
+                              "The new password and your retype password did not match."
                               :time-out 3
                               :place-top t))
              ((< (length (form-result result "password")) 4)
