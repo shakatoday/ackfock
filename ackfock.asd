@@ -21,6 +21,7 @@
                "cl-migratum"
                "cl-migratum.provider.local-path"
                "cl-migratum.driver.dbi"
+               "ackfock-db-migrations"
 
                ;; GUI framework
                "clog"
