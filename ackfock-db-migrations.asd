@@ -1,4 +1,4 @@
-(defsystem "ackfock-db-migration"
+(defsystem "ackfock-db-migrations"
   :version "0.1.0"
   :author "Shaka Chen"
   :license ""
