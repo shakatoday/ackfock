@@ -18,13 +18,13 @@
   (let ((mito:*connection* (migratum.driver.dbi:dbi-driver-connection migration-driver)))
     (mito:execute-sql
      (alter-table :users
-       (rename-to :user)))))
+       (rename-to :account)))))
 
 (defun rename-user-table-for-using-mito/downgrade (migration-driver)
   "To change table user back to users."
   (let ((mito:*connection* (migratum.driver.dbi:dbi-driver-connection migration-driver)))
     (mito:execute-sql
-     (alter-table :user
+     (alter-table :account
        (rename-to :users)))))
 
 (defun id-and-primary-key-compatibility/upgrade (migration-driver)
