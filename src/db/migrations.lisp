@@ -13,6 +13,14 @@
 (defparameter *foreign-key-columns*
   '(:memo_id :user_id :archive_id :creator_id :parent_memo_id :archive_id :user_id :channel_id :source_user_id :used_by_user_id))
 
+(defmacro define-migration-handler (name &body body)
+  (let ((docstring (and (stringp (first body))
+                        (pop body))))
+    `(defun ,name (migration-driver)
+       ,@(serapeum:unsplice docstring)
+       (let ((mito:*connection* (migratum.driver.dbi:dbi-driver-connection migration-driver)))
+         ,@body))))
+
 (defun rename-user-table-for-using-mito/upgrade (migration-driver)
   "To change users to user. And ensuring it's letter case is compatible"
   (let ((mito:*connection* (migratum.driver.dbi:dbi-driver-connection migration-driver)))
@@ -26,6 +34,10 @@
     (mito:execute-sql
      (alter-table :account
        (rename-to :users)))))
+
+(define-migration-handler rename-all-db-object-names-from-user-to-account/upgrade)
+
+(define-migration-handler rename-all-db-object-names-from-user-to-account/downgrade)
 
 (defun id-and-primary-key-compatibility/upgrade (migration-driver)
   "Alter all tables' uuid column names to id, and alter types to varchar(36)."
