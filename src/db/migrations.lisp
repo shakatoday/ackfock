@@ -109,8 +109,11 @@
   ;; change varchar(36) type to :uuid
   (mapc (lambda (table-name column-name)
           (mito:execute-sql
-           (alter-table table-name
-             (alter-column column-name :type :uuid))))
+           (format nil "~a USING ~(~a~)::uuid"
+                   (yield
+                    (alter-table table-name
+                      (alter-column column-name :type :uuid)))
+                   column-name)))
         (append '(:account :channel :memo)
                 *foreign-key-tables*)
         (append '(:id :id :id)
