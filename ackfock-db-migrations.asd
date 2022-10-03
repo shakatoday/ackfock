@@ -10,4 +10,5 @@
                "cl-migratum.driver.dbi")
   :components ((:module "src/db"
                 :components
-                ((:file "migrations")))))
+                ((:file "migrations")
+                 (:file "migrations-20221003032819" :depends-on ("migrations"))))))

@@ -4,7 +4,9 @@
   (:export #:rename-user-table-for-using-mito/downgrade
            #:rename-user-table-for-using-mito/upgrade
            #:id-and-primary-key-compatibility/upgrade
-           #:id-and-primary-key-compatibility/downgrade))
+           #:id-and-primary-key-compatibility/downgrade
+           #:rename-all-column-names-containing-\"user\"-to-\"account\"/upgrade
+           #:rename-all-column-names-containing-\"user\"-to-\"account\"/downgrade))
 (in-package :ackfock.db.migrations)
 
 (defparameter *foreign-key-tables*
@@ -33,10 +35,6 @@
   (mito:execute-sql
    (alter-table :account
      (rename-to :users))))
-
-(define-migration-handler rename-all-db-object-names-from-user-to-account/upgrade)
-
-(define-migration-handler rename-all-db-object-names-from-user-to-account/downgrade)
 
 (define-migration-handler id-and-primary-key-compatibility/upgrade
   "Alter all tables' uuid column names to id, and alter types to varchar(36)."
