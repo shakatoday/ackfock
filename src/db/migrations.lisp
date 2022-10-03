@@ -91,4 +91,72 @@
         *foreign-key-columns*))
 
 (define-migration-handler id-and-primary-key-compatibility/downgrade
-  "Alter all tables' id column names back to uuid, and alter the types back to uuid")
+  "Alter all tables' id column names back to uuid, and alter the types back to uuid"
+
+  ;;
+  ;; drop foreign key constraints
+  (mapc (lambda (table-name reference-column-name)
+          (mito:execute-sql
+           (format nil "ALTER TABLE ~(~a~) DROP CONSTRAINT ~(~a~)_~(~a~)_fkey"
+                   table-name
+                   table-name
+                   reference-column-name)))
+        *foreign-key-tables*
+        (substitute :channel_id
+                    :archive_id
+                    *foreign-key-columns*))
+  ;;
+  ;; change varchar(36) type to :uuid
+  (mapc (lambda (table-name column-name)
+          (mito:execute-sql
+           (alter-table table-name
+             (alter-column column-name :type :uuid))))
+        (append '(:account :channel :memo)
+                *foreign-key-tables*)
+        (append '(:id :id :id)
+                (substitute :channel_id
+                            :archive_id
+                            *foreign-key-columns*)))
+  ;;
+  ;; re-construct foreign key constraints
+  (mapc (lambda (table-name column-name)
+          (let* ((column-name (if (eq column-name :archive_id)
+                                  :channel_id
+                                  column-name))
+                 (reference-table-name (or (case column-name
+                                             ((:memo_id :parent_memo_id) :memo)
+                                             (:channel_id :channel)
+                                             ((:user_id :creator_id :source_user_id :used_by_user_id) :account))
+                                           (error "Column: ~(~a~) doesn't have corresponding reference-table-name" column-name))))
+            (mito:execute-sql
+             (format nil "ALTER TABLE ~(~a~) ADD ~a"
+                     table-name
+                     (yield
+                      (foreign-key `(,column-name) :references `(,reference-table-name :id)))))))
+        *foreign-key-tables*
+        *foreign-key-columns*)
+  ;;
+  ;; rename constraints for migration history side effect
+  (mapc (lambda (table-name column-name)
+          (let ((historical-table-name (when (eq table-name :user_channel_access)
+                                         :user_archive_access))
+                (constraint-column-name-changed-after-upgrade (when (eq column-name :archive_id)
+                                                                :channel_id)))
+            (mito:execute-sql
+             (format nil "ALTER TABLE ~(~a~) RENAME CONSTRAINT ~(~a~)_~(~a~)_fkey to ~(~a~)_~(~a~)_fkey"
+                     table-name
+                     table-name
+                     (or constraint-column-name-changed-after-upgrade
+                         column-name)
+                     (or historical-table-name
+                         table-name)
+                     column-name))))
+        '(:memo :user_channel_access :user_channel_access)
+        '(:archive_id :archive_id :user_id))
+  ;;
+  ;; rename id column to uuid
+  (mapc (lambda (table-name)
+          (mito:execute-sql
+           (alter-table table-name
+             (rename-column :id :uuid))))
+        '(:account :channel :memo)))
