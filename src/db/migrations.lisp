@@ -11,7 +11,8 @@
   '(:user_ackfock :user_ackfock :memo :memo :memo :user_channel_access :user_channel_access :invitation_code :invitation_code :invitation_code))
 
 (defparameter *foreign-key-columns*
-  '(:memo_id :user_id :archive_id :creator_id :parent_memo_id :archive_id :user_id :channel_id :source_user_id :used_by_user_id))
+  '(:memo_id :user_id :archive_id :creator_id :parent_memo_id :archive_id :user_id :channel_id :source_user_id :used_by_user_id)
+  "The foreign key constraint names have migration history side. Thus, the name archive_id is here rather than channel_id")
 
 (defmacro define-migration-handler (name &body body)
   (let ((docstring (and (stringp (first body))
