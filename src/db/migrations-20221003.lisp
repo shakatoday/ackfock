@@ -20,3 +20,19 @@
           table-names
           new-column-names
           old-column-names)))
+
+(define-migration-handler rename-table-name-containing-\"user\"-to-\"account\"/upgrade
+  (mito:execute-sql
+   (alter-table :user_ackfock
+     (rename-to :account_ackfock)))
+  (mito:execute-sql
+   (alter-table :user_channel_access
+     (rename-to :account_channel_access))))
+
+(define-migration-handler rename-table-name-containing-\"user\"-to-\"account\"/downgrade
+  (mito:execute-sql
+   (alter-table :account_ackfock
+     (rename-to :user_ackfock)))
+  (mito:execute-sql
+   (alter-table :account_channel_access
+     (rename-to :user_channel_access))))

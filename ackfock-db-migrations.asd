@@ -11,4 +11,4 @@
   :components ((:module "src/db"
                 :components
                 ((:file "migrations")
-                 (:file "migrations-20221003032819" :depends-on ("migrations"))))))
+                 (:file "migrations-20221003" :depends-on ("migrations"))))))
