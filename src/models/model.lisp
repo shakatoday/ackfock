@@ -48,20 +48,17 @@
   (serapeum:true
    (ppcre:scan "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$" string)))
 
-(defmodel (user (:inflate created-at #'datetime-to-timestamp))
-  uuid
-  email
-  username
-  created-at)
+(apply #'mito:connect-toplevel
+       (ackfock.db:connection-settings))
 
-(defun-with-db-connection user-by-email (email)
-  (when (and (str:non-blank-string-p email)
-             (valid-email-address-p email))
-    (retrieve-one
-     (select :*
-       (from :users)
-       (where (:= :email email)))
-     :as 'user)))
+(mito:deftable account ()
+  ((email :col-type :varchar)
+   (username :col-type :varchar)
+   (password :col-type :varchar)
+   (email-activated-at :col-type (or :timestamptz :null))
+   (created-at :col-type (or :timestamptz :null)))
+  (:auto-pk :uuid)
+  (:unique-keys (email username)))
 
 (defmacro user-from-plist (plist)
   (cons 'make-user
@@ -140,3 +137,5 @@
   channel-id
   created-at
   valid-until)
+
+(mito:disconnect-toplevel)

@@ -14,6 +14,7 @@
                "cl-ppcre"
 
                ;; for DB
+               "mito"
                "datafly"
                "sxql"
 
