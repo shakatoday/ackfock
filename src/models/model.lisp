@@ -56,17 +56,10 @@
    (username :col-type :varchar)
    (password :col-type :varchar)
    (email-activated-at :col-type (or :timestamptz :null))
-   (created-at :col-type (or :timestamptz :null)))
+   (created-at :col-type :timestamptz
+               :initform (local-time:now)))
   (:auto-pk :uuid)
-  (:unique-keys (email username)))
-
-(defmacro user-from-plist (plist)
-  (cons 'make-user
-        (reduce #'append
-                (mapcar (lambda (keyword-arg)
-                          `(,keyword-arg (getf ,plist ,keyword-arg))) ; use the later created-at so we need a copy and remf
-                                        ; TODO: created-at needs an inflation-function
-                        '(:uuid :email :username :created-at)))))
+  (:unique-keys email))
 
 (deftype ackfock () '(member :ACK :FOCK)) ; the enum type in DB uses uppercase. we capitalize :ACK :FOCK as a reminder even if symbols in CL are uppercase by default.
 
