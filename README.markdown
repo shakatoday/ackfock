@@ -1,6 +1,6 @@
 # ackfock
 
-Memo hosting platform especially for business.
+Memo hosting platform for tiny memos of understanding (MOUs).
 It was a startup project. Now open source.
 
 
