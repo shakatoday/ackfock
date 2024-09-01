@@ -1,8 +1,14 @@
-# ackfock
+# Ackfock
 
-A hosting platform for tiny memos of understanding (MOUs).
+## Introduction 
+
+Ackfock is a hosting platform for tiny memos of understanding (MOUs).
+
+
 It was a startup project. Now open source.
 
+### Screenshot
+![Ackfock Screenshot](ackfock-screenshot.png)
 
 ## Code
 ### Front-end and Back-end
